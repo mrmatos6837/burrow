@@ -2,11 +2,11 @@
 
 ## What This Is
 
-A standalone addon for the GSD framework that replaces its built-in todo system with a bucket-based task manager. Todobox lets a solo developer and their AI agent organize thoughts, tasks, bugs, ideas, and anything else into user-defined buckets — with tags for sub-grouping, archiving for done items, and a minimal text UI designed for quick capture and triage. It sits in the sweet spot between a flat todo list and a full project manager like Linear: enough structure to stay organized, zero ceremony.
+A general-purpose agent-navigated nested list tool for Claude Code. Todobox stores everything as items that can contain items — infinitely nestable, like Workflowy — but instead of a human struggling to navigate deep trees, the AI agent is the navigator. The user talks naturally ("show me all my bugs with details", "add a note under the OAuth issue"), and the agent traverses, renders, and manipulates the tree. It sits in the sweet spot between a flat todo list and a full project manager: enough structure to stay organized, zero ceremony. V1 ships as a GSD addon with GSD commands; the core engine is designed to be adapter-agnostic for future Claude Code plugin packaging.
 
 ## Core Value
 
-The agent and the developer share a structured, scannable view of everything in flight — and the agent can reason about it, suggest updates, and reconcile completed work against open items without the developer lifting a finger.
+One recursive data structure — items containing items — navigated by an agent that can traverse, summarize, and render any slice of the tree at any depth, on demand. The human sees exactly what they need; the agent handles the complexity.
 
 ## Requirements
 
@@ -20,82 +20,118 @@ The agent and the developer share a structured, scannable view of everything in 
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] User-defined buckets with display order and optional per-bucket item limits
-- [ ] Items as markdown files with YAML frontmatter (bucket, title, created, tags, optional notes)
-- [ ] Tags within buckets for sub-grouping (status, area, or any user-defined category)
-- [ ] Tags emerge naturally from usage or can be defined upfront — either way works
-- [ ] Pan view: minimal bucket names + item counts for at-a-glance status
-- [ ] Drill view: items grouped by tag (indented), untagged items listed flat when no tags exist
-- [ ] Archive system: done items removed from view but stored and searchable
-- [ ] Natural language command handling via `/gsd:todobox` (agent interprets intent)
-- [ ] Direct shortcut commands (`/gsd:tb-add`, `/gsd:tb-show`, `/gsd:tb-move`, `/gsd:tb-archive`, etc.)
-- [ ] Bucket limits: when hit, agent informs user and asks what to do (move, raise limit, skip)
-- [ ] Node.js CLI helper (`todobox-tools.cjs`) for deterministic CRUD, rendering data, and config management
-- [ ] GSD workflow integration: reconciliation step after phase execution, debug sessions, and verification
-- [ ] Reconciliation: agent compares completed work against open items, suggests matches, user decides
-- [ ] Per-project scope (each project gets its own `.planning/todobox/`)
-- [ ] Consistent, structured CLI output for agent consumption (JSON for tools, formatted text for display)
+- [ ] Infinitely nestable items (each item can contain child items)
+- [ ] Single JSON storage (`items.json`) — one file, all data, fast and deterministic
+- [ ] CLI helper (`todobox-tools.cjs`) returns structured JSON for all operations
+- [ ] Depth-configurable rendering: indented list with cutoff, collapsed descendant counts shown as `(N)`
+- [ ] Natural language navigation via `/gsd:todobox` (agent interprets intent, picks depth/focus)
+- [ ] Direct shortcut commands for common operations
+- [ ] Archive system: archived items hidden from active views but searchable
+- [ ] Search across all items at any depth
+- [ ] Per-project scope (`.planning/todobox/`)
+- [ ] GSD adapter: commands registered as `/gsd:todobox`, `/gsd:tb-*` shortcuts
 
 ### Out of Scope
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- Web UI, database, external dependencies — this runs entirely in Claude Code's terminal
-- Priority scores or complex sorting algorithms — the user defines structure via buckets and tags
-- Integration with external task managers (Linear, Jira, etc.) — Todobox IS the task manager
+- Web UI, database, external dependencies — runs entirely in Claude Code's terminal
+- Priority scores or sorting algorithms — tree structure IS the organization
+- Integration with external task managers — Todobox IS the task manager
 - Multi-user or sync features — single dev + agent, local files
-- Global cross-project buckets — per-project only, keeps contexts isolated
-- Smart fuzzy auto-matching via hooks — reconciliation is agent-driven, not automated scripts
+- Interactive TUI (full-screen) — nested TUI breaks agent output model
+- Due dates, recurring tasks, custom fields — use nesting and natural text instead
+- GSD workflow integration (reconciliation, auto-tracking) — deferred to v2
 
 ## Context
 
-Todobox is a GSD addon, not a modification to GSD core. It lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The architecture:
+Todobox is a standalone tool that ships as a GSD addon for v1. It lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — GSD commands are one adapter; a generic Claude Code plugin adapter can be built later.
 
-**Addon code (logic + behavior):**
-```
-.claude/todobox/
-  todobox-tools.cjs       # CLI helper for CRUD, rendering, config
-  workflows/todobox.md    # Main workflow (handles all interaction)
-  templates/              # Output templates
-```
+**Data model:**
+One recursive type: items containing items. No separate concepts for "buckets", "tags", or "categories" — those are just items at different depths. The user decides what the tree means.
 
-**Commands (user entry points):**
+```json
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "a1b2c3d4",
+      "title": "bugs",
+      "created": "2026-03-06T14:30:00Z",
+      "archived": false,
+      "notes": "",
+      "children": [
+        {
+          "id": "e5f6g7h8",
+          "title": "Login redirect broken",
+          "created": "2026-03-06T14:35:00Z",
+          "archived": false,
+          "notes": "OAuth callback sends to /dashboard instead of original page",
+          "children": [
+            {
+              "id": "i9j0k1l2",
+              "title": "Root cause: callback URL not stored in session",
+              "created": "2026-03-06T15:00:00Z",
+              "archived": false,
+              "notes": "",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
-.claude/commands/gsd/
-  todobox.md              # Main: /gsd:todobox — natural language
-  tb-add.md               # Shortcut: /gsd:tb-add
-  tb-show.md              # Shortcut: /gsd:tb-show
-  tb-move.md              # Shortcut: /gsd:tb-move
-  tb-archive.md           # Shortcut: /gsd:tb-archive
-  + other relevant bucket/item management shortcuts
-```
-
-**Data (per-project):**
-```
-.planning/todobox/
-  config.json             # Bucket names, display order, limits
-  items/                  # Active item files (markdown + YAML frontmatter)
-  archive/                # Archived items (searchable, hidden from default view)
-```
-
-**GSD Integration:**
-- Reconciliation step injected into GSD workflows (execute-phase, debug, verify-work)
-- Agent reads completed work summary + open Todobox items
-- Agent presents matches with options (archive, move, skip) + free text
-- User decides — agent never auto-closes items without confirmation
 
 **Rendering model:**
-- Pan view: bucket names + counts (dotted alignment, minimal)
-- Drill view: items under tag sub-headers (indented), untagged items flat
-- All CLI tool output is structured JSON; all user-facing output is formatted text
+Indented list with configurable depth cutoff. Items beyond the cutoff collapse into a descendant count `(N)` — total items at all depths below that point.
+
+```
+depth=1:
+  bugs ...................... (5)
+  features .................. (3)
+  research .................. (4)
+
+depth=2:
+  bugs
+    * Login redirect broken
+    * API timeout ........... (2)
+    * Dark mode flicker
+    * Sidebar overlap
+    * Auth token race
+```
+
+**Addon code:**
+```
+.claude/todobox/
+  todobox-tools.cjs       # CLI helper (CRUD, tree traversal, rendering data)
+  workflows/todobox.md    # Agent workflow (all interaction)
+```
+
+**GSD adapter (commands):**
+```
+.claude/commands/gsd/
+  todobox.md              # /gsd:todobox — natural language
+  tb-add.md               # /gsd:tb-add
+  tb-show.md              # /gsd:tb-show
+  tb-move.md              # /gsd:tb-move
+  tb-archive.md           # /gsd:tb-archive
+```
+
+**Data:**
+```
+.planning/todobox/
+  items.json              # The entire tree
+```
 
 ## Constraints
 
-- **Runtime**: Node.js (same as GSD's `gsd-tools.cjs` — no additional runtime dependencies)
-- **Storage**: Flat files only (markdown + YAML frontmatter for items, JSON for config)
-- **Independence**: Must not modify any files inside `.claude/get-shit-done/` — addon lives separately
-- **GSD compatibility**: Must work alongside GSD v1.22.4+ without conflicts
-- **Context efficiency**: CLI returns structured data; agent does the thinking, not the script
+- **Runtime**: Node.js built-in APIs only — zero npm dependencies
+- **Storage**: Single JSON file (`items.json`) — atomic writes (tmp + rename)
+- **Independence**: Must not modify any files inside `.claude/get-shit-done/`
+- **GSD compatibility**: Works alongside GSD v1.22.4+ without conflicts
+- **Context efficiency**: CLI returns structured JSON; agent does rendering and navigation
 
 ## Key Decisions
 
@@ -103,11 +139,13 @@ Todobox is a GSD addon, not a modification to GSD core. It lives outside `.claud
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | — Pending |
-| Agent-driven reconciliation, not automated hooks | Smart matching requires agent judgment; user always decides | — Pending |
-| Tags are flexible (emerge or defined) | Supports both structured workflows and loose capture without forcing either | — Pending |
-| Pan + drill two-level rendering | Minimal overview for status, detailed drill-down for triage | — Pending |
-| Per-project scope only | Keeps contexts isolated, simpler data model, matches GSD's project-local pattern | — Pending |
+| Nested list model (not buckets + tags) | One recursive concept replaces three separate models. Simpler data, simpler code, more flexible. Agent handles navigation complexity. | -- Pending |
+| Single JSON storage | One file read per operation. No YAML parsing, no directory enumeration. Fast, minimal, deterministic. | -- Pending |
+| General-purpose core + GSD adapter | Core engine is adapter-agnostic. GSD commands are v1 adapter. Opens path to standalone Claude Code plugin. | -- Pending |
+| Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | -- Pending |
+| Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | -- Pending |
+| Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | -- Pending |
+| Per-project scope only | Keeps contexts isolated, simpler data model | -- Pending |
 
 ---
-*Last updated: 2026-03-06 after initialization*
+*Last updated: 2026-03-07 after pivot to nested list model*
