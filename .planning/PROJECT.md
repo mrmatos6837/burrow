@@ -6,7 +6,11 @@ A general-purpose agent-navigated nested list tool for Claude Code. Burrow store
 
 ### Branding
 
-The **burrow** is the data structure — a network of tunnels and chambers (items nested inside items). The **ferret** is the engine you send into the burrow: absurdly fast, single-purpose, grabs exactly what you need, comes back, and goes limp. Ferrets don't dig burrows — they're sent into existing ones to navigate, retrieve, and rearrange. That's the model: the user talks, the ferret bolts through the tunnels, and the result appears. The core engine module is `ferret.cjs`.
+There's a hole in the ground next to your project. Not a real one — a metaphysical one. Chuck any thought into it and it's stored before you finish the sentence. Need it back? Already there. It doesn't matter how deep the thought was buried, or how many thoughts are nested inside other thoughts inside other thoughts — the burrow goes down forever and it doesn't care. It works at the speed of not-thinking-about-it.
+
+That's the model. The **burrow** is infinitely recursive and metaphysical — it holds whatever structure your mind wants to throw at it. Something in the hole stores, retrieves, rearranges, and navigates at a speed that makes the whole thing feel like it was always just *there*. You'll never need to think about what. That's the point.
+
+<!-- If you're reading the source and wondering what lives in the hole: check lib/mongoose.cjs. It's fast. It built the tunnels. It doesn't need credit. -->
 
 ## Core Value
 
@@ -159,7 +163,7 @@ depth=2:
 | Plain JS for v1 | Schema is small enough that TS types don't buy much. Upgrade to TS if/when plugin packaging happens. | -- Pending |
 | General-purpose core + GSD adapter | Core engine is adapter-agnostic. GSD commands are v1 adapter. Opens path to standalone Claude Code plugin. | -- Pending |
 | Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | -- Pending |
-| Ferret branding for engine | The burrow is the data, the ferret is the fast agent sent in to navigate it. Core tree module named `ferret.cjs`. | -- Pending |
+| Metaphysical branding | The burrow is infinite and recursive. Something fast lives in it. The name sells the concept; the code rewards the curious. | -- Pending |
 | Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | -- Pending |
 | Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | -- Pending |
 | Per-project scope only | Keeps contexts isolated, simpler data model | -- Pending |

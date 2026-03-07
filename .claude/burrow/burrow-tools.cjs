@@ -5,8 +5,8 @@ const { parseArgs } = require('node:util');
 const path = require('node:path');
 
 const core = require('./lib/core.cjs');
-const storage = require('./lib/storage.cjs');
-const tree = require('./lib/ferret.cjs');
+const storage = require('./lib/warren.cjs');
+const tree = require('./lib/mongoose.cjs');
 
 function main() {
   const command = process.argv[2];

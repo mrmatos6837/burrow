@@ -14,7 +14,7 @@ const {
   moveItem,
   getChildren,
   listItems,
-} = require('../lib/ferret.cjs');
+} = require('../lib/mongoose.cjs');
 
 /**
  * Helper: create a fresh empty data structure.
