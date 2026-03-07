@@ -1,8 +1,12 @@
-# Todobox
+# Burrow
 
 ## What This Is
 
-A general-purpose agent-navigated nested list tool for Claude Code. Todobox stores everything as items that can contain items — infinitely nestable, like Workflowy — but instead of a human struggling to navigate deep trees, the AI agent is the navigator. The user talks naturally ("show me all my bugs with details", "add a note under the OAuth issue"), and the agent traverses, renders, and manipulates the tree. It sits in the sweet spot between a flat todo list and a full project manager: enough structure to stay organized, zero ceremony. V1 ships as a GSD addon with GSD commands; the core engine is designed to be adapter-agnostic for future Claude Code plugin packaging.
+A general-purpose agent-navigated nested list tool for Claude Code. Burrow stores everything as items that can contain items — infinitely nestable, like Workflowy — but instead of a human struggling to navigate deep trees, the AI agent is the navigator. The user talks naturally ("show me all my bugs with details", "add a note under the OAuth issue"), and the agent traverses, renders, and manipulates the tree. It sits in the sweet spot between a flat todo list and a full project manager: enough structure to stay organized, zero ceremony. V1 ships as a GSD addon with GSD commands; the core engine is designed to be adapter-agnostic for future Claude Code plugin packaging.
+
+### Branding
+
+The **burrow** is the data structure — a network of tunnels and chambers (items nested inside items). The **ferret** is the engine you send into the burrow: absurdly fast, single-purpose, grabs exactly what you need, comes back, and goes limp. Ferrets don't dig burrows — they're sent into existing ones to navigate, retrieve, and rearrange. That's the model: the user talks, the ferret bolts through the tunnels, and the result appears. The core engine module is `ferret.cjs`.
 
 ## Core Value
 
@@ -22,14 +26,14 @@ One recursive data structure — items containing items — navigated by an agen
 
 - [ ] Infinitely nestable items (each item can contain child items)
 - [ ] Single JSON storage (`items.json`) — one file, all data, fast and deterministic
-- [ ] CLI helper (`todobox-tools.cjs`) returns structured JSON for all operations
+- [ ] CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
 - [ ] Depth-configurable rendering: indented list with cutoff, collapsed descendant counts shown as `(N)`
-- [ ] Natural language navigation via `/gsd:todobox` (agent interprets intent, picks depth/focus)
+- [ ] Natural language navigation via `/gsd:burrow` (agent interprets intent, picks depth/focus)
 - [ ] Direct shortcut commands for common operations
 - [ ] Archive system: archived items hidden from active views but searchable
 - [ ] Search across all items at any depth
-- [ ] Per-project scope (`.planning/todobox/`)
-- [ ] GSD adapter: commands registered as `/gsd:todobox`, `/gsd:tb-*` shortcuts
+- [ ] Per-project scope (`.planning/burrow/`)
+- [ ] GSD adapter: commands registered as `/gsd:burrow`, `/gsd:bw-*` shortcuts
 
 ### Out of Scope
 
@@ -37,7 +41,7 @@ One recursive data structure — items containing items — navigated by an agen
 
 - Web UI, database, external dependencies — runs entirely in Claude Code's terminal
 - Priority scores or sorting algorithms — tree structure IS the organization
-- Integration with external task managers — Todobox IS the task manager
+- Integration with external task managers — Burrow IS the task manager
 - Multi-user or sync features — single dev + agent, local files
 - Interactive TUI (full-screen) — nested TUI breaks agent output model
 - Due dates, recurring tasks, custom fields — use nesting and natural text instead
@@ -45,7 +49,7 @@ One recursive data structure — items containing items — navigated by an agen
 
 ## Context
 
-Todobox is a standalone tool that ships as a GSD addon for v1. It lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — GSD commands are one adapter; a generic Claude Code plugin adapter can be built later.
+Burrow is a standalone tool that ships as a GSD addon for v1. It lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — GSD commands are one adapter; a generic Claude Code plugin adapter can be built later.
 
 **Data model:**
 One recursive type: items containing items. No separate concepts for "buckets", "tags", or "categories" — those are just items at different depths. The user decides what the tree means.
@@ -114,24 +118,24 @@ depth=2:
 
 **Addon code:**
 ```
-.claude/todobox/
-  todobox-tools.cjs       # CLI helper (CRUD, tree traversal, rendering data)
-  workflows/todobox.md    # Agent workflow (all interaction)
+.claude/burrow/
+  burrow-tools.cjs       # CLI helper (CRUD, tree traversal, rendering data)
+  workflows/burrow.md    # Agent workflow (all interaction)
 ```
 
 **GSD adapter (commands):**
 ```
 .claude/commands/gsd/
-  todobox.md              # /gsd:todobox — natural language
-  tb-add.md               # /gsd:tb-add
-  tb-show.md              # /gsd:tb-show
-  tb-move.md              # /gsd:tb-move
-  tb-archive.md           # /gsd:tb-archive
+  burrow.md              # /gsd:burrow — natural language
+  bw-add.md               # /gsd:bw-add
+  bw-show.md              # /gsd:bw-show
+  bw-move.md              # /gsd:bw-move
+  bw-archive.md           # /gsd:bw-archive
 ```
 
 **Data:**
 ```
-.planning/todobox/
+.planning/burrow/
   items.json              # The entire tree
 ```
 
@@ -155,9 +159,10 @@ depth=2:
 | Plain JS for v1 | Schema is small enough that TS types don't buy much. Upgrade to TS if/when plugin packaging happens. | -- Pending |
 | General-purpose core + GSD adapter | Core engine is adapter-agnostic. GSD commands are v1 adapter. Opens path to standalone Claude Code plugin. | -- Pending |
 | Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | -- Pending |
+| Ferret branding for engine | The burrow is the data, the ferret is the fast agent sent in to navigate it. Core tree module named `ferret.cjs`. | -- Pending |
 | Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | -- Pending |
 | Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | -- Pending |
 | Per-project scope only | Keeps contexts isolated, simpler data model | -- Pending |
 
 ---
-*Last updated: 2026-03-07 after pivot to nested list model*
+*Last updated: 2026-03-07 — renamed from Todobox to Burrow*

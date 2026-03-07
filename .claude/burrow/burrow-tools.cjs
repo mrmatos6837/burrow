@@ -6,7 +6,7 @@ const path = require('node:path');
 
 const core = require('./lib/core.cjs');
 const storage = require('./lib/storage.cjs');
-const tree = require('./lib/tree.cjs');
+const tree = require('./lib/ferret.cjs');
 
 function main() {
   const command = process.argv[2];

@@ -14,7 +14,7 @@ const {
   moveItem,
   getChildren,
   listItems,
-} = require('../lib/tree.cjs');
+} = require('../lib/ferret.cjs');
 
 /**
  * Helper: create a fresh empty data structure.
