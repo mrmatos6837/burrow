@@ -1,8 +1,8 @@
-# Roadmap: Todobox
+# Roadmap: Burrow
 
 ## Overview
 
-Todobox delivers a recursive nested list tool navigated by an AI agent. The build follows strict dependency order: first the core data engine and CLI skeleton (recursive tree CRUD, single JSON storage, atomic writes, tree traversal), then views and features (depth-configurable rendering, search, archive), and finally the agent interface (workflow file and GSD commands for natural language and shortcut interaction). Storage is a single JSON file (items.json) with a recursive tree structure -- no buckets, no tags, no flat lists.
+Burrow delivers a recursive nested list tool navigated by an AI agent. The build follows strict dependency order: first the core data engine and CLI skeleton (recursive tree CRUD, single JSON storage, atomic writes, tree traversal), then views and features (depth-configurable rendering, search, archive), and finally the agent interface (workflow file and GSD commands for natural language and shortcut interaction). Storage is a single JSON file (items.json) with a recursive tree structure -- no buckets, no tags, no flat lists.
 
 ## Phases
 
@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Every mutation writes atomically (tmp + rename) and creates items.json.bak before modifying data
   4. CLI tool can traverse the tree: get any item by ID, list its children, and return the full ancestry path from root to that item
   5. Each parent's children respect their ordering mode (custom by position, alpha-asc, alpha-desc)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Data layer: core helpers, atomic storage, and recursive tree operations with tests
+- [ ] 01-02-PLAN.md -- CLI router: wire all 8 subcommands into burrow-tools.cjs with integration tests
 
 ### Phase 2: Views and Features
 **Goal**: Users can see their tree rendered as an indented list at any depth, search across all items, and archive completed items
@@ -50,12 +50,12 @@ Plans:
 - [ ] 02-02: TBD
 
 ### Phase 3: Agent Interface
-**Goal**: Users interact with Todobox through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and renders the right view
+**Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and renders the right view
 **Depends on**: Phase 2
 **Requirements**: CMDS-01, CMDS-02, CMDS-03, CMDS-04, CMDS-05, CMDS-06
 **Success Criteria** (what must be TRUE):
-  1. User can type /gsd:todobox with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and renders a useful response
-  2. User can use shortcut commands (/gsd:tb-add, /gsd:tb-show, /gsd:tb-move, /gsd:tb-archive) for common operations without typing full natural language
+  1. User can type /gsd:burrow with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and renders a useful response
+  2. User can use shortcut commands (/gsd:bw-add, /gsd:bw-show, /gsd:bw-move, /gsd:bw-archive) for common operations without typing full natural language
   3. Workflow file defines clear agent behavior for all interactions -- intent parsing, tree navigation, depth selection, and output formatting
 **Plans**: TBD
 
