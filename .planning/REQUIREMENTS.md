@@ -1,4 +1,4 @@
-# Requirements: Todobox
+# Requirements: Burrow
 
 **Defined:** 2026-03-07
 **Core Value:** One recursive data structure navigated by an agent that can traverse, summarize, and render any slice at any depth.
@@ -9,16 +9,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data Layer
 
-- [ ] **DATA-01**: Items are nestable — each item can contain child items to arbitrary depth
-- [ ] **DATA-02**: Items stored in single `items.json` file as a recursive JSON tree
-- [ ] **DATA-03**: User can add an item at any point in the tree (root or as child of any item)
-- [ ] **DATA-04**: User can edit item title and notes
-- [ ] **DATA-05**: User can delete an item (and its descendants)
-- [ ] **DATA-06**: User can move an item (and its descendants) to a different parent — position determined by target's ordering mode
-- [ ] **DATA-07**: Items get 8-char hex IDs and auto-set creation timestamps
-- [ ] **DATA-08**: Each item has a `position` field; each parent has `children.ordering` (custom, alpha-asc, alpha-desc)
-- [ ] **DATA-09**: All writes are atomic (write-to-tmp + rename) to prevent corruption
-- [ ] **DATA-10**: `items.json.bak` written before each mutation as safety net
+- [x] **DATA-01**: Items are nestable — each item can contain child items to arbitrary depth
+- [x] **DATA-02**: Items stored in single `items.json` file as a recursive JSON tree
+- [x] **DATA-03**: User can add an item at any point in the tree (root or as child of any item)
+- [x] **DATA-04**: User can edit item title and notes
+- [x] **DATA-05**: User can delete an item (and its descendants)
+- [x] **DATA-06**: User can move an item (and its descendants) to a different parent — position determined by target's ordering mode
+- [x] **DATA-07**: Items get 8-char hex IDs and auto-set creation timestamps
+- [x] **DATA-08**: Each item has a `position` field; each parent has `children.ordering` (custom, alpha-asc, alpha-desc)
+- [x] **DATA-09**: All writes are atomic (write-to-tmp + rename) to prevent corruption
+- [x] **DATA-10**: `items.json.bak` written before each mutation as safety net
 
 ### Rendering
 
@@ -39,17 +39,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### CLI
 
-- [ ] **CLI-01**: CLI helper (`todobox-tools.cjs`) returns structured JSON for all operations
+- [ ] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
 - [ ] **CLI-02**: CLI supports tree traversal operations (get item by ID, get children, get path to item)
 
 ### Commands
 
-- [ ] **CMDS-01**: `/gsd:todobox` handles any natural language command (agent interprets intent)
-- [ ] **CMDS-02**: `/gsd:tb-add` shortcut for quick item creation
-- [ ] **CMDS-03**: `/gsd:tb-show` shortcut for viewing tree at specified depth/focus
-- [ ] **CMDS-04**: `/gsd:tb-move` shortcut for moving items
-- [ ] **CMDS-05**: `/gsd:tb-archive` shortcut for archiving items
-- [ ] **CMDS-06**: Workflow file (`todobox.md`) defines agent behavior for all interactions
+- [ ] **CMDS-01**: `/gsd:burrow` handles any natural language command (agent interprets intent)
+- [ ] **CMDS-02**: `/gsd:bw-add` shortcut for quick item creation
+- [ ] **CMDS-03**: `/gsd:bw-show` shortcut for viewing tree at specified depth/focus
+- [ ] **CMDS-04**: `/gsd:bw-move` shortcut for moving items
+- [ ] **CMDS-05**: `/gsd:bw-archive` shortcut for archiving items
+- [ ] **CMDS-06**: Workflow file (`burrow.md`) defines agent behavior for all interactions
 
 ## v2 Requirements
 
@@ -94,16 +94,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
-| DATA-06 | Phase 1 | Pending |
-| DATA-07 | Phase 1 | Pending |
-| DATA-08 | Phase 1 | Pending |
-| DATA-09 | Phase 1 | Pending |
-| DATA-10 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
+| DATA-04 | Phase 1 | Complete |
+| DATA-05 | Phase 1 | Complete |
+| DATA-06 | Phase 1 | Complete |
+| DATA-07 | Phase 1 | Complete |
+| DATA-08 | Phase 1 | Complete |
+| DATA-09 | Phase 1 | Complete |
+| DATA-10 | Phase 1 | Complete |
 | RNDR-01 | Phase 2 | Pending |
 | RNDR-02 | Phase 2 | Pending |
 | RNDR-03 | Phase 2 | Pending |
@@ -128,4 +128,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-07 -- Updated traceability for nested list model roadmap*
+*Last updated: 2026-03-07 — renamed from Todobox to Burrow*
