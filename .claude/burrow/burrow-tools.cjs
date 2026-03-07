@@ -40,7 +40,7 @@ function main() {
       }
 
       const data = storage.load(cwd);
-      const result = tree.addItem(data, {
+      const result = tree.addCard(data, {
         title: values.title,
         parentId: values.parent || null,
         notes: values.notes,
@@ -70,7 +70,7 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       if (values.ordering && !['custom', 'alpha-asc', 'alpha-desc'].includes(values.ordering)) {
@@ -81,14 +81,14 @@ function main() {
       }
 
       const data = storage.load(cwd);
-      const result = tree.editItem(data, id, {
+      const result = tree.editCard(data, id, {
         title: values.title,
         notes: values.notes,
         ordering: values.ordering,
       });
 
       if (!result) {
-        core.errorOut(`Item not found: ${id}`, 'NOT_FOUND');
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
@@ -105,14 +105,14 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
-      const result = tree.deleteItem(data, id);
+      const result = tree.deleteCard(data, id);
 
       if (!result) {
-        core.errorOut(`Item not found: ${id}`, 'NOT_FOUND');
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
@@ -133,7 +133,7 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       // --parent "" or --parent "root" means move to root (null)
@@ -147,7 +147,7 @@ function main() {
       }
 
       const data = storage.load(cwd);
-      const result = tree.moveItem(
+      const result = tree.moveCard(
         data,
         id,
         newParentId,
@@ -155,7 +155,7 @@ function main() {
       );
 
       if (!result) {
-        core.errorOut('Move failed: item not found or would create cycle', 'INVALID_OPERATION');
+        core.errorOut('Move failed: card not found or would create cycle', 'INVALID_OPERATION');
       }
 
       storage.save(cwd, data);
@@ -172,14 +172,14 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.findById(data, id);
 
       if (!result) {
-        core.errorOut(`Item not found: ${id}`, 'NOT_FOUND');
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       core.output(result);
@@ -195,7 +195,7 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
@@ -213,7 +213,7 @@ function main() {
 
       const parentId = positionals[0] || null;
       const data = storage.load(cwd);
-      const result = tree.listItems(data, parentId);
+      const result = tree.listCards(data, parentId);
       core.output(result);
       break;
     }
@@ -227,18 +227,18 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Item ID is required', 'INVALID_OPERATION');
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.getPath(data, id);
 
       if (!result) {
-        core.errorOut(`Item not found: ${id}`, 'NOT_FOUND');
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       // Strip children to keep path output clean
-      const cleanPath = result.map((item) => ({ id: item.id, title: item.title }));
+      const cleanPath = result.map((card) => ({ id: card.id, title: card.title }));
       core.output(cleanPath);
       break;
     }

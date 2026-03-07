@@ -25,19 +25,19 @@ describe('storage', () => {
       assert.deepStrictEqual(data, {
         version: 1,
         ordering: 'custom',
-        items: [],
+        cards: [],
       });
     });
 
-    it('reads existing items.json correctly', () => {
+    it('reads existing cards.json correctly', () => {
       const existing = {
         version: 1,
         ordering: 'alpha-asc',
-        items: [{ id: 'aabbccdd', title: 'test', position: 0, children: { ordering: 'custom', items: [] } }],
+        cards: [{ id: 'aabbccdd', title: 'test', position: 0, children: { ordering: 'custom', cards: [] } }],
       };
       const dir = path.join(tmpDir, '.planning', 'burrow');
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(path.join(dir, 'items.json'), JSON.stringify(existing, null, 2) + '\n');
+      fs.writeFileSync(path.join(dir, 'cards.json'), JSON.stringify(existing, null, 2) + '\n');
 
       const data = load(tmpDir);
       assert.deepStrictEqual(data, existing);
@@ -45,12 +45,12 @@ describe('storage', () => {
   });
 
   describe('save', () => {
-    it('creates items.json with correct content', () => {
-      const data = { version: 1, ordering: 'custom', items: [] };
+    it('creates cards.json with correct content', () => {
+      const data = { version: 1, ordering: 'custom', cards: [] };
       save(tmpDir, data);
 
-      const filePath = path.join(tmpDir, '.planning', 'burrow', 'items.json');
-      assert.ok(fs.existsSync(filePath), 'items.json should exist');
+      const filePath = path.join(tmpDir, '.planning', 'burrow', 'cards.json');
+      assert.ok(fs.existsSync(filePath), 'cards.json should exist');
 
       const content = fs.readFileSync(filePath, 'utf-8');
       assert.deepStrictEqual(JSON.parse(content), data);
@@ -58,29 +58,29 @@ describe('storage', () => {
     });
 
     it('creates .bak backup of previous file before writing', () => {
-      const original = { version: 1, ordering: 'custom', items: [{ id: '11111111', title: 'original' }] };
-      const updated = { version: 1, ordering: 'custom', items: [{ id: '11111111', title: 'updated' }] };
+      const original = { version: 1, ordering: 'custom', cards: [{ id: '11111111', title: 'original' }] };
+      const updated = { version: 1, ordering: 'custom', cards: [{ id: '11111111', title: 'updated' }] };
 
       save(tmpDir, original);
       save(tmpDir, updated);
 
-      const bakPath = path.join(tmpDir, '.planning', 'burrow', 'items.json.bak');
+      const bakPath = path.join(tmpDir, '.planning', 'burrow', 'cards.json.bak');
       assert.ok(fs.existsSync(bakPath), 'backup file should exist');
 
       const bakContent = JSON.parse(fs.readFileSync(bakPath, 'utf-8'));
       assert.deepStrictEqual(bakContent, original, 'backup should contain original data');
 
       const currentContent = JSON.parse(
-        fs.readFileSync(path.join(tmpDir, '.planning', 'burrow', 'items.json'), 'utf-8')
+        fs.readFileSync(path.join(tmpDir, '.planning', 'burrow', 'cards.json'), 'utf-8')
       );
       assert.deepStrictEqual(currentContent, updated, 'current file should contain updated data');
     });
 
     it('uses atomic write (.tmp does not remain after save)', () => {
-      const data = { version: 1, ordering: 'custom', items: [] };
+      const data = { version: 1, ordering: 'custom', cards: [] };
       save(tmpDir, data);
 
-      const tmpPath = path.join(tmpDir, '.planning', 'burrow', 'items.json.tmp');
+      const tmpPath = path.join(tmpDir, '.planning', 'burrow', 'cards.json.tmp');
       assert.ok(!fs.existsSync(tmpPath), '.tmp file should not remain after save');
     });
   });

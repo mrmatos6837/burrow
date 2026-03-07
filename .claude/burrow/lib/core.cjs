@@ -25,7 +25,7 @@ function errorOut(message, code = 'INVALID_OPERATION') {
 
 /**
  * Ensure the .planning/burrow/ directory exists.
- * Does NOT create items.json -- storage.load handles empty state.
+ * Does NOT create cards.json -- storage.load handles empty state.
  * @param {string} cwd - Working directory
  */
 function ensureDataDir(cwd) {
@@ -34,21 +34,21 @@ function ensureDataDir(cwd) {
 }
 
 /**
- * Recursively collect all item IDs from the data tree.
- * @param {object} data - Root data object with .items array
+ * Recursively collect all card IDs from the data tree.
+ * @param {object} data - Root data object with .cards array
  * @returns {Set<string>} Set of all IDs in the tree
  */
 function collectAllIds(data) {
   const ids = new Set();
-  function walk(items) {
-    for (const item of items) {
-      ids.add(item.id);
-      if (item.children && item.children.items) {
-        walk(item.children.items);
+  function walk(cards) {
+    for (const card of cards) {
+      ids.add(card.id);
+      if (card.children && card.children.cards) {
+        walk(card.children.cards);
       }
     }
   }
-  walk(data.items || []);
+  walk(data.cards || []);
   return ids;
 }
 

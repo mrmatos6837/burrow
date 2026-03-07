@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { ensureDataDir } = require('./core.cjs');
 
-const DATA_FILE = 'items.json';
+const DATA_FILE = 'cards.json';
 const BACKUP_EXT = '.bak';
 const TMP_EXT = '.tmp';
 
 /**
- * Resolve the path to items.json within the given working directory.
+ * Resolve the path to cards.json within the given working directory.
  * @param {string} cwd
  * @returns {string}
  */
@@ -18,7 +18,7 @@ function dataPath(cwd) {
 }
 
 /**
- * Load the burrow data from items.json.
+ * Load the burrow data from cards.json.
  * Returns default empty structure if the file does not exist.
  * @param {string} cwd - Working directory
  * @returns {object} Parsed data
@@ -30,18 +30,18 @@ function load(cwd) {
     return JSON.parse(raw);
   } catch (err) {
     if (err.code === 'ENOENT') {
-      return { version: 1, ordering: 'custom', items: [] };
+      return { version: 1, ordering: 'custom', cards: [] };
     }
     throw err;
   }
 }
 
 /**
- * Save the burrow data to items.json with atomic write and backup.
+ * Save the burrow data to cards.json with atomic write and backup.
  * 1. Ensure data directory exists
- * 2. If items.json exists, copy to items.json.bak
- * 3. Write to items.json.tmp
- * 4. Rename tmp to items.json
+ * 2. If cards.json exists, copy to cards.json.bak
+ * 3. Write to cards.json.tmp
+ * 4. Rename tmp to cards.json
  * @param {string} cwd - Working directory
  * @param {object} data - Data to save
  */

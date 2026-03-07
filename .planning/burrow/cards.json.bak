@@ -1,7 +1,7 @@
 {
   "version": 1,
   "ordering": "custom",
-  "cards": [
+  "items": [
     {
       "id": "8eaff688",
       "title": "Phase 2 Decisions",
@@ -11,7 +11,7 @@
       "notes": "Decisions from discuss-phase session 2026-03-07. Follow up on these during planning and execution.",
       "children": {
         "ordering": "custom",
-        "cards": [
+        "items": [
           {
             "id": "ed71046f",
             "title": "Data Model Changes",
@@ -21,17 +21,17 @@
             "notes": "These affect Phase 1 code. Must be done before or alongside Phase 2 features.",
             "children": {
               "ordering": "custom",
-              "cards": [
+              "items": [
                 {
                   "id": "365c4db1",
                   "title": "Drop position field",
                   "position": 0,
                   "created": "2026-03-07T19:09:16.895Z",
                   "archived": false,
-                  "notes": "Array index IS the display order. recompact() goes away. addCard/moveCard simplify.",
+                  "notes": "Array index IS the display order. recompact() goes away. addItem/moveItem simplify.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -40,10 +40,10 @@
                   "position": 1,
                   "created": "2026-03-07T19:09:16.941Z",
                   "archived": false,
-                  "notes": "No more custom/alpha-asc/alpha-desc on containers. getOrderedChildren() just returns cards as-is. Agent sorts on demand via move operations.",
+                  "notes": "No more custom/alpha-asc/alpha-desc on containers. getOrderedChildren() just returns items as-is. Agent sorts on demand via move operations.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -55,19 +55,19 @@
                   "notes": "Generic free-form content field. Can store bug descriptions, ideas, agent instructions, format guidance. Parent body can instruct agent on how to interpret children.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
                   "id": "4d9da205",
-                  "title": "Simplified card schema",
+                  "title": "Simplified item schema",
                   "position": 3,
                   "created": "2026-03-07T19:09:17.025Z",
                   "archived": false,
                   "notes": "{id, title, created, archived, body, children[]}",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 }
               ]
@@ -82,17 +82,17 @@
             "notes": "get is the universal view command. Flat render array. Breadcrumbs for focus.",
             "children": {
               "ordering": "custom",
-              "cards": [
+              "items": [
                 {
                   "id": "cf06de46",
                   "title": "Flat render array",
                   "position": 0,
                   "created": "2026-03-07T19:09:17.065Z",
                   "archived": false,
-                  "notes": "Each card: {id, title, depth, descendantCount, hasNotes, notesPreview, created, archived}. Pre-walked to requested depth. Agent indents by depth and appends (N).",
+                  "notes": "Each item: {id, title, depth, descendantCount, hasNotes, notesPreview, created, archived}. Pre-walked to requested depth. Agent indents by depth and appends (N).",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -101,10 +101,10 @@
                   "position": 1,
                   "created": "2026-03-07T19:09:17.106Z",
                   "archived": false,
-                  "notes": "No flag = card + direct children. --depth N = N levels of full details. --depth 0 = infinite/no cutoff. Cards at cutoff show (N) active descendant count.",
+                  "notes": "No flag = item + direct children. --depth N = N levels of full details. --depth 0 = infinite/no cutoff. Items at cutoff show (N) active descendant count.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -113,10 +113,10 @@
                   "position": 2,
                   "created": "2026-03-07T19:09:17.146Z",
                   "archived": false,
-                  "notes": "Focused subtree shows card as root + ancestry breadcrumbs. Presentation at Claude's discretion. Doesn't have to be inline with cards.",
+                  "notes": "Focused subtree shows item as root + ancestry breadcrumbs. Presentation at Claude's discretion. Doesn't have to be inline with items.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -128,7 +128,7 @@
                   "notes": "Active views hide archived. Flag like --include-archived or --archived-only to see them.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 }
               ]
@@ -143,7 +143,7 @@
             "notes": "Cascade archive/unarchive. Active-only counts. Original tree position for archived views.",
             "children": {
               "ordering": "custom",
-              "cards": [
+              "items": [
                 {
                   "id": "d39bd117",
                   "title": "Cascade archive",
@@ -153,7 +153,7 @@
                   "notes": "Archiving a parent archives all descendants. The whole subtree disappears from active view.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -165,7 +165,7 @@
                   "notes": "Symmetrical. Unarchiving restores the whole subtree.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -177,7 +177,7 @@
                   "notes": "If bugs has 5 children and 2 archived, count shows (3) not (5). Consistent with archived=hidden.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -186,10 +186,10 @@
                   "position": 3,
                   "created": "2026-03-07T19:09:17.347Z",
                   "archived": false,
-                  "notes": "When viewing archived cards, show in original tree structure, not flattened.",
+                  "notes": "When viewing archived items, show in original tree structure, not flattened.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 }
               ]
@@ -204,7 +204,7 @@
             "notes": "Simplify to get as universal view. Aliases for list/dump/children. New archive/unarchive commands.",
             "children": {
               "ordering": "custom",
-              "cards": [
+              "items": [
                 {
                   "id": "b89b58ab",
                   "title": "get is universal view",
@@ -214,7 +214,7 @@
                   "notes": "get [id] [--depth N] covers all read operations. No separate render/list/dump/view commands.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -226,7 +226,7 @@
                   "notes": "list = get (no args). dump = get --depth 0. children = get <id>. path = get with breadcrumbs only. Same code path, DRY.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -238,7 +238,7 @@
                   "notes": "archive <id> and unarchive <id>. Both cascade to descendants.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -250,7 +250,7 @@
                   "notes": "No persistent working directory. Agent holds context conversationally. Human steers with natural language, agent translates to IDs.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 }
               ]
@@ -265,7 +265,7 @@
             "notes": "No search command. Agent ingests + searches in memory. Same interface for humans and agents. Body field as self-documenting structure.",
             "children": {
               "ordering": "custom",
-              "cards": [
+              "items": [
                 {
                   "id": "14f0c60b",
                   "title": "No search command",
@@ -275,7 +275,7 @@
                   "notes": "Agent ingests tree via get --depth 0, searches in memory. Burrow is a structured dataset + view renderer, not a query engine.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -287,7 +287,7 @@
                   "notes": "Human and agent use identical CLI. Agent advantage: bulk ingest full state, use direct ID commands. Human advantage: natural language via agent.",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 },
                 {
@@ -299,19 +299,7 @@
                   "notes": "Parent body can describe schema/purpose of children. Self-documenting tree structures. E.g. 'Store bugs here. Title=description. Body=repro steps.'",
                   "children": {
                     "ordering": "custom",
-                    "cards": []
-                  }
-                },
-                {
-                  "id": "3548c8be",
-                  "title": "No artificial size limits",
-                  "position": 3,
-                  "created": "2026-03-07T19:09:17.668Z",
-                  "archived": false,
-                  "notes": "Limit is user's machine. Guardrails warn but don't block. Agent optimizes token consumption with smart depth queries. Can cache shortcuts in its own context.",
-                  "children": {
-                    "ordering": "custom",
-                    "cards": []
+                    "items": []
                   }
                 }
               ]
