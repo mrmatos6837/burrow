@@ -39,8 +39,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### CLI
 
-- [ ] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
-- [ ] **CLI-02**: CLI supports tree traversal operations (get item by ID, get children, get path to item)
+- [x] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
+- [x] **CLI-02**: CLI supports tree traversal operations (get item by ID, get children, get path to item)
 
 ### Commands
 
@@ -112,8 +112,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ARCH-02 | Phase 2 | Pending |
 | SRCH-01 | Phase 2 | Pending |
 | SRCH-02 | Phase 2 | Pending |
-| CLI-01 | Phase 1 | Pending |
-| CLI-02 | Phase 1 | Pending |
+| CLI-01 | Phase 1 | Complete |
+| CLI-02 | Phase 1 | Complete |
 | CMDS-01 | Phase 3 | Pending |
 | CMDS-02 | Phase 3 | Pending |
 | CMDS-03 | Phase 3 | Pending |
