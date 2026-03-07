@@ -14,10 +14,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-03**: User can add an item at any point in the tree (root or as child of any item)
 - [ ] **DATA-04**: User can edit item title and notes
 - [ ] **DATA-05**: User can delete an item (and its descendants)
-- [ ] **DATA-06**: User can move an item (and its descendants) to a different parent
+- [ ] **DATA-06**: User can move an item (and its descendants) to a different parent — position determined by target's ordering mode
 - [ ] **DATA-07**: Items get 8-char hex IDs and auto-set creation timestamps
-- [ ] **DATA-08**: All writes are atomic (write-to-tmp + rename) to prevent corruption
-- [ ] **DATA-09**: `items.json.bak` written before each mutation as safety net
+- [ ] **DATA-08**: Each item has a `position` field; each parent has `children.ordering` (custom, alpha-asc, alpha-desc)
+- [ ] **DATA-09**: All writes are atomic (write-to-tmp + rename) to prevent corruption
+- [ ] **DATA-10**: `items.json.bak` written before each mutation as safety net
 
 ### Rendering
 
@@ -93,37 +94,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | -- | Pending |
-| DATA-02 | -- | Pending |
-| DATA-03 | -- | Pending |
-| DATA-04 | -- | Pending |
-| DATA-05 | -- | Pending |
-| DATA-06 | -- | Pending |
-| DATA-07 | -- | Pending |
-| DATA-08 | -- | Pending |
-| DATA-09 | -- | Pending |
-| RNDR-01 | -- | Pending |
-| RNDR-02 | -- | Pending |
-| RNDR-03 | -- | Pending |
-| RNDR-04 | -- | Pending |
-| ARCH-01 | -- | Pending |
-| ARCH-02 | -- | Pending |
-| SRCH-01 | -- | Pending |
-| SRCH-02 | -- | Pending |
-| CLI-01 | -- | Pending |
-| CLI-02 | -- | Pending |
-| CMDS-01 | -- | Pending |
-| CMDS-02 | -- | Pending |
-| CMDS-03 | -- | Pending |
-| CMDS-04 | -- | Pending |
-| CMDS-05 | -- | Pending |
-| CMDS-06 | -- | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Pending |
+| DATA-07 | Phase 1 | Pending |
+| DATA-08 | Phase 1 | Pending |
+| DATA-09 | Phase 1 | Pending |
+| DATA-10 | Phase 1 | Pending |
+| RNDR-01 | Phase 2 | Pending |
+| RNDR-02 | Phase 2 | Pending |
+| RNDR-03 | Phase 2 | Pending |
+| RNDR-04 | Phase 2 | Pending |
+| ARCH-01 | Phase 2 | Pending |
+| ARCH-02 | Phase 2 | Pending |
+| SRCH-01 | Phase 2 | Pending |
+| SRCH-02 | Phase 2 | Pending |
+| CLI-01 | Phase 1 | Pending |
+| CLI-02 | Phase 1 | Pending |
+| CMDS-01 | Phase 3 | Pending |
+| CMDS-02 | Phase 3 | Pending |
+| CMDS-03 | Phase 3 | Pending |
+| CMDS-04 | Phase 3 | Pending |
+| CMDS-05 | Phase 3 | Pending |
+| CMDS-06 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25
+- v1 requirements: 26 total
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-07 after pivot to nested list model*
+*Last updated: 2026-03-07 -- Updated traceability for nested list model roadmap*

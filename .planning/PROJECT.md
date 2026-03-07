@@ -53,32 +53,42 @@ One recursive type: items containing items. No separate concepts for "buckets", 
 ```json
 {
   "version": 1,
+  "ordering": "custom",
   "items": [
     {
       "id": "a1b2c3d4",
       "title": "bugs",
+      "position": 0,
       "created": "2026-03-06T14:30:00Z",
       "archived": false,
       "notes": "",
-      "children": [
-        {
-          "id": "e5f6g7h8",
-          "title": "Login redirect broken",
-          "created": "2026-03-06T14:35:00Z",
-          "archived": false,
-          "notes": "OAuth callback sends to /dashboard instead of original page",
-          "children": [
-            {
-              "id": "i9j0k1l2",
-              "title": "Root cause: callback URL not stored in session",
-              "created": "2026-03-06T15:00:00Z",
-              "archived": false,
-              "notes": "",
-              "children": []
+      "children": {
+        "ordering": "custom",
+        "items": [
+          {
+            "id": "e5f6g7h8",
+            "title": "Login redirect broken",
+            "position": 0,
+            "created": "2026-03-06T14:35:00Z",
+            "archived": false,
+            "notes": "OAuth callback sends to /dashboard instead of original page",
+            "children": {
+              "ordering": "custom",
+              "items": [
+                {
+                  "id": "i9j0k1l2",
+                  "title": "Root cause: callback URL not stored in session",
+                  "position": 0,
+                  "created": "2026-03-06T15:00:00Z",
+                  "archived": false,
+                  "notes": "",
+                  "children": { "ordering": "custom", "items": [] }
+                }
+              ]
             }
-          ]
-        }
-      ]
+          }
+        ]
+      }
     }
   ]
 }
@@ -141,6 +151,8 @@ depth=2:
 |----------|-----------|---------|
 | Nested list model (not buckets + tags) | One recursive concept replaces three separate models. Simpler data, simpler code, more flexible. Agent handles navigation complexity. | -- Pending |
 | Single JSON storage | One file read per operation. No YAML parsing, no directory enumeration. Fast, minimal, deterministic. | -- Pending |
+| Position + ordering per parent | Each item has a `position`; each parent has `children.ordering` (custom/alpha-asc/alpha-desc). Moves are deterministic. | -- Pending |
+| Plain JS for v1 | Schema is small enough that TS types don't buy much. Upgrade to TS if/when plugin packaging happens. | -- Pending |
 | General-purpose core + GSD adapter | Core engine is adapter-agnostic. GSD commands are v1 adapter. Opens path to standalone Claude Code plugin. | -- Pending |
 | Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | -- Pending |
 | Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | -- Pending |
