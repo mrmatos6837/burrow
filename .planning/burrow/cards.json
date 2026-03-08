@@ -226,7 +226,7 @@
           "id": "28a9d397",
           "title": "Phase 4: CLI Pretty-Print Rendering",
           "created": "2026-03-08T10:35:12.498Z",
-          "archived": false,
+          "archived": true,
           "body": "Bake tree visualization into the tool. Default = pretty-printed tree. --json flag for structured data. Faster, consistent, no token waste.",
           "children": []
         },
@@ -243,14 +243,14 @@
           "title": "dump command should always use --full --depth 0",
           "created": "2026-03-08T15:40:53.611Z",
           "archived": false,
-          "body": "dump is an alias for get with --full --depth 0 (full tree, full bodies). Supports both pretty-print (default) and --json. It's the 'show me everything' command.",
+          "body": "dump is an alias for read with --full --depth 0 (full tree, full bodies). It's the 'show me everything' command. Currently dump does not pass --full by default — this card tracks adding that.",
           "children": []
         },
         {
           "id": "e78542df",
           "title": "get --depth should expand nested children in pretty-print",
           "created": "2026-03-08T15:42:53.336Z",
-          "archived": false,
+          "archived": true,
           "body": "Currently --depth flag doesn't affect pretty-print output — always shows only immediate children. Should render nested tree up to the specified depth level with indentation.",
           "children": []
         },
@@ -266,7 +266,7 @@
           "id": "92cda4d3",
           "title": "Phase 3: Agent Interface",
           "created": "2026-03-08T10:35:12.461Z",
-          "archived": false,
+          "archived": true,
           "body": "Workflow file + slash commands. /gsd:burrow for natural language, shortcuts for common ops. Depends on phase 2 (complete).",
           "children": []
         }
@@ -566,6 +566,14 @@
           "children": []
         }
       ]
+    },
+    {
+      "id": "4cae8af7",
+      "title": "test card",
+      "created": "2026-03-08T22:32:56.131Z",
+      "archived": false,
+      "body": "",
+      "children": []
     }
   ]
 }
