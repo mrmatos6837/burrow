@@ -9,4 +9,4 @@ Add a card to burrow with the given flags.
 
 Run: `node .claude/burrow/burrow-tools.cjs add $ARGUMENTS`
 
-Output the CLI result directly. Do not reformat or wrap in code blocks.
+Do not repeat the CLI output — it is already visible to the user. Say nothing after read-only commands.

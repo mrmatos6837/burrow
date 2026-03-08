@@ -9,4 +9,4 @@ Archive a burrow card.
 
 Run: `node .claude/burrow/burrow-tools.cjs archive $ARGUMENTS`
 
-Output the CLI result directly. Do not reformat or wrap in code blocks.
+Do not repeat the CLI output — it is already visible to the user. Say nothing after read-only commands.
