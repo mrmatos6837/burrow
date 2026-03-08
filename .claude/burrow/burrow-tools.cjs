@@ -29,8 +29,7 @@ function main() {
         options: {
           title: { type: 'string' },
           parent: { type: 'string' },
-          notes: { type: 'string', default: '' },
-          position: { type: 'string' },
+          body: { type: 'string', default: '' },
         },
         strict: false,
       });
@@ -43,8 +42,7 @@ function main() {
       const result = tree.addCard(data, {
         title: values.title,
         parentId: values.parent || null,
-        notes: values.notes,
-        position: values.position != null ? parseInt(values.position, 10) : undefined,
+        body: values.body,
       });
 
       if (!result) {
@@ -61,8 +59,7 @@ function main() {
         args: subArgs,
         options: {
           title: { type: 'string' },
-          notes: { type: 'string' },
-          ordering: { type: 'string' },
+          body: { type: 'string' },
         },
         allowPositionals: true,
         strict: false,
@@ -73,18 +70,10 @@ function main() {
         core.errorOut('Card ID is required', 'INVALID_OPERATION');
       }
 
-      if (values.ordering && !['custom', 'alpha-asc', 'alpha-desc'].includes(values.ordering)) {
-        core.errorOut(
-          'Invalid ordering. Must be one of: custom, alpha-asc, alpha-desc',
-          'INVALID_OPERATION'
-        );
-      }
-
       const data = storage.load(cwd);
       const result = tree.editCard(data, id, {
         title: values.title,
-        notes: values.notes,
-        ordering: values.ordering,
+        body: values.body,
       });
 
       if (!result) {
@@ -125,7 +114,6 @@ function main() {
         args: subArgs,
         options: {
           parent: { type: 'string' },
-          position: { type: 'string' },
         },
         allowPositionals: true,
         strict: false,
@@ -147,12 +135,7 @@ function main() {
       }
 
       const data = storage.load(cwd);
-      const result = tree.moveCard(
-        data,
-        id,
-        newParentId,
-        values.position != null ? parseInt(values.position, 10) : undefined
-      );
+      const result = tree.moveCard(data, id, newParentId);
 
       if (!result) {
         core.errorOut('Move failed: card not found or would create cycle', 'INVALID_OPERATION');

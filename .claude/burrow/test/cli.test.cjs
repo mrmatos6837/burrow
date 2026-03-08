@@ -53,16 +53,16 @@ describe('add', () => {
   before(() => { tmpDir = makeTmpDir(); });
   after(() => { removeTmpDir(tmpDir); });
 
-  it('adds card at root', () => {
+  it('adds card at root with v2 schema', () => {
     const res = run(['add', '--title', 'Root Card'], tmpDir);
     assert.equal(res.success, true);
     assert.equal(res.data.title, 'Root Card');
     assert.match(res.data.id, /^[0-9a-f]{8}$/);
-    assert.equal(res.data.position, 0);
+    assert.equal(res.data.body, '');
+    assert.deepEqual(res.data.children, []);
     assert.ok(res.data.created);
-    assert.ok(res.data.children);
-    assert.equal(res.data.children.ordering, 'custom');
-    assert.deepEqual(res.data.children.cards, []);
+    assert.equal(res.data.position, undefined);
+    assert.equal(res.data.notes, undefined);
   });
 
   it('adds card as child', () => {
@@ -73,20 +73,14 @@ describe('add', () => {
 
     // Verify child is under parent
     const got = run(['get', parent.data.id], tmpDir);
-    assert.equal(got.data.children.cards.length, 1);
-    assert.equal(got.data.children.cards[0].id, child.data.id);
+    assert.equal(got.data.children.length, 1);
+    assert.equal(got.data.children[0].id, child.data.id);
   });
 
-  it('adds card with --position', () => {
-    const dir = makeTmpDir();
-    try {
-      run(['add', '--title', 'First'], dir);
-      run(['add', '--title', 'Second'], dir);
-      const third = run(['add', '--title', 'Third', '--position', '0'], dir);
-      assert.equal(third.data.position, 0);
-    } finally {
-      removeTmpDir(dir);
-    }
+  it('adds card with --body', () => {
+    const res = run(['add', '--title', 'WithBody', '--body', 'Hello world'], tmpDir);
+    assert.equal(res.success, true);
+    assert.equal(res.data.body, 'Hello world');
   });
 });
 
@@ -102,18 +96,11 @@ describe('edit', () => {
     assert.equal(edited.data.title, 'New Title');
   });
 
-  it('edits notes', () => {
-    const added = run(['add', '--title', 'NoteCard'], tmpDir);
-    const edited = run(['edit', added.data.id, '--notes', 'Updated notes'], tmpDir);
+  it('edits body', () => {
+    const added = run(['add', '--title', 'BodyCard'], tmpDir);
+    const edited = run(['edit', added.data.id, '--body', 'Updated body'], tmpDir);
     assert.equal(edited.success, true);
-    assert.equal(edited.data.notes, 'Updated notes');
-  });
-
-  it('edits ordering', () => {
-    const added = run(['add', '--title', 'OrderCard'], tmpDir);
-    const edited = run(['edit', added.data.id, '--ordering', 'alpha-asc'], tmpDir);
-    assert.equal(edited.success, true);
-    assert.equal(edited.data.children.ordering, 'alpha-asc');
+    assert.equal(edited.data.body, 'Updated body');
   });
 });
 
@@ -161,7 +148,7 @@ describe('move', () => {
 
     // Verify A is now child of B
     const got = run(['get', b.data.id], tmpDir);
-    const childIds = got.data.children.cards.map((i) => i.id);
+    const childIds = got.data.children.map((i) => i.id);
     assert.ok(childIds.includes(a.data.id));
   });
 
@@ -201,13 +188,14 @@ describe('get', () => {
   before(() => { tmpDir = makeTmpDir(); });
   after(() => { removeTmpDir(tmpDir); });
 
-  it('returns card with children', () => {
+  it('returns card with children as array', () => {
     const parent = run(['add', '--title', 'Parent'], tmpDir);
     run(['add', '--title', 'Child1', '--parent', parent.data.id], tmpDir);
     run(['add', '--title', 'Child2', '--parent', parent.data.id], tmpDir);
     const got = run(['get', parent.data.id], tmpDir);
     assert.equal(got.success, true);
-    assert.equal(got.data.children.cards.length, 2);
+    assert.ok(Array.isArray(got.data.children));
+    assert.equal(got.data.children.length, 2);
   });
 
   it('errors on missing ID', () => {
@@ -222,7 +210,7 @@ describe('children', () => {
   before(() => { tmpDir = makeTmpDir(); });
   after(() => { removeTmpDir(tmpDir); });
 
-  it('returns ordered children', () => {
+  it('returns children as plain array', () => {
     const parent = run(['add', '--title', 'Parent'], tmpDir);
     run(['add', '--title', 'C1', '--parent', parent.data.id], tmpDir);
     run(['add', '--title', 'C2', '--parent', parent.data.id], tmpDir);
@@ -230,10 +218,11 @@ describe('children', () => {
     const res = run(['children', parent.data.id], tmpDir);
     assert.equal(res.success, true);
     assert.equal(res.data.length, 3);
-    // Verify position order
-    assert.equal(res.data[0].position, 0);
-    assert.equal(res.data[1].position, 1);
-    assert.equal(res.data[2].position, 2);
+    assert.ok(Array.isArray(res.data));
+    // No position field on children
+    for (const child of res.data) {
+      assert.equal(child.position, undefined);
+    }
   });
 });
 
@@ -309,12 +298,9 @@ describe('error handling', () => {
       assert.equal(res.success, true);
       assert.deepEqual(res.data, []);
 
-      // Verify cards.json was NOT created (list is read-only, only ensures dir)
-      // But the data dir should exist
       const dataDir = path.join(dir, '.planning', 'burrow');
       assert.ok(fs.existsSync(dataDir));
 
-      // After a write command, cards.json should exist
       run(['add', '--title', 'InitCard'], dir);
       const cardsPath = path.join(dir, '.planning', 'burrow', 'cards.json');
       assert.ok(fs.existsSync(cardsPath));
