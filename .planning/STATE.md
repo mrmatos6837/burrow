@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-07T19:07:44.721Z"
-last_activity: 2026-03-07 -- Completed 01-02 CLI wiring
+status: in-progress
+stopped_at: Completed 02-01 schema simplification
+last_updated: "2026-03-08T10:17:31.000Z"
+last_activity: 2026-03-08 -- Completed 02-01 schema simplification
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_plans: 4
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -21,32 +21,33 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** One recursive data structure -- items containing items -- navigated by an agent that can traverse, summarize, and render any slice of the tree at any depth.
-**Current focus:** Phase 1: Core Engine
+**Current focus:** Phase 2: Views and Features
 
 ## Current Position
 
-Phase: 1 of 3 (Core Engine) -- COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-03-07 -- Completed 01-02 CLI wiring
+Phase: 2 of 3 (Views and Features)
+Plan: 1 of 2 in current phase -- COMPLETE
+Status: In Progress
+Last activity: 2026-03-08 -- Completed 02-01 schema simplification
 
-Progress: [##########] 100%
+Progress: [#######...] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 2.5 min
-- Total execution time: 0.08 hours
+- Total plans completed: 3
+- Average duration: 3 min
+- Total execution time: 0.15 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-core-engine | 2 | 5 min | 2.5 min |
+| 02-views-and-features | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (2 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (2 min), 02-01 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -69,6 +70,10 @@ Recent decisions affecting current work:
 - [Phase 01-02]: Used util.parseArgs (Node built-in) for CLI argument parsing -- zero dependencies
 - [Phase 01-02]: Move cycle/not-found errors use INVALID_OPERATION code (tree returns null for both)
 - [Phase 01-02]: Path command strips children from output for clean ancestry display
+- [02-01]: getContainer returns raw array (data.cards or card.children), not wrapper object
+- [02-01]: findParent returns {parent, container} where container is the array
+- [02-01]: moveCard uses splice-at-index for requestedPosition instead of position field
+- [02-01]: migrate() exported from warren.cjs for direct use in tests
 
 ### Pending Todos
 
@@ -80,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-07T19:07:44.718Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-views-and-features/02-CONTEXT.md
+Last session: 2026-03-08T10:17:31.000Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-views-and-features/02-01-SUMMARY.md
