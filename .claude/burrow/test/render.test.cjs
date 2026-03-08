@@ -289,7 +289,11 @@ describe('renderMutation', () => {
       oldTitle: 'Old title',
     });
     assert.ok(result.includes('title:'));
-    assert.ok(!result.includes('body:'));
+    // The diff section should not contain a body diff line (arrow between old/new body)
+    // But the card detail will have "body:" -- so check the diff section specifically
+    const lines = result.split('\n');
+    const diffLines = lines.filter((l) => l.startsWith('  body:') && l.includes('\u2192'));
+    assert.equal(diffLines.length, 0, 'Should not have body diff line when body unchanged');
   });
 
   it('truncates long diff values at ~40 chars', () => {
