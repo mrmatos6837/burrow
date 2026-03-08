@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 Phase: 4 of 5 (Agent Interface) -- IN PROGRESS
 Plan: 1 of 2 in current phase (04-02 complete)
 Status: Executing phase 4 plans
-Last activity: 2026-03-08 -- Completed 04-02 shortcut commands and help
+Last activity: 2026-03-08 - Completed quick task 1: Add CLAUDE.md safeguard preventing destructive burrow operations without explicit user consent
 
 Progress: [██████████] 100%
 
@@ -119,6 +119,12 @@ Full backlog: `burrow get --depth 3`
 ### Blockers/Concerns
 
 None yet.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Add CLAUDE.md safeguard preventing destructive burrow operations without explicit user consent | 2026-03-08 | c0a8293 | [1-add-claude-md-safeguard-preventing-destr](./quick/1-add-claude-md-safeguard-preventing-destr/) |
 
 ## Session Continuity
 
