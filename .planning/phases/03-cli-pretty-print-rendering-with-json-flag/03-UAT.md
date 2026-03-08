@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: complete
 phase: 03-cli-pretty-print-rendering-with-json-flag
-source: [03-01-SUMMARY.md, 03-02-SUMMARY.md]
-started: 2026-03-08T15:10:00Z
-updated: 2026-03-08T15:55:00Z
+source: [03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md]
+started: 2026-03-08T16:30:00Z
+updated: 2026-03-08T16:45:00Z
 ---
 
 ## Current Test
@@ -13,11 +13,11 @@ updated: 2026-03-08T15:55:00Z
 ## Tests
 
 ### 1. Default Pretty-Print Output
-expected: Running a command like `burrow get` (without --json) shows human-readable formatted text instead of raw JSON. Output includes visual formatting like breadcrumbs, sections separated by lines, and structured layout.
+expected: Running `burrow get` (without --json) shows human-readable formatted text instead of raw JSON. Output includes visual formatting like breadcrumbs, sections, and structured layout.
 result: pass
 
 ### 2. --json Flag Returns Raw JSON
-expected: Running any command with `--json` (e.g., `burrow get --json`) returns raw structured JSON output instead of pretty-printed text. The JSON contract matches what all commands previously returned by default.
+expected: Running any command with `--json` (e.g., `burrow get --json`) returns raw structured JSON output instead of pretty-printed text.
 result: pass
 
 ### 3. Card Detail View
@@ -25,7 +25,7 @@ expected: Running `burrow get <card-id>` shows a card detail with: breadcrumb pa
 result: pass
 
 ### 4. Add Card Mutation Output
-expected: Running `burrow add --title "Test Card"` shows a formatted confirmation message indicating the card was created, with the new card's title and ID visible in a human-readable format (not JSON).
+expected: Running `burrow add --title "Test Card"` shows a formatted confirmation message with the new card's title and ID visible in human-readable format.
 result: pass
 
 ### 5. Edit Card Mutation Output
@@ -33,44 +33,36 @@ expected: Running `burrow edit <id> --title "New Title"` shows a formatted confi
 result: pass
 
 ### 6. Move Card Mutation Output
-expected: Running `burrow move <id> --to <parent-id>` shows a formatted confirmation with an arrow indicating source and destination parent titles.
-result: issue
-reported: "Move shows 'root → root' instead of correct destination parent title, and card didn't actually move to the target parent"
-severity: major
+expected: Running `burrow move <id> --to <parent-id>` shows a formatted confirmation with an arrow indicating source and destination parent titles. Card actually moves to the target parent.
+result: pass
 
-### 7. Box-Drawing Tree with Age Column
-expected: When viewing a card with children, the tree uses Unicode box-drawing characters (├── for middle items, └── for last item) with ages right-aligned in a column.
-result: issue
-reported: "Children count (N) only appears on some items, making the column inconsistent and misaligned"
-severity: cosmetic
+### 7. Box-Drawing Tree with Consistent Count Column
+expected: When viewing a card with children, the tree uses Unicode box-drawing characters (├── for middle items, └── for last item) with descendant counts shown for ALL items including (0) for leaves, and ages right-aligned.
+result: pass
 
 ### 8. Root View Breadcrumb
 expected: Running `burrow get` (root view) shows "burrow" as the breadcrumb, NOT "burrow > burrow".
 result: pass
 
 ### 9. Removed Commands
-expected: Running `burrow list` or `burrow children` returns an error or "unknown command" message. These commands have been removed.
+expected: Running `burrow list` or `burrow children` returns an error or "unknown command" message.
 result: pass
 
 ### 10. Error Formatting
-expected: Triggering an error (e.g., `burrow get nonexistent-id`) shows a formatted error with a cross-mark symbol, not a raw JSON error or stack trace.
+expected: Triggering an error (e.g., `burrow get nonexistent-id`) shows a formatted error with a cross-mark symbol, not raw JSON or stack trace.
 result: pass
 
 ### 11. Body Truncation
 expected: Long body text truncates at 200 chars with "(truncated — use --full for complete body)" hint. --full flag shows complete body.
 result: pass
 
-### 12. Archive Filtering
-expected: Default view hides archived cards. --include-archived shows them with [archived] tag. --archived-only shows only archived cards.
-result: issue
-reported: "--archived-only doesn't show the [archived] tag on cards, inconsistent with --include-archived"
-severity: cosmetic
+### 12. Archive Filtering with Tags
+expected: Default view hides archived cards. --include-archived shows them with [archived] tag. --archived-only shows only archived cards AND also displays [archived] tag.
+result: pass
 
-### 13. --depth Flag on Pretty-Print
-expected: Running `burrow get <id> --depth 3` expands the tree to show nested children up to the specified depth level.
-result: issue
-reported: "--depth flag doesn't affect pretty-print output, always shows only immediate children"
-severity: major
+### 13. --depth Flag Recursive Rendering
+expected: Running `burrow get <id> --depth 3` expands the tree to show nested children recursively with proper box-drawing indentation at each depth level.
+result: pass
 
 ### 14. --json on All Commands
 expected: Every command (get, add, edit, delete, move, path, archive, unarchive) returns structured JSON with --json flag, both on success and error.
@@ -79,64 +71,11 @@ result: pass
 ## Summary
 
 total: 14
-passed: 10
-issues: 4
+passed: 14
+issues: 0
 pending: 0
 skipped: 0
 
 ## Gaps
 
-- truth: "Move shows correct source and destination parent titles"
-  status: failed
-  reason: "User reported: Move shows 'root → root' instead of correct destination parent title, and card didn't actually move to the target parent"
-  severity: major
-  test: 6
-  root_cause: "parseArgs in move command defines --parent but user passes --to. With strict:false, --to is silently ignored, so newParentId defaults to null (root). Card 'moves' from root to root — a no-op."
-  artifacts:
-    - path: ".claude/burrow/burrow-tools.cjs"
-      issue: "parseArgs options define 'parent' not 'to' (line 198). strict:false silently drops unknown --to flag."
-  missing:
-    - "Add 'to' as primary flag in parseArgs, keep --parent for backward compat"
-  debug_session: ".planning/debug/move-cmd-broken.md"
-
-- truth: "Children count column is consistent and aligned across all tree items"
-  status: failed
-  reason: "User reported: Children count (N) only appears on some items, making the column inconsistent and misaligned"
-  severity: cosmetic
-  test: 7
-  root_cause: "formatCardLine (render.cjs:121) sets countStr to empty when descCount === 0, making rightSide variable width. Each line is independently right-aligned but with different content widths."
-  artifacts:
-    - path: ".claude/burrow/lib/render.cjs"
-      issue: "Line 121: conditional count omission. Lines 124-139: padding uses variable-width right column."
-  missing:
-    - "Compute max right-side width across all siblings, then pad consistently (fixed-width right column)"
-  debug_session: ".planning/debug/tree-count-alignment.md"
-
-- truth: "Archived cards always show [archived] tag regardless of filter mode"
-  status: failed
-  reason: "User reported: --archived-only doesn't show the [archived] tag on cards, inconsistent with --include-archived"
-  severity: cosmetic
-  test: 12
-  root_cause: "render.cjs:196 sets showArchivedLabel = filter === 'include-archived', excluding 'archived-only' mode. formatCardLine receives showArchived=false, suppressing the tag."
-  artifacts:
-    - path: ".claude/burrow/lib/render.cjs"
-      issue: "Line 196: showArchivedLabel condition is too narrow, only checks 'include-archived'"
-  missing:
-    - "Change condition to filter === 'include-archived' || filter === 'archived-only'"
-  debug_session: ""
-
-- truth: "--depth flag expands nested children in pretty-print tree view"
-  status: failed
-  reason: "User reported: --depth flag doesn't affect pretty-print output, always shows only immediate children"
-  severity: major
-  test: 13
-  root_cause: "Two bugs: (1) burrow-tools.cjs:292 filters renderTree results to depth===1 only, discarding deeper entries. (2) render.cjs:197-200 renderCard has no recursive rendering, just a flat loop. Data layer (mongoose.cjs renderTree) works correctly."
-  artifacts:
-    - path: ".claude/burrow/burrow-tools.cjs"
-      issue: "Line 292: filters to depth === 1 only, discarding depth 2+ entries"
-    - path: ".claude/burrow/lib/render.cjs"
-      issue: "Lines 197-200: no recursive tree rendering in renderCard children section"
-  missing:
-    - "Reconstruct nested tree from flat renderTree output in router"
-    - "Add recursive rendering with indentation in renderCard children section"
-  debug_session: ".planning/debug/depth-flag-pretty-print.md"
+[none]
