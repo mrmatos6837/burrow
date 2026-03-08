@@ -73,6 +73,13 @@ Deferred to future release. Tracked but not in current roadmap.
 - **PLUG-02**: Generic command adapter (not `/gsd:` prefixed)
 - **PLUG-03**: Install script for any Claude Code project
 
+### Concurrency & Multi-Agent
+
+- **CONC-01**: File locking (lock file or semaphore) to prevent concurrent write conflicts
+- **CONC-02**: Stale lock detection and cleanup (handle crashed processes)
+- **CONC-03**: Multi-agent safety — multiple Claude Code sessions can operate on the same burrow without data loss
+- **CONC-04**: Multi-file support for scaling large trees across separate files
+
 ### Quality of Life
 
 - **QOL-01**: Card limits per subtree with agent-guided resolution
