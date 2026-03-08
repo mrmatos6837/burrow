@@ -237,6 +237,148 @@ function listCards(data, parentId) {
   return getChildren(data, parentId);
 }
 
+/**
+ * Count non-archived descendants recursively.
+ * Skips archived children and their entire subtrees.
+ * @param {object} card
+ * @returns {number}
+ */
+function countActiveDescendants(card) {
+  let count = 0;
+  if (card.children && card.children.length) {
+    for (const child of card.children) {
+      if (!child.archived) {
+        count += 1 + countActiveDescendants(child);
+      }
+    }
+  }
+  return count;
+}
+
+/**
+ * Create a body preview: replace newlines with spaces, truncate at 80 chars.
+ * @param {string} body
+ * @returns {string}
+ */
+function makePreview(body) {
+  if (!body) return '';
+  const cleaned = body.replace(/\n/g, ' ');
+  if (cleaned.length > 80) {
+    return cleaned.slice(0, 80) + '...';
+  }
+  return cleaned;
+}
+
+/**
+ * Render a flat array of cards with depth info, breadcrumbs, and archive filtering.
+ * @param {object} data - Root data object
+ * @param {string|null} rootId - Focus card ID, or null for root view
+ * @param {object} [opts] - {depth, archiveFilter}
+ * @returns {{breadcrumbs: Array|null, cards: Array}|null} Render result, or null if rootId not found
+ */
+function renderTree(data, rootId, opts) {
+  const { depth: depthArg, archiveFilter } = opts || {};
+  const maxDepth = depthArg === 0 ? Infinity : (depthArg !== undefined ? depthArg : 1);
+  const filter = archiveFilter || 'active';
+
+  // Archive filter function
+  const shouldInclude = filter === 'active'
+    ? (card) => !card.archived
+    : filter === 'archived-only'
+      ? (card) => card.archived
+      : () => true;
+
+  // Build breadcrumbs
+  let breadcrumbs = null;
+  if (rootId != null) {
+    const path = getPath(data, rootId);
+    if (!path) return null;
+    breadcrumbs = path.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
+  }
+
+  const flatArray = [];
+
+  function makeEntry(card, currentDepth) {
+    return {
+      id: card.id,
+      title: card.title,
+      depth: currentDepth,
+      descendantCount: countActiveDescendants(card),
+      hasBody: !!(card.body && card.body.trim()),
+      bodyPreview: makePreview(card.body),
+      created: card.created,
+      archived: card.archived,
+    };
+  }
+
+  function walk(cards, currentDepth) {
+    for (const card of cards) {
+      if (shouldInclude(card)) {
+        flatArray.push(makeEntry(card, currentDepth));
+        if (currentDepth < maxDepth && card.children && card.children.length) {
+          walk(card.children, currentDepth + 1);
+        }
+      }
+    }
+  }
+
+  if (rootId != null) {
+    const rootCard = findById(data, rootId);
+    if (shouldInclude(rootCard)) {
+      flatArray.push(makeEntry(rootCard, 0));
+      if (maxDepth > 0 && rootCard.children && rootCard.children.length) {
+        walk(rootCard.children, 1);
+      }
+    }
+  } else {
+    walk(data.cards, 0);
+  }
+
+  return { breadcrumbs, cards: flatArray };
+}
+
+/**
+ * Recursively set archived flag on a card and all descendants.
+ * @param {object} card
+ * @param {boolean} value
+ */
+function setArchivedRecursive(card, value) {
+  card.archived = value;
+  if (card.children && card.children.length) {
+    for (const child of card.children) {
+      setArchivedRecursive(child, value);
+    }
+  }
+}
+
+/**
+ * Archive a card and all its descendants.
+ * @param {object} data - Root data object
+ * @param {string} id - Card ID
+ * @returns {{id, title, descendantCount}|null}
+ */
+function archiveCard(data, id) {
+  const card = findById(data, id);
+  if (!card) return null;
+  const desc = countDescendants(card);
+  setArchivedRecursive(card, true);
+  return { id: card.id, title: card.title, descendantCount: desc };
+}
+
+/**
+ * Unarchive a card and all its descendants.
+ * @param {object} data - Root data object
+ * @param {string} id - Card ID
+ * @returns {{id, title, descendantCount}|null}
+ */
+function unarchiveCard(data, id) {
+  const card = findById(data, id);
+  if (!card) return null;
+  const desc = countDescendants(card);
+  setArchivedRecursive(card, false);
+  return { id: card.id, title: card.title, descendantCount: desc };
+}
+
 module.exports = {
   findById,
   findParent,
@@ -248,4 +390,9 @@ module.exports = {
   moveCard,
   getChildren,
   listCards,
+  countDescendants,
+  countActiveDescendants,
+  renderTree,
+  archiveCard,
+  unarchiveCard,
 };
