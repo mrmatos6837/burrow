@@ -43,8 +43,8 @@ function collectAllIds(data) {
   function walk(cards) {
     for (const card of cards) {
       ids.add(card.id);
-      if (card.children && card.children.cards) {
-        walk(card.children.cards);
+      if (card.children && Array.isArray(card.children)) {
+        walk(card.children);
       }
     }
   }
