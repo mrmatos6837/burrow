@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Core Engine** - Recursive tree data layer with CLI tool skeleton and single JSON storage
 - [ ] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
 - [x] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
-- [ ] **Phase 4: Agent Interface** - Workflow file and GSD commands for natural language and shortcut interaction
+- [ ] **Phase 4: Agent Interface** - Workflow file and slash commands for natural language and shortcut interaction
 
 ## Phase Details
 
@@ -70,17 +70,18 @@ Plans:
 - [x] 03-03-PLAN.md -- Gap closure: fix move --to flag, --depth recursive rendering, archive tag, count alignment
 
 ### Phase 4: Agent Interface
-**Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and passes through the tool's rendered output
+**Goal**: Users interact with Burrow through natural language and shortcut commands via `/burrow:*` namespace -- the agent interprets intent, calls CLI operations, and passes through the tool's rendered output
 **Depends on**: Phase 3
 **Requirements**: CMDS-01, CMDS-02, CMDS-03, CMDS-04, CMDS-05, CMDS-06
 **Success Criteria** (what must be TRUE):
-  1. User can type /gsd:burrow with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and presents the result
-  2. User can use shortcut commands (/gsd:burrow-add, /gsd:burrow-show, /gsd:burrow-move, /gsd:burrow-archive, etc.) for common operations without typing full natural language
+  1. User can type /burrow with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and presents the result
+  2. User can use shortcut commands (/burrow:add, /burrow:show, /burrow:move, /burrow:archive, etc.) for common operations without typing full natural language
   3. Workflow file defines agent behavior: strict rules for data integrity, creative freedom for everything else, with worked examples
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Workflow file and /burrow NL command: agent behavior definition with invariants, command reference, worked examples
+- [ ] 04-02-PLAN.md -- Shortcut commands, help, and REQUIREMENTS.md update: thin wrapper slash commands for all CLI operations
 
 ## Progress
 
@@ -92,4 +93,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
 | 3. CLI Pretty-Print Rendering | 3/3 | Complete | 2026-03-08 |
-| 4. Agent Interface | 0/0 | Not started | - |
+| 4. Agent Interface | 0/2 | Not started | - |
