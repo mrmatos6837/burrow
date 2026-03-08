@@ -14,6 +14,10 @@ const {
   moveCard,
   getChildren,
   listCards,
+  renderTree,
+  archiveCard,
+  unarchiveCard,
+  countActiveDescendants,
 } = require('../lib/mongoose.cjs');
 
 /**
@@ -375,5 +379,317 @@ describe('ID generation', () => {
     const data = emptyData();
     const card = addCard(data, { title: 'Test' });
     assert.match(card.id, /^[0-9a-f]{8}$/);
+  });
+});
+
+/**
+ * Helper: create a tree with body content and archived cards for render/archive tests.
+ * Structure:
+ *   root
+ *     cardA (body: "Card A has a body with some content")
+ *       childA1 (body: "some notes", archived: false)
+ *         grandchild (archived: true)
+ *       childA2 (archived: true)
+ *     cardB (body: long text > 80 chars)
+ *     cardC (archived: true)
+ */
+function sampleTreeWithArchived() {
+  return {
+    version: 2,
+    cards: [
+      {
+        id: 'aaaaaaaa',
+        title: 'Card A',
+        created: '2026-03-01T00:00:00.000Z',
+        archived: false,
+        body: 'Card A has a body with some content',
+        children: [
+          {
+            id: 'a1a1a1a1',
+            title: 'Child A1',
+            created: '2026-03-01T01:00:00.000Z',
+            archived: false,
+            body: 'some notes',
+            children: [
+              {
+                id: 'g1g1g1g1',
+                title: 'Grandchild',
+                created: '2026-03-01T02:00:00.000Z',
+                archived: true,
+                body: '',
+                children: [],
+              },
+            ],
+          },
+          {
+            id: 'a2a2a2a2',
+            title: 'Child A2',
+            created: '2026-03-01T01:30:00.000Z',
+            archived: true,
+            body: '',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'bbbbbbbb',
+        title: 'Card B',
+        created: '2026-03-01T00:10:00.000Z',
+        archived: false,
+        body: 'This is a very long body text that exceeds eighty characters in length so we can test the truncation behavior of bodyPreview properly',
+        children: [],
+      },
+      {
+        id: 'cccccccc',
+        title: 'Card C',
+        created: '2026-03-01T00:20:00.000Z',
+        archived: true,
+        body: '',
+        children: [],
+      },
+    ],
+  };
+}
+
+/**
+ * Helper: tree with body content but no archived cards.
+ */
+function sampleTreeWithBody() {
+  const data = sampleTree();
+  data.cards[0].body = 'Card A body';
+  data.cards[0].children[0].body = 'some notes';
+  data.cards[1].body = 'This is a very long body text that exceeds eighty characters in length so we can test the truncation behavior of bodyPreview properly';
+  // cardC body stays empty, childA2 body stays empty, grandchild body stays empty
+  return data;
+}
+
+describe('countActiveDescendants', () => {
+  it('returns 0 for leaf card', () => {
+    const data = sampleTree();
+    const card = findById(data, 'cccccccc');
+    assert.equal(countActiveDescendants(card), 0);
+  });
+
+  it('counts only active children (skips archived and their subtrees)', () => {
+    const data = sampleTreeWithArchived();
+    const cardA = findById(data, 'aaaaaaaa');
+    // childA1 is active (1), grandchild is archived (skipped), childA2 is archived (skipped)
+    assert.equal(countActiveDescendants(cardA), 1);
+  });
+
+  it('counts all children when none archived', () => {
+    const data = sampleTree();
+    const cardA = findById(data, 'aaaaaaaa');
+    // childA1 (1) + grandchild (1) + childA2 (1) = 3
+    assert.equal(countActiveDescendants(cardA), 3);
+  });
+});
+
+describe('renderTree', () => {
+  it('root view (no rootId): returns root cards at depth 0 with breadcrumbs null', () => {
+    const data = sampleTreeWithBody();
+    const result = renderTree(data, null, { depth: 0 });
+    assert.equal(result.breadcrumbs, null);
+    // depth 0 = full tree, all cards present
+    assert.ok(result.cards.length > 0);
+    // Root cards should be at depth 0
+    const rootCards = result.cards.filter((c) => c.depth === 0);
+    assert.equal(rootCards.length, 3);
+  });
+
+  it('root view with depth 1: includes root cards and their direct children', () => {
+    const data = sampleTree();
+    const result = renderTree(data, null, { depth: 1 });
+    assert.equal(result.breadcrumbs, null);
+    const rootCards = result.cards.filter((c) => c.depth === 0);
+    assert.equal(rootCards.length, 3);
+    const childCards = result.cards.filter((c) => c.depth === 1);
+    // Card A has 2 children, B has 0, C has 0
+    assert.equal(childCards.length, 2);
+    // No depth 2 cards
+    const deepCards = result.cards.filter((c) => c.depth === 2);
+    assert.equal(deepCards.length, 0);
+  });
+
+  it('root view with depth 0: full tree, all cards at correct depths', () => {
+    const data = sampleTree();
+    const result = renderTree(data, null, { depth: 0 });
+    // Total: 3 root + 2 children of A + 1 grandchild = 6
+    assert.equal(result.cards.length, 6);
+    const grandchild = result.cards.find((c) => c.id === 'g1g1g1g1');
+    assert.equal(grandchild.depth, 2);
+  });
+
+  it('focused view: rootId specified, breadcrumbs show ancestors, root card at depth 0', () => {
+    const data = sampleTree();
+    const result = renderTree(data, 'a1a1a1a1');
+    assert.ok(result.breadcrumbs);
+    assert.equal(result.breadcrumbs.length, 1);
+    assert.equal(result.breadcrumbs[0].id, 'aaaaaaaa');
+    assert.equal(result.breadcrumbs[0].title, 'Card A');
+    // Root card (a1a1a1a1) at depth 0
+    assert.equal(result.cards[0].id, 'a1a1a1a1');
+    assert.equal(result.cards[0].depth, 0);
+  });
+
+  it('focused view depth 2: shows 2 levels of children', () => {
+    const data = sampleTree();
+    const result = renderTree(data, 'aaaaaaaa', { depth: 2 });
+    // Card A at depth 0, childA1 and childA2 at depth 1, grandchild at depth 2
+    assert.equal(result.cards[0].id, 'aaaaaaaa');
+    assert.equal(result.cards[0].depth, 0);
+    const deepest = result.cards.filter((c) => c.depth === 2);
+    assert.equal(deepest.length, 1);
+    assert.equal(deepest[0].id, 'g1g1g1g1');
+  });
+
+  it('default depth (no depth arg): card + direct children (depth 1)', () => {
+    const data = sampleTree();
+    const result = renderTree(data, 'aaaaaaaa');
+    // Default depth=1: Card A at depth 0, children at depth 1
+    const depths = result.cards.map((c) => c.depth);
+    assert.ok(depths.includes(0));
+    assert.ok(depths.includes(1));
+    assert.ok(!depths.includes(2));
+  });
+
+  it('archive filter active: excludes archived cards', () => {
+    const data = sampleTreeWithArchived();
+    const result = renderTree(data, null, { depth: 0, archiveFilter: 'active' });
+    const ids = result.cards.map((c) => c.id);
+    assert.ok(!ids.includes('cccccccc')); // Card C is archived
+    assert.ok(!ids.includes('a2a2a2a2')); // Child A2 is archived
+    assert.ok(!ids.includes('g1g1g1g1')); // Grandchild is archived
+    assert.ok(ids.includes('aaaaaaaa'));
+    assert.ok(ids.includes('a1a1a1a1'));
+    assert.ok(ids.includes('bbbbbbbb'));
+  });
+
+  it('archive filter archived-only: shows only archived', () => {
+    const data = sampleTreeWithArchived();
+    const result = renderTree(data, null, { depth: 0, archiveFilter: 'archived-only' });
+    for (const card of result.cards) {
+      assert.equal(card.archived, true);
+    }
+    assert.ok(result.cards.length > 0);
+  });
+
+  it('archive filter include-archived: shows all', () => {
+    const data = sampleTreeWithArchived();
+    const result = renderTree(data, null, { depth: 0, archiveFilter: 'include-archived' });
+    // Should include all 6 cards
+    assert.equal(result.cards.length, 6);
+  });
+
+  it('render entry has correct fields', () => {
+    const data = sampleTreeWithBody();
+    const result = renderTree(data, null, { depth: 1 });
+    const entry = result.cards[0]; // Card A
+    assert.ok('id' in entry);
+    assert.ok('title' in entry);
+    assert.ok('depth' in entry);
+    assert.ok('descendantCount' in entry);
+    assert.ok('hasBody' in entry);
+    assert.ok('bodyPreview' in entry);
+    assert.ok('created' in entry);
+    assert.ok('archived' in entry);
+  });
+
+  it('bodyPreview truncates at 80 chars with "..."', () => {
+    const data = sampleTreeWithBody();
+    const result = renderTree(data, null, { depth: 1 });
+    const cardB = result.cards.find((c) => c.id === 'bbbbbbbb');
+    assert.ok(cardB.bodyPreview.length <= 83); // 80 + '...'
+    assert.ok(cardB.bodyPreview.endsWith('...'));
+  });
+
+  it('bodyPreview replaces newlines with spaces', () => {
+    const data = sampleTree();
+    data.cards[0].body = 'line one\nline two\nline three';
+    const result = renderTree(data, null, { depth: 1 });
+    const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
+    assert.ok(!cardA.bodyPreview.includes('\n'));
+    assert.ok(cardA.bodyPreview.includes('line one line two'));
+  });
+
+  it('hasBody false for empty/whitespace-only body', () => {
+    const data = sampleTree();
+    data.cards[2].body = '   '; // whitespace only
+    const result = renderTree(data, null, { depth: 1 });
+    const cardC = result.cards.find((c) => c.id === 'cccccccc');
+    assert.equal(cardC.hasBody, false);
+    const cardB = result.cards.find((c) => c.id === 'bbbbbbbb');
+    assert.equal(cardB.hasBody, false); // empty string
+  });
+
+  it('returns null for nonexistent rootId', () => {
+    const data = sampleTree();
+    const result = renderTree(data, 'zzzzzzzz');
+    assert.equal(result, null);
+  });
+
+  it('descendantCount uses active-only count', () => {
+    const data = sampleTreeWithArchived();
+    const result = renderTree(data, null, { depth: 0, archiveFilter: 'include-archived' });
+    const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
+    // childA1 active (1), grandchild archived (0), childA2 archived (0) = 1
+    assert.equal(cardA.descendantCount, 1);
+  });
+});
+
+describe('archiveCard', () => {
+  it('archives card and all descendants', () => {
+    const data = sampleTree();
+    const result = archiveCard(data, 'aaaaaaaa');
+    assert.ok(result);
+    const cardA = findById(data, 'aaaaaaaa');
+    assert.equal(cardA.archived, true);
+    const childA1 = findById(data, 'a1a1a1a1');
+    assert.equal(childA1.archived, true);
+    const grandchild = findById(data, 'g1g1g1g1');
+    assert.equal(grandchild.archived, true);
+    const childA2 = findById(data, 'a2a2a2a2');
+    assert.equal(childA2.archived, true);
+  });
+
+  it('returns {id, title, descendantCount}', () => {
+    const data = sampleTree();
+    const result = archiveCard(data, 'aaaaaaaa');
+    assert.equal(result.id, 'aaaaaaaa');
+    assert.equal(result.title, 'Card A');
+    assert.equal(result.descendantCount, 3);
+  });
+
+  it('returns null for missing id', () => {
+    const data = sampleTree();
+    const result = archiveCard(data, 'zzzzzzzz');
+    assert.equal(result, null);
+  });
+});
+
+describe('unarchiveCard', () => {
+  it('unarchives card and all descendants', () => {
+    const data = sampleTreeWithArchived();
+    // Grandchild and childA2 are archived
+    const result = unarchiveCard(data, 'aaaaaaaa');
+    assert.ok(result);
+    const childA2 = findById(data, 'a2a2a2a2');
+    assert.equal(childA2.archived, false);
+    const grandchild = findById(data, 'g1g1g1g1');
+    assert.equal(grandchild.archived, false);
+  });
+
+  it('returns {id, title, descendantCount}', () => {
+    const data = sampleTreeWithArchived();
+    const result = unarchiveCard(data, 'cccccccc');
+    assert.equal(result.id, 'cccccccc');
+    assert.equal(result.title, 'Card C');
+    assert.equal(result.descendantCount, 0);
+  });
+
+  it('returns null for missing id', () => {
+    const data = sampleTree();
+    const result = unarchiveCard(data, 'zzzzzzzz');
+    assert.equal(result, null);
   });
 });
