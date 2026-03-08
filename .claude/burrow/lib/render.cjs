@@ -118,7 +118,7 @@ function formatCardLine(card, prefix, termWidth, showArchived) {
   const descCount = card.descendantCount !== undefined
     ? card.descendantCount
     : countActiveDescendants(card);
-  const countStr = descCount > 0 ? `  (${descCount})` : '';
+  const countStr = `  (${descCount})`;
   const archivedLabel = (showArchived && card.archived) ? ' [archived]' : '';
 
   // Right side: age + count
@@ -193,7 +193,7 @@ function renderCard(card, breadcrumbs, opts) {
       (sum, c) => sum + 1 + countActiveDescendants(c), 0
     );
     lines.push(`children: ${activeCount} cards (${totalDescendants} total)`);
-    const showArchivedLabel = filter === 'include-archived';
+    const showArchivedLabel = filter === 'include-archived' || filter === 'archived-only';
     for (let i = 0; i < filteredChildren.length; i++) {
       const isLast = i === filteredChildren.length - 1;
       const prefix = isLast ? CORNER : BRANCH;

@@ -206,6 +206,38 @@ describe('move', () => {
       removeTmpDir(dir);
     }
   });
+
+  it('moves card with --to flag', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = runJson(['add', '--title', 'ToParent'], dir);
+      const child = runJson(['add', '--title', 'ToChild'], dir);
+      const moved = runJson(['move', child.data.id, '--to', parent.data.id], dir);
+      assert.equal(moved.success, true);
+
+      // Verify child is now under parent
+      const got = runJson(['get', parent.data.id], dir);
+      const childIds = got.data.cards.filter((c) => c.depth === 1).map((c) => c.id);
+      assert.ok(childIds.includes(child.data.id));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('move --to pretty-print shows correct source and destination', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = runJson(['add', '--title', 'Destination'], dir);
+      const child = runJson(['add', '--title', 'Traveler'], dir);
+      const output = runRaw(['move', child.data.id, '--to', parent.data.id], dir);
+      assert.ok(output.includes('\u2713'), 'Should contain checkmark');
+      assert.ok(output.includes('Moved'), 'Should contain "Moved"');
+      assert.ok(output.includes('Destination'), 'Should contain destination parent title');
+      assert.ok(output.includes('\u2192'), 'Should contain arrow');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
 });
 
 describe('get command', () => {

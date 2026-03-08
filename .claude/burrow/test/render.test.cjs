@@ -176,6 +176,31 @@ describe('renderCard', () => {
     assert.ok(!result.includes('Archived'));
   });
 
+  it('shows [archived] label when archived-only', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'archived-only' });
+    assert.ok(result.includes('Old task'));
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag in archived-only mode');
+  });
+
+  it('shows consistent count column with (0) for leaves', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c1111111', title: 'Has children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [
+          { id: 'c3333333', title: 'Grandchild', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+        ]},
+        { id: 'c2222222', title: 'No children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('(1)'), 'Should show (1) for card with 1 descendant');
+    assert.ok(result.includes('(0)'), 'Should show (0) for leaf card');
+  });
+
   it('shows [archived] label when include-archived', () => {
     const card = makeCard({
       children: [

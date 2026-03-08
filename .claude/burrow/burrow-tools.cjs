@@ -194,10 +194,11 @@ function main() {
       const { values, positionals } = parseArgs({
         args: subArgs,
         options: {
+          to: { type: 'string' },
           parent: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -205,14 +206,17 @@ function main() {
         handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
+      // --to is primary flag, --parent is backward compat
+      const rawParent = values.to !== undefined ? values.to : values.parent;
+
       // --parent "" or --parent "root" means move to root (null)
       let newParentId;
-      if (values.parent === undefined) {
+      if (rawParent === undefined) {
         newParentId = null;
-      } else if (values.parent === '' || values.parent === 'root') {
+      } else if (rawParent === '' || rawParent === 'root') {
         newParentId = null;
       } else {
-        newParentId = values.parent;
+        newParentId = rawParent;
       }
 
       const data = storage.load(cwd);
