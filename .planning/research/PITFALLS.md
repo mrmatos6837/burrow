@@ -35,7 +35,7 @@ Phase 1 (Core data layer). The frontmatter parser is the foundation. If it's fra
 ### Pitfall 2: File I/O Race Conditions and Data Loss
 
 **What goes wrong:**
-The agent and the developer both invoke Todobox operations concurrently. Two rapid `tb-add` commands create files with the same timestamp-based ID, overwriting one. A `tb-move` reads a file, modifies frontmatter, and writes it back -- but another process modified it in between. On crash or Ctrl+C during write, the file is truncated to zero bytes. This is not hypothetical: Claude Code itself had a documented race condition bug with `.claude.json` corruption from concurrent sessions (GitHub issue #29036).
+The agent and the developer both invoke Burrow operations concurrently. Two rapid `bw-add` commands create files with the same timestamp-based ID, overwriting one. A `bw-move` reads a file, modifies frontmatter, and writes it back -- but another process modified it in between. On crash or Ctrl+C during write, the file is truncated to zero bytes. This is not hypothetical: Claude Code itself had a documented race condition bug with `.claude.json` corruption from concurrent sessions (GitHub issue #29036).
 
 **Why it happens:**
 Node.js `fs.writeFileSync` is not atomic. Writing directly to the target file means a crash mid-write produces a corrupted file. Timestamp-based IDs can collide within the same millisecond. Developers assume single-user means single-process, but Claude Code spawns subagents and background tasks.
@@ -62,10 +62,10 @@ Phase 1 (Core data layer). Atomic file operations and safe ID generation must be
 The CLI tool returns formatted text that the agent must parse to extract data, or returns JSON that gets displayed to the user as raw JSON. The agent hallucinates item IDs because the output format was unclear. The user sees `{"success":true,"items":[...]}` instead of a readable table. Worse: the agent interprets a formatted text table and gets column alignment wrong, moving the wrong item.
 
 **Why it happens:**
-CLI tools are traditionally designed for human consumption (pretty tables, colors) or machine consumption (JSON, TSV). Todobox needs both: the agent reads structured data to reason about items, and the user sees formatted output in the terminal. Developers build one format and try to use it for both, which serves neither well.
+CLI tools are traditionally designed for human consumption (pretty tables, colors) or machine consumption (JSON, TSV). Burrow needs both: the agent reads structured data to reason about items, and the user sees formatted output in the terminal. Developers build one format and try to use it for both, which serves neither well.
 
 **How to avoid:**
-- Enforce a strict separation: `todobox-tools.cjs` ALWAYS returns JSON to stdout. The workflow markdown templates handle formatting for display.
+- Enforce a strict separation: `burrow-tools.cjs` ALWAYS returns JSON to stdout. The workflow markdown templates handle formatting for display.
 - The agent parses JSON. The workflow formats JSON into the pan/drill views for the user.
 - Never have the agent parse formatted text output. Never show raw JSON to the user.
 - Define a clear contract: every CLI command returns `{ success: boolean, data: ..., error?: string }`.
@@ -84,7 +84,7 @@ Phase 1 (Core CLI tool). Establish the JSON output contract before building any 
 ### Pitfall 4: Feature Creep Turning Simple Buckets Into a Project Manager
 
 **What goes wrong:**
-The bucket + tag model is elegant in its simplicity. Then someone wants priority levels. Then due dates. Then dependencies between items. Then recurring items. Then sub-tasks. Each addition is "just one more field" but collectively they transform Todobox from a lightweight capture tool into a poor man's Jira. Taskwarrior's own maintainers reflected: "There is a fine line between 'richly-featured' and 'bloated'. There may not be a line at all."
+The bucket + tag model is elegant in its simplicity. Then someone wants priority levels. Then due dates. Then dependencies between items. Then recurring items. Then sub-tasks. Each addition is "just one more field" but collectively they transform Burrow from a lightweight capture tool into a poor man's Jira. Taskwarrior's own maintainers reflected: "There is a fine line between 'richly-featured' and 'bloated'. There may not be a line at all."
 
 **Why it happens:**
 Every individual feature request is reasonable. The problem is the aggregate. Each new frontmatter field increases parsing complexity, display complexity, and cognitive load. The out-of-scope list in PROJECT.md already excludes priority scores and complex sorting, but the pressure will come from "just tags with special meaning" or "just one more optional field."
@@ -109,7 +109,7 @@ Every phase. This is a continuous discipline, not a one-time decision. But the s
 ### Pitfall 5: Reconciliation That Annoys Instead of Helps
 
 **What goes wrong:**
-The agent suggests reconciling after every phase execution. It presents 15 potential matches, most of them wrong. The user has to say "no" 14 times. After a few sessions, the user ignores reconciliation entirely or disables it. The feature designed to be Todobox's killer integration becomes an annoyance that trains users to dismiss it.
+The agent suggests reconciling after every phase execution. It presents 15 potential matches, most of them wrong. The user has to say "no" 14 times. After a few sessions, the user ignores reconciliation entirely or disables it. The feature designed to be Burrow's killer integration becomes an annoyance that trains users to dismiss it.
 
 **Why it happens:**
 Naive string matching between completed work descriptions and item titles produces too many false positives. The reconciliation triggers too often (after every small change, not just significant completions). The interaction model requires explicit confirmation for each match instead of batching.
@@ -170,8 +170,8 @@ Phase 2 (Rendering/Views). But the data model from Phase 1 should include field-
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| GSD workflow injection | Modifying files inside `.claude/get-shit-done/` | Todobox workflows live in `.claude/todobox/`, commands in `.claude/commands/gsd/` -- never touch GSD core |
-| Claude Code slash commands | Putting complex logic in the `.md` command file | Command files should be thin dispatchers that call the workflow or CLI tool. Logic lives in `todobox-tools.cjs` or `workflows/todobox.md` |
+| GSD workflow injection | Modifying files inside `.claude/get-shit-done/` | Burrow workflows live in `.claude/burrow/`, commands in `.claude/commands/gsd/` -- never touch GSD core |
+| Claude Code slash commands | Putting complex logic in the `.md` command file | Command files should be thin dispatchers that call the workflow or CLI tool. Logic lives in `burrow-tools.cjs` or `workflows/burrow.md` |
 | File system watchers | Using `fs.watch` to detect item changes for live updates | Don't. The tool reads files on demand. No watchers, no daemons, no background processes |
 | Config.json concurrent access | Multiple commands reading/writing config simultaneously | Treat config.json as append-mostly. Use atomic writes. Keep writes rare (only on bucket create/delete/reorder) |
 
@@ -189,14 +189,14 @@ Phase 2 (Rendering/Views). But the data model from Phase 1 should include field-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
 | Using `yaml.load()` (unsafe) instead of `yaml.safeLoad()` or safe schema | Prototype pollution via crafted YAML (CVE-2025-64718). An item's frontmatter could inject `__proto__` properties | Always use safe YAML loading. Use `gray-matter` with default safe settings. Validate parsed output shape |
-| Executing user-provided strings as shell commands | If item titles or notes contain shell metacharacters and are passed to `exec()` | Never shell out with user data. Use `child_process.execFile` or avoid shell entirely -- Todobox should not need to spawn processes |
-| Storing sensitive data in item notes | Items are plain markdown files readable by anyone with file access | Document that Todobox items are not encrypted. Do not store passwords, tokens, or secrets as items |
+| Executing user-provided strings as shell commands | If item titles or notes contain shell metacharacters and are passed to `exec()` | Never shell out with user data. Use `child_process.execFile` or avoid shell entirely -- Burrow should not need to spawn processes |
+| Storing sensitive data in item notes | Items are plain markdown files readable by anyone with file access | Document that Burrow items are not encrypted. Do not store passwords, tokens, or secrets as items |
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Requiring bucket specification for every command | "Add item to which bucket?" every time, even when there's only one obvious choice | Default bucket concept or "last used bucket" memory. Let `/gsd:tb-add fix login bug` infer the bucket from context |
+| Requiring bucket specification for every command | "Add item to which bucket?" every time, even when there's only one obvious choice | Default bucket concept or "last used bucket" memory. Let `/gsd:bw-add fix login bug` infer the bucket from context |
 | Showing all buckets in drill view when user asked about one | Information overload, user has to scroll past irrelevant buckets | Drill view takes an optional bucket filter. Default to showing the requested bucket only |
 | Archiving without confirmation for destructive-feeling operations | User anxiety about losing items | Archive is non-destructive (items move to archive dir, fully searchable). Communicate this clearly. But still confirm bulk archive operations |
 | Verbose success messages | "Item 'fix login bug' has been successfully added to bucket 'bugs' with tags ['frontend'] at 2026-03-06T..." clutters the conversation | Terse confirmations: "Added to bugs: fix login bug [frontend]". One line. The agent can elaborate if asked |
@@ -219,7 +219,7 @@ Phase 2 (Rendering/Views). But the data model from Phase 1 should include field-
 |---------|---------------|----------------|
 | Corrupted frontmatter in item file | LOW | Parse error identifies the file. User manually fixes YAML or deletes the file. Other items unaffected because each item is a separate file |
 | Config.json corruption | MEDIUM | Keep a `config.json.bak` written before each modification. Recovery: copy backup over corrupted file. Worst case: user recreates bucket definitions (item files still have bucket field) |
-| Accidentally archived wrong items | LOW | Archive is non-destructive. `tb-show archive` to find items, move them back. This is why archive must be searchable |
+| Accidentally archived wrong items | LOW | Archive is non-destructive. `bw-show archive` to find items, move them back. This is why archive must be searchable |
 | ID collision (two items same filename) | MEDIUM | One item is lost. Prevention is critical (use UUID). Detection: log a warning if target file already exists during write. Recovery: check git history or archive for the lost item |
 | Feature creep beyond schema | HIGH | Requires migration of all item files if frontmatter schema changes. Prevention is far cheaper. Recovery: write a migration script that reads old format and writes new format |
 
@@ -245,5 +245,5 @@ Phase 2 (Rendering/Views). But the data model from Phase 1 should include field-
 - [Towards Atomic File Modifications](https://dev.to/martinhaeusler/towards-atomic-file-modifications-2a9n) -- write-then-rename pattern for safe file updates
 
 ---
-*Pitfalls research for: Todobox -- CLI bucket-based task manager / Claude Code addon*
+*Pitfalls research for: Burrow -- CLI bucket-based task manager / Claude Code addon*
 *Researched: 2026-03-06*

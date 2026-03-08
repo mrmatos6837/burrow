@@ -30,13 +30,13 @@ Features that set the product apart. Not required, but valuable.
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
 | Agent-driven reconciliation | No other CLI task tool auto-matches completed work against open items. The agent reads git diffs / work summaries, suggests which items to archive. This is the core value prop. | HIGH | Requires agent context about completed work + fuzzy matching reasoning. User always confirms. |
-| Natural language commands | Taskwarrior requires precise syntax (`task add project:inbox +bug`). Todobox lets the user say "add a bug about the login form to my inbox" and the agent figures it out. | MEDIUM | Agent interprets intent, calls CLI helper with structured args. The `/gsd:todobox` command is the NLP entry point. |
+| Natural language commands | Taskwarrior requires precise syntax (`task add project:inbox +bug`). Burrow lets the user say "add a bug about the login form to my inbox" and the agent figures it out. | MEDIUM | Agent interprets intent, calls CLI helper with structured args. The `/gsd:burrow` command is the NLP entry point. |
 | Pan + drill two-level rendering | Most CLI tools show one view (flat list or kanban columns). Two zoom levels -- pan (bucket names + counts) and drill (items grouped by tag) -- give fast triage without information overload. | MEDIUM | Pan is trivial. Drill needs clean tag-grouped rendering with indentation. |
-| Bucket limits with agent guidance | clikan has WIP limits, but just blocks. Todobox limits trigger a conversation: "Inbox has 10/10 items. Move some to Backlog, raise the limit, or skip?" | LOW | Config stores limit per bucket. CLI checks on add. Agent handles the conversation. |
+| Bucket limits with agent guidance | clikan has WIP limits, but just blocks. Burrow limits trigger a conversation: "Inbox has 10/10 items. Move some to Backlog, raise the limit, or skip?" | LOW | Config stores limit per bucket. CLI checks on add. Agent handles the conversation. |
 | GSD workflow integration hooks | No standalone task tool integrates into an AI coding framework's workflow. Reconciliation after phase execution, debug sessions, and verification is unique. | HIGH | Requires injection points in GSD workflows. Must not modify GSD core files. |
-| Per-item notes in markdown body | Taskwarrior has annotations (append-only strings). todo.txt is single-line. Todobox items are full markdown files -- the body below frontmatter IS the notes. Rich context per item for free. | LOW | Already inherent in the markdown-file-per-item design. No extra work. |
-| Agent-readable structured output | CLI tools output human text. Todobox CLI outputs JSON for the agent and formatted text for the user. The agent can reason about task state programmatically. | MEDIUM | Dual output modes in the CLI helper. JSON schema must be stable. |
-| Untagged items handled gracefully | Many tag-based systems break down when items have no tags. Todobox drill view shows untagged items flat (no sub-headers) when no tags exist in a bucket -- no empty-state awkwardness. | LOW | Rendering logic: if bucket has tags, group by them; if not, flat list. |
+| Per-item notes in markdown body | Taskwarrior has annotations (append-only strings). todo.txt is single-line. Burrow items are full markdown files -- the body below frontmatter IS the notes. Rich context per item for free. | LOW | Already inherent in the markdown-file-per-item design. No extra work. |
+| Agent-readable structured output | CLI tools output human text. Burrow CLI outputs JSON for the agent and formatted text for the user. The agent can reason about task state programmatically. | MEDIUM | Dual output modes in the CLI helper. JSON schema must be stable. |
+| Untagged items handled gracefully | Many tag-based systems break down when items have no tags. Burrow drill view shows untagged items flat (no sub-headers) when no tags exist in a bucket -- no empty-state awkwardness. | LOW | Rendering logic: if bucket has tags, group by them; if not, flat list. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
@@ -45,14 +45,14 @@ Features that seem good but create problems.
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
 | Priority scores / sorting algorithms | Taskwarrior has urgency scores (priority + age + due date). Feels organized. | Adds complexity without value for a solo dev + agent. The user defines structure through bucket ordering and tags -- that IS the priority system. Priority scores create false precision and config overhead. | Bucket order = macro priority. Tag grouping = micro priority. The user's brain does the rest. |
-| Due dates and reminders | Every "real" task manager has them. Feels like a gap without them. | Todobox runs inside Claude Code sessions, not as a background daemon. No process to trigger reminders. Due dates on dev tasks are usually project-level (handled by roadmap), not item-level. Adds YAML fields nobody maintains. | If a task is time-sensitive, put it in a bucket named "Urgent" or "This Sprint". The bucket IS the urgency signal. |
-| Recurring / repeating tasks | Taskwarrior supports recurrence. Seems useful for standups, reviews. | Recurring tasks need a scheduler. Todobox has no daemon. Recurring items in a flat-file system means something has to create them -- the agent? On every session start? Over-engineering for a dev task list. | If you do something regularly, it's a habit, not a task. Keep a "Rituals" bucket with permanent items if you want a checklist. |
-| Sync / multi-device access | Taskwarrior has Taskserver for sync. Devs work on multiple machines. | Todobox data lives in `.planning/todobox/` which is inside the project repo. Git IS the sync mechanism. Building a separate sync layer duplicates what git already does and adds conflict resolution complexity. | Commit `.planning/todobox/` to git. Push/pull. Done. |
+| Due dates and reminders | Every "real" task manager has them. Feels like a gap without them. | Burrow runs inside Claude Code sessions, not as a background daemon. No process to trigger reminders. Due dates on dev tasks are usually project-level (handled by roadmap), not item-level. Adds YAML fields nobody maintains. | If a task is time-sensitive, put it in a bucket named "Urgent" or "This Sprint". The bucket IS the urgency signal. |
+| Recurring / repeating tasks | Taskwarrior supports recurrence. Seems useful for standups, reviews. | Recurring tasks need a scheduler. Burrow has no daemon. Recurring items in a flat-file system means something has to create them -- the agent? On every session start? Over-engineering for a dev task list. | If you do something regularly, it's a habit, not a task. Keep a "Rituals" bucket with permanent items if you want a checklist. |
+| Sync / multi-device access | Taskwarrior has Taskserver for sync. Devs work on multiple machines. | Burrow data lives in `.planning/burrow/` which is inside the project repo. Git IS the sync mechanism. Building a separate sync layer duplicates what git already does and adds conflict resolution complexity. | Commit `.planning/burrow/` to git. Push/pull. Done. |
 | Sub-tasks / task hierarchies | Taskwarrior supports dependencies. Notion/Linear have sub-tasks. Feels structured. | Sub-tasks turn a simple list into a tree. Trees need collapse/expand UI, dependency resolution, "what happens when parent is archived but children aren't?" Edge cases multiply. The agent can't easily reason about deep hierarchies. | Use the markdown body of an item for a checklist. `- [ ] sub thing`. The agent can read and update it. Flat items with rich bodies beats structured hierarchies. |
-| Custom fields / metadata | Taskwarrior supports User Defined Attributes (UDAs). Power users want `estimate:`, `assignee:`, etc. | Every custom field is a schema decision that bleeds into rendering, filtering, and the CLI helper. Todobox is opinionated: bucket, title, tags, created, notes. That's it. Custom fields create indefinite complexity. | Use tags liberally. Put structured data in the markdown body. Tags are the extensibility mechanism -- they're free-form and the agent can reason about them. |
-| Interactive TUI (full-screen terminal UI) | taskwarrior-tui and kanban-tui look great. Visual kanban boards feel productive. | Todobox runs inside Claude Code, which is itself a terminal application. A nested TUI creates input-handling conflicts, steals the terminal from the agent, and breaks the "agent reads output" model. The rendering target is Claude Code's output pane, not a standalone terminal. | Clean, formatted text output that the agent can also parse. Pan and drill views give structure without hijacking the terminal. |
+| Custom fields / metadata | Taskwarrior supports User Defined Attributes (UDAs). Power users want `estimate:`, `assignee:`, etc. | Every custom field is a schema decision that bleeds into rendering, filtering, and the CLI helper. Burrow is opinionated: bucket, title, tags, created, notes. That's it. Custom fields create indefinite complexity. | Use tags liberally. Put structured data in the markdown body. Tags are the extensibility mechanism -- they're free-form and the agent can reason about them. |
+| Interactive TUI (full-screen terminal UI) | taskwarrior-tui and kanban-tui look great. Visual kanban boards feel productive. | Burrow runs inside Claude Code, which is itself a terminal application. A nested TUI creates input-handling conflicts, steals the terminal from the agent, and breaks the "agent reads output" model. The rendering target is Claude Code's output pane, not a standalone terminal. | Clean, formatted text output that the agent can also parse. Pan and drill views give structure without hijacking the terminal. |
 | Real-time collaboration / comments | Modern tools have comments and @mentions. | Single dev + agent. There's nobody else to collaborate with. Comments are just item notes. | The markdown body of each item is the "comment thread" -- add context there. |
-| Undo / transaction history | Taskwarrior has `task undo`. Feels safe. | Undo in a flat-file system means tracking diffs or maintaining a log. Git already provides this -- `git diff`, `git checkout -- file`. Building a separate undo system duplicates version control. | Rely on git for undo. The files are plain text. `git checkout .planning/todobox/items/some-item.md` restores any item. |
+| Undo / transaction history | Taskwarrior has `task undo`. Feels safe. | Undo in a flat-file system means tracking diffs or maintaining a log. Git already provides this -- `git diff`, `git checkout -- file`. Building a separate undo system duplicates version control. | Rely on git for undo. The files are plain text. `git checkout .planning/burrow/items/some-item.md` restores any item. |
 
 ## Feature Dependencies
 
@@ -70,14 +70,14 @@ Features that seem good but create problems.
     +--enables--> [Pan view (bucket names + counts)]
     +--enables--> [Bucket limits]
 
-[CLI helper (todobox-tools.cjs)]
+[CLI helper (burrow-tools.cjs)]
     +--required-by--> [All CRUD operations]
     +--required-by--> [Rendering (pan + drill)]
     +--required-by--> [Structured JSON output]
 
-[Natural language command (/gsd:todobox)]
+[Natural language command (/gsd:burrow)]
     +--requires--> [CLI helper]
-    +--requires--> [Shortcut commands (tb-add, tb-show, etc.)]
+    +--requires--> [Shortcut commands (bw-add, bw-show, etc.)]
 
 [GSD workflow integration]
     +--requires--> [Reconciliation]
@@ -95,7 +95,7 @@ Features that seem good but create problems.
 - **Drill view requires Tags:** Tag grouping only works if items have tags in frontmatter. But drill view must also handle the no-tags case gracefully (flat list).
 - **Reconciliation requires Archive + Search:** The agent needs to search open items and archive matches. Both subsystems must work first.
 - **Natural language requires CLI helper + shortcuts:** The agent interprets intent, then dispatches to the CLI helper via shortcut commands. The plumbing must exist before the NLP layer.
-- **GSD integration requires Reconciliation:** The workflow hooks call the reconciliation step. Reconciliation is the bridge between GSD workflows and Todobox.
+- **GSD integration requires Reconciliation:** The workflow hooks call the reconciliation step. Reconciliation is the bridge between GSD workflows and Burrow.
 
 ## MVP Definition
 
@@ -110,9 +110,9 @@ Minimum viable product -- what's needed to validate the concept.
 - [ ] Drill view (items grouped by tag within a bucket, untagged items flat) -- triage view
 - [ ] Archive system (move completed items to archive/, hidden from default views) -- declutter
 - [ ] Search/filter (by text, tag, bucket) -- find things
-- [ ] CLI helper (todobox-tools.cjs) with JSON output -- deterministic operations for agent
-- [ ] Shortcut commands (tb-add, tb-show, tb-move, tb-archive) -- fast entry points
-- [ ] Natural language command (/gsd:todobox) -- the "just tell me what you want" interface
+- [ ] CLI helper (burrow-tools.cjs) with JSON output -- deterministic operations for agent
+- [ ] Shortcut commands (bw-add, bw-show, bw-move, bw-archive) -- fast entry points
+- [ ] Natural language command (/gsd:burrow) -- the "just tell me what you want" interface
 
 ### Add After Validation (v1.x)
 
@@ -164,7 +164,7 @@ Features to defer until product-market fit is established.
 
 ## Competitor Feature Analysis
 
-| Feature | Taskwarrior | todo.txt | taskell (CLI Kanban) | clikan | Todobox Approach |
+| Feature | Taskwarrior | todo.txt | taskell (CLI Kanban) | clikan | Burrow Approach |
 |---------|-------------|----------|----------------------|--------|------------------|
 | Organization model | Single flat list with projects + tags + filters | Single text file with +projects and @contexts | Kanban columns (lists) | 3 fixed columns (todo/doing/done) | User-defined buckets with tags for sub-grouping |
 | Item complexity | Rich: priority, due date, recurrence, UDAs, annotations | Minimal: single line, priority letter, dates | Moderate: sub-tasks, due dates | Minimal: title only | Moderate: YAML frontmatter + full markdown body for notes |

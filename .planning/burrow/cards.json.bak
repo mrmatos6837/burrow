@@ -1,312 +1,571 @@
 {
-  "version": 1,
-  "ordering": "custom",
-  "items": [
+  "version": 2,
+  "cards": [
     {
       "id": "8eaff688",
       "title": "Phase 2 Decisions",
-      "position": 0,
       "created": "2026-03-07T19:08:41.051Z",
+      "archived": true,
+      "children": [
+        {
+          "id": "ed71046f",
+          "title": "Data Model Changes",
+          "created": "2026-03-07T19:08:49.329Z",
+          "archived": true,
+          "children": [
+            {
+              "id": "365c4db1",
+              "title": "Drop position field",
+              "created": "2026-03-07T19:09:16.895Z",
+              "archived": true,
+              "children": [],
+              "body": "Array index IS the display order. recompact() goes away. addItem/moveItem simplify."
+            },
+            {
+              "id": "f72c755e",
+              "title": "Drop ordering field",
+              "created": "2026-03-07T19:09:16.941Z",
+              "archived": true,
+              "children": [],
+              "body": "No more custom/alpha-asc/alpha-desc on containers. getOrderedChildren() just returns items as-is. Agent sorts on demand via move operations."
+            },
+            {
+              "id": "64167976",
+              "title": "Rename notes to body",
+              "created": "2026-03-07T19:09:16.980Z",
+              "archived": true,
+              "children": [],
+              "body": "Generic free-form content field. Can store bug descriptions, ideas, agent instructions, format guidance. Parent body can instruct agent on how to interpret children."
+            },
+            {
+              "id": "4d9da205",
+              "title": "Simplified item schema",
+              "created": "2026-03-07T19:09:17.025Z",
+              "archived": true,
+              "children": [],
+              "body": "{id, title, created, archived, body, children[]}"
+            }
+          ],
+          "body": "These affect Phase 1 code. Must be done before or alongside Phase 2 features."
+        },
+        {
+          "id": "eb0e1b46",
+          "title": "View System",
+          "created": "2026-03-07T19:08:49.370Z",
+          "archived": true,
+          "children": [
+            {
+              "id": "cf06de46",
+              "title": "Flat render array",
+              "created": "2026-03-07T19:09:17.065Z",
+              "archived": true,
+              "children": [],
+              "body": "Each item: {id, title, depth, descendantCount, hasNotes, notesPreview, created, archived}. Pre-walked to requested depth. Agent indents by depth and appends (N)."
+            },
+            {
+              "id": "390f9e31",
+              "title": "Depth model",
+              "created": "2026-03-07T19:09:17.106Z",
+              "archived": true,
+              "children": [],
+              "body": "No flag = item + direct children. --depth N = N levels of full details. --depth 0 = infinite/no cutoff. Items at cutoff show (N) active descendant count."
+            },
+            {
+              "id": "ec4d8be4",
+              "title": "Breadcrumbs on focus",
+              "created": "2026-03-07T19:09:17.146Z",
+              "archived": true,
+              "children": [],
+              "body": "Focused subtree shows item as root + ancestry breadcrumbs. Presentation at Claude's discretion. Doesn't have to be inline with items."
+            },
+            {
+              "id": "215053f8",
+              "title": "Archived excluded by default",
+              "created": "2026-03-07T19:09:17.187Z",
+              "archived": true,
+              "children": [],
+              "body": "Active views hide archived. Flag like --include-archived or --archived-only to see them."
+            }
+          ],
+          "body": "get is the universal view command. Flat render array. Breadcrumbs for focus."
+        },
+        {
+          "id": "534624af",
+          "title": "Archive Behavior",
+          "created": "2026-03-07T19:08:49.410Z",
+          "archived": true,
+          "children": [
+            {
+              "id": "d39bd117",
+              "title": "Cascade archive",
+              "created": "2026-03-07T19:09:17.227Z",
+              "archived": true,
+              "children": [],
+              "body": "Archiving a parent archives all descendants. The whole subtree disappears from active view."
+            },
+            {
+              "id": "f719ed99",
+              "title": "Cascade unarchive",
+              "created": "2026-03-07T19:09:17.267Z",
+              "archived": true,
+              "children": [],
+              "body": "Symmetrical. Unarchiving restores the whole subtree."
+            },
+            {
+              "id": "90772f1e",
+              "title": "Active-only descendant counts",
+              "created": "2026-03-07T19:09:17.307Z",
+              "archived": true,
+              "children": [],
+              "body": "If bugs has 5 children and 2 archived, count shows (3) not (5). Consistent with archived=hidden."
+            },
+            {
+              "id": "af884490",
+              "title": "Archived tree position",
+              "created": "2026-03-07T19:09:17.347Z",
+              "archived": true,
+              "children": [],
+              "body": "When viewing archived items, show in original tree structure, not flattened."
+            }
+          ],
+          "body": "Cascade archive/unarchive. Active-only counts. Original tree position for archived views."
+        },
+        {
+          "id": "8a3c00ed",
+          "title": "CLI Command Surface",
+          "created": "2026-03-07T19:08:49.450Z",
+          "archived": true,
+          "children": [
+            {
+              "id": "b89b58ab",
+              "title": "get is universal view",
+              "created": "2026-03-07T19:09:17.386Z",
+              "archived": true,
+              "children": [],
+              "body": "get [id] [--depth N] covers all read operations. No separate render/list/dump/view commands."
+            },
+            {
+              "id": "ad235fdb",
+              "title": "Aliases",
+              "created": "2026-03-07T19:09:17.427Z",
+              "archived": true,
+              "children": [],
+              "body": "list = get (no args). dump = get --depth 0. children = get <id>. path = get with breadcrumbs only. Same code path, DRY."
+            },
+            {
+              "id": "c8b967cd",
+              "title": "New: archive/unarchive",
+              "created": "2026-03-07T19:09:17.467Z",
+              "archived": true,
+              "children": [],
+              "body": "archive <id> and unarchive <id>. Both cascade to descendants."
+            },
+            {
+              "id": "ba72f4b4",
+              "title": "Stateless CLI",
+              "created": "2026-03-07T19:09:17.508Z",
+              "archived": true,
+              "children": [],
+              "body": "No persistent working directory. Agent holds context conversationally. Human steers with natural language, agent translates to IDs."
+            }
+          ],
+          "body": "Simplify to get as universal view. Aliases for list/dump/children. New archive/unarchive commands."
+        },
+        {
+          "id": "6d10950b",
+          "title": "Philosophy",
+          "created": "2026-03-07T19:08:49.490Z",
+          "archived": true,
+          "children": [
+            {
+              "id": "14f0c60b",
+              "title": "No search command",
+              "created": "2026-03-07T19:09:17.549Z",
+              "archived": true,
+              "children": [],
+              "body": "Agent ingests tree via get --depth 0, searches in memory. Burrow is a structured dataset + view renderer, not a query engine."
+            },
+            {
+              "id": "092234b9",
+              "title": "Same interface, different strengths",
+              "created": "2026-03-07T19:09:17.589Z",
+              "archived": true,
+              "children": [],
+              "body": "Human and agent use identical CLI. Agent advantage: bulk ingest full state, use direct ID commands. Human advantage: natural language via agent."
+            },
+            {
+              "id": "d326666f",
+              "title": "Body as agent instructions",
+              "created": "2026-03-07T19:09:17.630Z",
+              "archived": true,
+              "children": [],
+              "body": "Parent body can describe schema/purpose of children. Self-documenting tree structures. E.g. 'Store bugs here. Title=description. Body=repro steps.'"
+            },
+            {
+              "id": "3548c8be",
+              "title": "No artificial size limits",
+              "created": "2026-03-07T19:09:17.668Z",
+              "archived": true,
+              "children": [],
+              "body": "Limit is user's machine. Guardrails warn but don't block. Agent optimizes token consumption with smart depth queries. Can cache shortcuts in its own context."
+            }
+          ],
+          "body": "No search command. Agent ingests + searches in memory. Same interface for humans and agents. Body field as self-documenting structure."
+        }
+      ],
+      "body": "Decisions from discuss-phase session 2026-03-07. Follow up on these during planning and execution."
+    },
+    {
+      "id": "90eb1ae1",
+      "title": "v1 Remaining Work",
+      "created": "2026-03-08T10:35:07.431Z",
       "archived": false,
-      "notes": "Decisions from discuss-phase session 2026-03-07. Follow up on these during planning and execution.",
-      "children": {
-        "ordering": "custom",
-        "items": [
-          {
-            "id": "ed71046f",
-            "title": "Data Model Changes",
-            "position": 0,
-            "created": "2026-03-07T19:08:49.329Z",
-            "archived": false,
-            "notes": "These affect Phase 1 code. Must be done before or alongside Phase 2 features.",
-            "children": {
-              "ordering": "custom",
-              "items": [
+      "body": "Phases 3 and 4. Prove the value — make it work, not bulletproof.",
+      "children": [
+        {
+          "id": "28a9d397",
+          "title": "Phase 4: CLI Pretty-Print Rendering",
+          "created": "2026-03-08T10:35:12.498Z",
+          "archived": false,
+          "body": "Bake tree visualization into the tool. Default = pretty-printed tree. --json flag for structured data. Faster, consistent, no token waste.",
+          "children": []
+        },
+        {
+          "id": "eb8c40d0",
+          "title": "Move --at flag for reordering",
+          "created": "2026-03-08T15:36:32.601Z",
+          "archived": false,
+          "body": "Support --at <position> on move command. Without --to, reorders within current parent. With --to, places at specific position in destination. Both flags optional independently.\n\nDefault: if --at is not specified, card is added last (appended to end of children array). This matches current behavior for add and move.",
+          "children": []
+        },
+        {
+          "id": "3d0b5680",
+          "title": "dump command should always output JSON with full depth",
+          "created": "2026-03-08T15:40:53.611Z",
+          "archived": false,
+          "body": "dump should map to get --json --depth 0 (full tree). No pretty-print option — it's a raw data export. Remove render wiring from dump.",
+          "children": []
+        },
+        {
+          "id": "e78542df",
+          "title": "get --depth should expand nested children in pretty-print",
+          "created": "2026-03-08T15:42:53.336Z",
+          "archived": false,
+          "body": "Currently --depth flag doesn't affect pretty-print output — always shows only immediate children. Should render nested tree up to the specified depth level with indentation.",
+          "children": []
+        },
+        {
+          "id": "e804a55f",
+          "title": "archived-only should still show [archived] tag",
+          "created": "2026-03-08T15:44:41.425Z",
+          "archived": false,
+          "body": "When using --archived-only, cards don't show the [archived] tag. For consistency, the tag should always appear on archived cards regardless of filter mode.",
+          "children": []
+        },
+        {
+          "id": "92cda4d3",
+          "title": "Phase 3: Agent Interface",
+          "created": "2026-03-08T10:35:12.461Z",
+          "archived": false,
+          "body": "Workflow file + slash commands. /gsd:burrow for natural language, shortcuts for common ops. Depends on phase 2 (complete).",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "bfb9243c",
+      "title": "v2 Ideas",
+      "created": "2026-03-08T10:34:47.973Z",
+      "archived": false,
+      "body": "Future work — only if v1 proves the value. Focus: making burrow bulletproof for production multi-agent use.",
+      "children": [
+        {
+          "id": "a02a309e",
+          "title": "Concurrency & Multi-Agent",
+          "created": "2026-03-08T10:34:52.261Z",
+          "archived": false,
+          "body": "File locking, stale lock detection, multi-agent safety. Two Claude Code sessions on the same burrow shouldn't lose data.",
+          "children": [
+            {
+              "id": "3146ffa0",
+              "title": "Lock file semaphore",
+              "created": "2026-03-08T10:34:57.827Z",
+              "archived": false,
+              "body": "cards.json.lock — check before writing, create, write, delete. Prevents concurrent write conflicts.",
+              "children": []
+            },
+            {
+              "id": "0339621e",
+              "title": "Stale lock cleanup",
+              "created": "2026-03-08T10:34:57.864Z",
+              "archived": false,
+              "body": "Handle crashed processes that left a lock file behind. Timeout or PID check.",
+              "children": []
+            },
+            {
+              "id": "4f7d26c6",
+              "title": "Multi-agent write safety",
+              "created": "2026-03-08T10:34:57.899Z",
+              "archived": false,
+              "body": "Multiple agents operating on the same burrow without silent data loss. The real problem: read-modify-write race condition.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "e99ede6b",
+          "title": "Multi-file scaling",
+          "created": "2026-03-08T10:35:03.509Z",
+          "archived": false,
+          "body": "Split large trees across separate files. For when a single cards.json gets too big. Don't compromise simplicity for this.",
+          "children": []
+        },
+        {
+          "id": "9b03816c",
+          "title": "Plugin packaging",
+          "created": "2026-03-08T10:35:03.545Z",
+          "archived": false,
+          "body": "Standalone Claude Code plugin, not GSD-dependent. Generic command adapter, install script for any project.",
+          "children": []
+        },
+        {
+          "id": "a43b93cc",
+          "title": "GSD integration",
+          "created": "2026-03-08T10:35:03.581Z",
+          "archived": false,
+          "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
+          "children": []
+        },
+        {
+          "id": "3afc0a09",
+          "title": "--minimal flag for machine-parseable compact output",
+          "created": "2026-03-08T16:16:39.676Z",
+          "archived": false,
+          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
+          "children": []
+        },
+        {
+          "id": "8a01bb38",
+          "title": "Improve tree alignment at deep nesting levels",
+          "created": "2026-03-08T16:18:42.784Z",
+          "archived": false,
+          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "30059067",
+      "title": "Branding",
+      "created": "2026-03-08T10:38:08.550Z",
+      "archived": false,
+      "body": "Product identity, positioning, and messaging.",
+      "children": [
+        {
+          "id": "8d82eaf8",
+          "title": "Positioning",
+          "created": "2026-03-08T10:35:15.956Z",
+          "archived": false,
+          "body": "Burrow fills the niche between too little and too much. Simple by design. Not a database, not a bare file. Just enough structure for agents to stay organized without overhead.",
+          "children": []
+        },
+        {
+          "id": "fb15dc7b",
+          "title": "Security & Privacy Awareness",
+          "created": "2026-03-08T10:48:35.545Z",
+          "archived": false,
+          "body": "The burrow file lives in the repo — anything stored in cards is in git history forever. The agent should: (1) never put API keys, secrets, or sensitive data in cards, (2) warn users if card content looks sensitive, (3) treat cards as public-by-default. Same risk as hardcoding an API key — users should know, and the agent should actively guard against it.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "2bdb294a",
+      "title": "Mock",
+      "created": "2026-03-08T15:41:31.124Z",
+      "archived": false,
+      "body": "",
+      "children": [
+        {
+          "id": "82c35e2c",
+          "title": "Backend Services",
+          "created": "2026-03-08T15:41:34.698Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "8698f27b",
+              "title": "Auth API",
+              "created": "2026-03-08T15:41:39.507Z",
+              "archived": false,
+              "body": "JWT + refresh tokens, rate limiting",
+              "children": [
                 {
-                  "id": "365c4db1",
-                  "title": "Drop position field",
-                  "position": 0,
-                  "created": "2026-03-07T19:09:16.895Z",
+                  "id": "7d274551",
+                  "title": "Token Refresh Flow",
+                  "created": "2026-03-08T15:41:45.481Z",
                   "archived": false,
-                  "notes": "Array index IS the display order. recompact() goes away. addItem/moveItem simplify.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
+                  "body": "Handle expired tokens gracefully",
+                  "children": [
+                    {
+                      "id": "12283214",
+                      "title": "Silent Refresh",
+                      "created": "2026-03-08T15:41:49.510Z",
+                      "archived": false,
+                      "body": "Background token renewal without UI flash",
+                      "children": [
+                        {
+                          "id": "8dd81374",
+                          "title": "Retry Strategy",
+                          "created": "2026-03-08T15:41:53.097Z",
+                          "archived": false,
+                          "body": "Exponential backoff on 401",
+                          "children": []
+                        },
+                        {
+                          "id": "c84232df",
+                          "title": "Logout on Failure",
+                          "created": "2026-03-08T15:41:53.137Z",
+                          "archived": false,
+                          "body": "",
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
-                  "id": "f72c755e",
-                  "title": "Drop ordering field",
-                  "position": 1,
-                  "created": "2026-03-07T19:09:16.941Z",
+                  "id": "a91b72bb",
+                  "title": "Rate Limiter",
+                  "created": "2026-03-08T15:41:45.521Z",
                   "archived": false,
-                  "notes": "No more custom/alpha-asc/alpha-desc on containers. getOrderedChildren() just returns items as-is. Agent sorts on demand via move operations.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
+                  "body": "",
+                  "children": [
+                    {
+                      "id": "b6150dd8",
+                      "title": "Sliding Window",
+                      "created": "2026-03-08T15:41:49.548Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1a763ccd",
+              "title": "Data Pipeline",
+              "created": "2026-03-08T15:41:39.543Z",
+              "archived": false,
+              "body": "",
+              "children": [
                 {
-                  "id": "64167976",
-                  "title": "Rename notes to body",
-                  "position": 2,
-                  "created": "2026-03-07T19:09:16.980Z",
+                  "id": "df36b887",
+                  "title": "ETL Jobs",
+                  "created": "2026-03-08T15:41:45.558Z",
                   "archived": false,
-                  "notes": "Generic free-form content field. Can store bug descriptions, ideas, agent instructions, format guidance. Parent body can instruct agent on how to interpret children.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "4d9da205",
-                  "title": "Simplified item schema",
-                  "position": 3,
-                  "created": "2026-03-07T19:09:17.025Z",
-                  "archived": false,
-                  "notes": "{id, title, created, archived, body, children[]}",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
+                  "body": "",
+                  "children": []
                 }
               ]
             }
-          },
-          {
-            "id": "eb0e1b46",
-            "title": "View System",
-            "position": 1,
-            "created": "2026-03-07T19:08:49.370Z",
-            "archived": false,
-            "notes": "get is the universal view command. Flat render array. Breadcrumbs for focus.",
-            "children": {
-              "ordering": "custom",
-              "items": [
+          ]
+        },
+        {
+          "id": "4f42eb4e",
+          "title": "Frontend App",
+          "created": "2026-03-08T15:41:34.734Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "e044cc9f",
+              "title": "Dashboard",
+              "created": "2026-03-08T15:41:39.579Z",
+              "archived": false,
+              "body": "",
+              "children": [
                 {
-                  "id": "cf06de46",
-                  "title": "Flat render array",
-                  "position": 0,
-                  "created": "2026-03-07T19:09:17.065Z",
+                  "id": "f7ee4392",
+                  "title": "Widget Grid",
+                  "created": "2026-03-08T15:41:45.599Z",
                   "archived": false,
-                  "notes": "Each item: {id, title, depth, descendantCount, hasNotes, notesPreview, created, archived}. Pre-walked to requested depth. Agent indents by depth and appends (N).",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
+                  "body": "Drag-and-drop layout, responsive",
+                  "children": []
                 },
                 {
-                  "id": "390f9e31",
-                  "title": "Depth model",
-                  "position": 1,
-                  "created": "2026-03-07T19:09:17.106Z",
+                  "id": "69f7e0d4",
+                  "title": "Charts",
+                  "created": "2026-03-08T15:41:45.640Z",
                   "archived": false,
-                  "notes": "No flag = item + direct children. --depth N = N levels of full details. --depth 0 = infinite/no cutoff. Items at cutoff show (N) active descendant count.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
+                  "body": "",
+                  "children": [
+                    {
+                      "id": "d5059d21",
+                      "title": "Bar Chart",
+                      "created": "2026-03-08T15:41:49.590Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    },
+                    {
+                      "id": "70523d55",
+                      "title": "Line Chart",
+                      "created": "2026-03-08T15:41:49.630Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "5a9daea7",
+              "title": "Settings Page",
+              "created": "2026-03-08T15:41:39.617Z",
+              "archived": false,
+              "body": "User prefs, theme, notifications",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "cbe50a76",
+          "title": "DevOps",
+          "created": "2026-03-08T15:41:34.772Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "c5b5131a",
+              "title": "CI/CD",
+              "created": "2026-03-08T15:41:39.657Z",
+              "archived": false,
+              "body": "",
+              "children": [
                 {
-                  "id": "ec4d8be4",
-                  "title": "Breadcrumbs on focus",
-                  "position": 2,
-                  "created": "2026-03-07T19:09:17.146Z",
+                  "id": "dd4fc5d8",
+                  "title": "GitHub Actions",
+                  "created": "2026-03-08T15:41:45.681Z",
                   "archived": false,
-                  "notes": "Focused subtree shows item as root + ancestry breadcrumbs. Presentation at Claude's discretion. Doesn't have to be inline with items.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "215053f8",
-                  "title": "Archived excluded by default",
-                  "position": 3,
-                  "created": "2026-03-07T19:09:17.187Z",
-                  "archived": false,
-                  "notes": "Active views hide archived. Flag like --include-archived or --archived-only to see them.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
+                  "body": "Build, test, deploy pipeline",
+                  "children": []
                 }
               ]
             }
-          },
-          {
-            "id": "534624af",
-            "title": "Archive Behavior",
-            "position": 2,
-            "created": "2026-03-07T19:08:49.410Z",
-            "archived": false,
-            "notes": "Cascade archive/unarchive. Active-only counts. Original tree position for archived views.",
-            "children": {
-              "ordering": "custom",
-              "items": [
-                {
-                  "id": "d39bd117",
-                  "title": "Cascade archive",
-                  "position": 0,
-                  "created": "2026-03-07T19:09:17.227Z",
-                  "archived": false,
-                  "notes": "Archiving a parent archives all descendants. The whole subtree disappears from active view.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "f719ed99",
-                  "title": "Cascade unarchive",
-                  "position": 1,
-                  "created": "2026-03-07T19:09:17.267Z",
-                  "archived": false,
-                  "notes": "Symmetrical. Unarchiving restores the whole subtree.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "90772f1e",
-                  "title": "Active-only descendant counts",
-                  "position": 2,
-                  "created": "2026-03-07T19:09:17.307Z",
-                  "archived": false,
-                  "notes": "If bugs has 5 children and 2 archived, count shows (3) not (5). Consistent with archived=hidden.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "af884490",
-                  "title": "Archived tree position",
-                  "position": 3,
-                  "created": "2026-03-07T19:09:17.347Z",
-                  "archived": false,
-                  "notes": "When viewing archived items, show in original tree structure, not flattened.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "id": "8a3c00ed",
-            "title": "CLI Command Surface",
-            "position": 3,
-            "created": "2026-03-07T19:08:49.450Z",
-            "archived": false,
-            "notes": "Simplify to get as universal view. Aliases for list/dump/children. New archive/unarchive commands.",
-            "children": {
-              "ordering": "custom",
-              "items": [
-                {
-                  "id": "b89b58ab",
-                  "title": "get is universal view",
-                  "position": 0,
-                  "created": "2026-03-07T19:09:17.386Z",
-                  "archived": false,
-                  "notes": "get [id] [--depth N] covers all read operations. No separate render/list/dump/view commands.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "ad235fdb",
-                  "title": "Aliases",
-                  "position": 1,
-                  "created": "2026-03-07T19:09:17.427Z",
-                  "archived": false,
-                  "notes": "list = get (no args). dump = get --depth 0. children = get <id>. path = get with breadcrumbs only. Same code path, DRY.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "c8b967cd",
-                  "title": "New: archive/unarchive",
-                  "position": 2,
-                  "created": "2026-03-07T19:09:17.467Z",
-                  "archived": false,
-                  "notes": "archive <id> and unarchive <id>. Both cascade to descendants.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "ba72f4b4",
-                  "title": "Stateless CLI",
-                  "position": 3,
-                  "created": "2026-03-07T19:09:17.508Z",
-                  "archived": false,
-                  "notes": "No persistent working directory. Agent holds context conversationally. Human steers with natural language, agent translates to IDs.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "id": "6d10950b",
-            "title": "Philosophy",
-            "position": 4,
-            "created": "2026-03-07T19:08:49.490Z",
-            "archived": false,
-            "notes": "No search command. Agent ingests + searches in memory. Same interface for humans and agents. Body field as self-documenting structure.",
-            "children": {
-              "ordering": "custom",
-              "items": [
-                {
-                  "id": "14f0c60b",
-                  "title": "No search command",
-                  "position": 0,
-                  "created": "2026-03-07T19:09:17.549Z",
-                  "archived": false,
-                  "notes": "Agent ingests tree via get --depth 0, searches in memory. Burrow is a structured dataset + view renderer, not a query engine.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "092234b9",
-                  "title": "Same interface, different strengths",
-                  "position": 1,
-                  "created": "2026-03-07T19:09:17.589Z",
-                  "archived": false,
-                  "notes": "Human and agent use identical CLI. Agent advantage: bulk ingest full state, use direct ID commands. Human advantage: natural language via agent.",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                },
-                {
-                  "id": "d326666f",
-                  "title": "Body as agent instructions",
-                  "position": 2,
-                  "created": "2026-03-07T19:09:17.630Z",
-                  "archived": false,
-                  "notes": "Parent body can describe schema/purpose of children. Self-documenting tree structures. E.g. 'Store bugs here. Title=description. Body=repro steps.'",
-                  "children": {
-                    "ordering": "custom",
-                    "items": []
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
+          ]
+        },
+        {
+          "id": "9074f1eb",
+          "title": "Long Body Test",
+          "created": "2026-03-08T15:43:37.846Z",
+          "archived": true,
+          "body": "This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. ",
+          "children": []
+        }
+      ]
     }
   ]
 }

@@ -1,13 +1,13 @@
 # Project Research Summary
 
-**Project:** Todobox
+**Project:** Burrow
 **Domain:** CLI bucket-based task manager / Claude Code addon (zero-dependency Node.js, flat-file storage)
 **Researched:** 2026-03-06
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Todobox is a bucket-based task manager that runs as a Claude Code addon, using flat markdown files with YAML frontmatter for storage and a zero-dependency Node.js CLI for deterministic operations. The research is unambiguous: this is a well-constrained problem with proven patterns. The GSD framework already provides a battle-tested CLI tool architecture (router + lib modules), a working frontmatter parser, and an established command registration system. Todobox should fork these patterns rather than inventing new ones. The stack is entirely Node.js 22 built-in APIs -- no npm packages, no build step, no install step.
+Burrow is a bucket-based task manager that runs as a Claude Code addon, using flat markdown files with YAML frontmatter for storage and a zero-dependency Node.js CLI for deterministic operations. The research is unambiguous: this is a well-constrained problem with proven patterns. The GSD framework already provides a battle-tested CLI tool architecture (router + lib modules), a working frontmatter parser, and an established command registration system. Burrow should fork these patterns rather than inventing new ones. The stack is entirely Node.js 22 built-in APIs -- no npm packages, no build step, no install step.
 
 The recommended approach is to build bottom-up following strict dependency ordering: core utilities and config first, then item CRUD and bucket management, then views and archive, then the CLI router and agent workflow, and finally GSD integration with reconciliation. The architecture follows an "Agent + Deterministic CLI" split where the agent handles all fuzzy judgment (intent parsing, reconciliation matching, user interaction) and the CLI handles all deterministic work (file I/O, data transformation, rendering). Every CLI command returns structured JSON; the agent or workflow formats output for the user. This separation is non-negotiable -- violating it creates brittle code that is worse than either layer alone.
 
@@ -17,7 +17,7 @@ The key risks are frontmatter parsing fragility (YAML edge cases with colons, da
 
 ### Recommended Stack
 
-The entire stack is Node.js 22 built-in APIs. No external dependencies are permitted -- Todobox is distributed as flat files with no install step. This constraint simplifies every technology decision.
+The entire stack is Node.js 22 built-in APIs. No external dependencies are permitted -- Burrow is distributed as flat files with no install step. This constraint simplifies every technology decision.
 
 **Core technologies:**
 - **Node.js 22 LTS (CommonJS):** Runtime already required by Claude Code. Provides all needed APIs natively. `.cjs` format matches GSD convention.
@@ -25,7 +25,7 @@ The entire stack is Node.js 22 built-in APIs. No external dependencies are permi
 - **`util.styleText()`:** Terminal coloring and formatting. Replaces chalk/picocolors. Supports bold, dim, and all ANSI colors.
 - **`crypto.randomUUID()`:** Safe item ID generation. Avoids timestamp-based collisions entirely.
 - **Synchronous `fs` APIs:** Correct choice for a CLI that runs, does one thing, and exits. Async adds complexity with zero benefit here.
-- **Custom YAML frontmatter parser:** Forked from GSD's proven `extractFrontmatter()`. Simplified for Todobox's flat schema (no deep nesting). Approximately 40 lines of code.
+- **Custom YAML frontmatter parser:** Forked from GSD's proven `extractFrontmatter()`. Simplified for Burrow's flat schema (no deep nesting). Approximately 40 lines of code.
 
 **Critical version requirement:** Node.js 22+ minimum. `util.styleText()` is not available in earlier versions.
 
@@ -40,9 +40,9 @@ The entire stack is Node.js 22 built-in APIs. No external dependencies are permi
 - Archive system (move completed items to archive/, hidden from default views)
 - Tags in frontmatter (free-form, no predefined list)
 - Search and filter (by text, tag, bucket)
-- CLI helper with JSON output (todobox-tools.cjs)
-- Shortcut commands (tb-add, tb-show, tb-move, tb-archive)
-- Natural language command (/gsd:todobox)
+- CLI helper with JSON output (burrow-tools.cjs)
+- Shortcut commands (bw-add, bw-show, bw-move, bw-archive)
+- Natural language command (/gsd:burrow)
 
 **Should have (differentiators):**
 - Agent-driven reconciliation (match completed work against open items)
@@ -56,17 +56,17 @@ The entire stack is Node.js 22 built-in APIs. No external dependencies are permi
 
 ### Architecture Approach
 
-Four-layer architecture: Entry (command .md files) -> Workflow (agent logic in todobox.md) -> CLI Tool (deterministic Node.js with lib/ modules) -> Storage (flat files). The CLI router dispatches to domain-specific modules (items, buckets, archive, renderer, config, core). All modules depend on core.cjs for shared utilities. Items depends on config (to validate bucket names). Renderer depends on items (to read data). Archive is essentially items with a different directory target.
+Four-layer architecture: Entry (command .md files) -> Workflow (agent logic in burrow.md) -> CLI Tool (deterministic Node.js with lib/ modules) -> Storage (flat files). The CLI router dispatches to domain-specific modules (items, buckets, archive, renderer, config, core). All modules depend on core.cjs for shared utilities. Items depends on config (to validate bucket names). Renderer depends on items (to read data). Archive is essentially items with a different directory target.
 
 **Major components:**
-1. **todobox-tools.cjs (router)** -- Parse args, dispatch to correct module. Thin by design.
+1. **burrow-tools.cjs (router)** -- Parse args, dispatch to correct module. Thin by design.
 2. **lib/core.cjs** -- Shared utilities: output formatting, error handling, frontmatter parse/serialize, atomic file writes.
 3. **lib/items.cjs** -- Item CRUD: create, read, update, delete, list, filter by bucket/tag.
 4. **lib/buckets.cjs** -- Bucket management: list, create, rename, reorder, enforce limits via config.json.
 5. **lib/renderer.cjs** -- Pure functions: data in, formatted text out. Pan view and drill view.
 6. **lib/archive.cjs** -- Move items between items/ and archive/, search archived items.
 7. **lib/config.cjs** -- JSON config read/write with defaults and validation.
-8. **workflows/todobox.md** -- Agent-side logic: intent parsing, reconciliation, user interaction.
+8. **workflows/burrow.md** -- Agent-side logic: intent parsing, reconciliation, user interaction.
 
 ### Critical Pitfalls
 
@@ -82,7 +82,7 @@ Based on research, suggested phase structure:
 
 ### Phase 1: Foundation (Core + Config)
 **Rationale:** Everything depends on core utilities and config management. The frontmatter parser, atomic file operations, output helpers, and config schema must be rock-solid before any feature is built. This is where the three most critical pitfalls (YAML fragility, race conditions, output ambiguity) are prevented or introduced.
-**Delivers:** core.cjs (frontmatter parse/serialize, atomic writes, output/error helpers, slug generation), config.cjs (read/write config.json, default bucket setup, validation), directory structure creation (.planning/todobox/items/, archive/).
+**Delivers:** core.cjs (frontmatter parse/serialize, atomic writes, output/error helpers, slug generation), config.cjs (read/write config.json, default bucket setup, validation), directory structure creation (.planning/burrow/items/, archive/).
 **Addresses features:** Persistent flat-file storage, item creation timestamps (created field).
 **Avoids pitfalls:** YAML fragility (adversarial test coverage), file I/O races (atomic writes baked in), output ambiguity (JSON contract established).
 
@@ -100,7 +100,7 @@ Based on research, suggested phase structure:
 
 ### Phase 4: CLI Router and Workflow
 **Rationale:** All lib modules must exist before the router can dispatch to them. The workflow file requires a functional CLI to reference. Commands require a workflow to invoke.
-**Delivers:** todobox-tools.cjs (argument parsing, subcommand routing, --json flag), workflows/todobox.md (agent instructions), command files (tb-add.md, tb-show.md, tb-move.md, tb-archive.md, tb-buckets.md, todobox.md).
+**Delivers:** burrow-tools.cjs (argument parsing, subcommand routing, --json flag), workflows/burrow.md (agent instructions), command files (bw-add.md, bw-show.md, bw-move.md, bw-archive.md, bw-buckets.md, burrow.md).
 **Addresses features:** CLI helper with JSON output, shortcut commands, natural language command.
 **Avoids pitfalls:** Monolithic CLI (router is thin, modules own logic), workflow duplication (all shortcuts reference single workflow), rendering in agent (CLI generates formatted views).
 
@@ -141,7 +141,7 @@ Phases with standard patterns (skip research-phase):
 
 ### Gaps to Address
 
-- **Workflow instruction format:** How exactly the agent follows todobox.md instructions needs prototyping during Phase 4. The command file format is known, but the workflow logic (especially intent parsing heuristics) will require iteration.
+- **Workflow instruction format:** How exactly the agent follows burrow.md instructions needs prototyping during Phase 4. The command file format is known, but the workflow logic (especially intent parsing heuristics) will require iteration.
 - **Reconciliation UX:** The interaction model for presenting matches and collecting user decisions has no direct precedent. Phase 5 should start with a minimal prototype and iterate based on real usage.
 - **Filename collision handling:** Research recommends `crypto.randomUUID()` but the UX of UUID-based filenames (vs human-readable slugs) needs a decision. Recommendation: use slugs as primary with UUID suffix only on collision (e.g., `fix-login-bug.md`, then `fix-login-bug-a1b2c3.md` on collision).
 - **Performance at scale:** Research says 500+ items is unlikely but does not provide a concrete mitigation plan beyond "archive aggressively." If needed, an index cache (.index.json) can be added in a future phase without architectural changes.
@@ -161,7 +161,7 @@ Phases with standard patterns (skip research-phase):
 - Node.js CLI Apps Best Practices (github.com/lirantal) -- error handling and output patterns
 
 ### Tertiary (LOW confidence)
-- CVE-2025-64718 (js-yaml prototype pollution) -- cited for YAML safety awareness, not directly applicable since Todobox uses a custom parser
+- CVE-2025-64718 (js-yaml prototype pollution) -- cited for YAML safety awareness, not directly applicable since Burrow uses a custom parser
 - Claude Code issue #29036 (race condition) -- real-world evidence for file I/O atomicity concern
 
 ---

@@ -4,7 +4,7 @@
 
 ## Overview
 
-This is a greenfield project ("todobox") with no application source code yet. The repository contains only GSD tooling (`.claude/`) and a `.planning/` directory. The concerns below focus on pre-development gaps and risks to address as the codebase is built out.
+This is a greenfield project ("burrow") with no application source code yet. The repository contains only GSD tooling (`.claude/`) and a `.planning/` directory. The concerns below focus on pre-development gaps and risks to address as the codebase is built out.
 
 ## Tech Debt
 
@@ -51,7 +51,7 @@ No dependencies have been installed yet.
 ## Missing Critical Features
 
 **Entire application is missing:**
-- Problem: The project name "todobox" implies a todo/task management application, but no code exists
+- Problem: The project name "burrow" implies a todo/task management application, but no code exists
 - Blocks: All feature development, testing, deployment
 
 **No project scaffolding:**

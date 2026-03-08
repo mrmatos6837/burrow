@@ -93,7 +93,11 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+See burrow cards for tracked work:
+- `burrow get 90eb1ae1` — v1 Remaining Work (6 cards: agent interface, dump behavior, --at flag, etc.)
+- `burrow get bfb9243c` — v2 Ideas (9 cards: concurrency, multi-file, plugin packaging, GSD integration, --minimal flag, alignment)
+
+Full backlog: `burrow get --depth 3`
 
 ### Roadmap Evolution
 

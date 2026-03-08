@@ -223,19 +223,51 @@
       "body": "Phases 3 and 4. Prove the value — make it work, not bulletproof.",
       "children": [
         {
-          "id": "92cda4d3",
-          "title": "Phase 3: Agent Interface",
-          "created": "2026-03-08T10:35:12.461Z",
-          "archived": false,
-          "body": "Workflow file + slash commands. /gsd:burrow for natural language, shortcuts for common ops. Depends on phase 2 (complete).",
-          "children": []
-        },
-        {
           "id": "28a9d397",
           "title": "Phase 4: CLI Pretty-Print Rendering",
           "created": "2026-03-08T10:35:12.498Z",
           "archived": false,
           "body": "Bake tree visualization into the tool. Default = pretty-printed tree. --json flag for structured data. Faster, consistent, no token waste.",
+          "children": []
+        },
+        {
+          "id": "eb8c40d0",
+          "title": "Move --at flag for reordering",
+          "created": "2026-03-08T15:36:32.601Z",
+          "archived": false,
+          "body": "Support --at <position> on move command. Without --to, reorders within current parent. With --to, places at specific position in destination. Both flags optional independently.\n\nDefault: if --at is not specified, card is added last (appended to end of children array). This matches current behavior for add and move.",
+          "children": []
+        },
+        {
+          "id": "3d0b5680",
+          "title": "dump command should always use --full --depth 0",
+          "created": "2026-03-08T15:40:53.611Z",
+          "archived": false,
+          "body": "dump is an alias for get with --full --depth 0 (full tree, full bodies). Supports both pretty-print (default) and --json. It's the 'show me everything' command.",
+          "children": []
+        },
+        {
+          "id": "e78542df",
+          "title": "get --depth should expand nested children in pretty-print",
+          "created": "2026-03-08T15:42:53.336Z",
+          "archived": false,
+          "body": "Currently --depth flag doesn't affect pretty-print output — always shows only immediate children. Should render nested tree up to the specified depth level with indentation.",
+          "children": []
+        },
+        {
+          "id": "e804a55f",
+          "title": "archived-only should still show [archived] tag",
+          "created": "2026-03-08T15:44:41.425Z",
+          "archived": false,
+          "body": "When using --archived-only, cards don't show the [archived] tag. For consistency, the tag should always appear on archived cards regardless of filter mode.",
+          "children": []
+        },
+        {
+          "id": "92cda4d3",
+          "title": "Phase 3: Agent Interface",
+          "created": "2026-03-08T10:35:12.461Z",
+          "archived": false,
+          "body": "Workflow file + slash commands. /gsd:burrow for natural language, shortcuts for common ops. Depends on phase 2 (complete).",
           "children": []
         }
       ]
@@ -303,6 +335,22 @@
           "archived": false,
           "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
           "children": []
+        },
+        {
+          "id": "3afc0a09",
+          "title": "--minimal flag for machine-parseable compact output",
+          "created": "2026-03-08T16:16:39.676Z",
+          "archived": false,
+          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
+          "children": []
+        },
+        {
+          "id": "8a01bb38",
+          "title": "Improve tree alignment at deep nesting levels",
+          "created": "2026-03-08T16:18:42.784Z",
+          "archived": false,
+          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
+          "children": []
         }
       ]
     },
@@ -327,6 +375,194 @@
           "created": "2026-03-08T10:48:35.545Z",
           "archived": false,
           "body": "The burrow file lives in the repo — anything stored in cards is in git history forever. The agent should: (1) never put API keys, secrets, or sensitive data in cards, (2) warn users if card content looks sensitive, (3) treat cards as public-by-default. Same risk as hardcoding an API key — users should know, and the agent should actively guard against it.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "2bdb294a",
+      "title": "Mock",
+      "created": "2026-03-08T15:41:31.124Z",
+      "archived": false,
+      "body": "",
+      "children": [
+        {
+          "id": "82c35e2c",
+          "title": "Backend Services",
+          "created": "2026-03-08T15:41:34.698Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "8698f27b",
+              "title": "Auth API",
+              "created": "2026-03-08T15:41:39.507Z",
+              "archived": false,
+              "body": "JWT + refresh tokens, rate limiting",
+              "children": [
+                {
+                  "id": "7d274551",
+                  "title": "Token Refresh Flow",
+                  "created": "2026-03-08T15:41:45.481Z",
+                  "archived": false,
+                  "body": "Handle expired tokens gracefully",
+                  "children": [
+                    {
+                      "id": "12283214",
+                      "title": "Silent Refresh",
+                      "created": "2026-03-08T15:41:49.510Z",
+                      "archived": false,
+                      "body": "Background token renewal without UI flash",
+                      "children": [
+                        {
+                          "id": "8dd81374",
+                          "title": "Retry Strategy",
+                          "created": "2026-03-08T15:41:53.097Z",
+                          "archived": false,
+                          "body": "Exponential backoff on 401",
+                          "children": []
+                        },
+                        {
+                          "id": "c84232df",
+                          "title": "Logout on Failure",
+                          "created": "2026-03-08T15:41:53.137Z",
+                          "archived": false,
+                          "body": "",
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "a91b72bb",
+                  "title": "Rate Limiter",
+                  "created": "2026-03-08T15:41:45.521Z",
+                  "archived": false,
+                  "body": "",
+                  "children": [
+                    {
+                      "id": "b6150dd8",
+                      "title": "Sliding Window",
+                      "created": "2026-03-08T15:41:49.548Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1a763ccd",
+              "title": "Data Pipeline",
+              "created": "2026-03-08T15:41:39.543Z",
+              "archived": false,
+              "body": "",
+              "children": [
+                {
+                  "id": "df36b887",
+                  "title": "ETL Jobs",
+                  "created": "2026-03-08T15:41:45.558Z",
+                  "archived": false,
+                  "body": "",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4f42eb4e",
+          "title": "Frontend App",
+          "created": "2026-03-08T15:41:34.734Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "e044cc9f",
+              "title": "Dashboard",
+              "created": "2026-03-08T15:41:39.579Z",
+              "archived": false,
+              "body": "",
+              "children": [
+                {
+                  "id": "f7ee4392",
+                  "title": "Widget Grid",
+                  "created": "2026-03-08T15:41:45.599Z",
+                  "archived": false,
+                  "body": "Drag-and-drop layout, responsive",
+                  "children": []
+                },
+                {
+                  "id": "69f7e0d4",
+                  "title": "Charts",
+                  "created": "2026-03-08T15:41:45.640Z",
+                  "archived": false,
+                  "body": "",
+                  "children": [
+                    {
+                      "id": "d5059d21",
+                      "title": "Bar Chart",
+                      "created": "2026-03-08T15:41:49.590Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    },
+                    {
+                      "id": "70523d55",
+                      "title": "Line Chart",
+                      "created": "2026-03-08T15:41:49.630Z",
+                      "archived": false,
+                      "body": "",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "5a9daea7",
+              "title": "Settings Page",
+              "created": "2026-03-08T15:41:39.617Z",
+              "archived": false,
+              "body": "User prefs, theme, notifications",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "cbe50a76",
+          "title": "DevOps",
+          "created": "2026-03-08T15:41:34.772Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "c5b5131a",
+              "title": "CI/CD",
+              "created": "2026-03-08T15:41:39.657Z",
+              "archived": false,
+              "body": "",
+              "children": [
+                {
+                  "id": "dd4fc5d8",
+                  "title": "GitHub Actions",
+                  "created": "2026-03-08T15:41:45.681Z",
+                  "archived": false,
+                  "body": "Build, test, deploy pipeline",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "9074f1eb",
+          "title": "Long Body Test",
+          "created": "2026-03-08T15:43:37.846Z",
+          "archived": true,
+          "body": "This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. This is a very long body text that should be truncated. ",
           "children": []
         }
       ]

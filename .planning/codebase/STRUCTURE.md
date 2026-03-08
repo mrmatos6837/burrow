@@ -5,7 +5,7 @@
 ## Directory Layout
 
 ```
-todobox/
+burrow/
 ├── .claude/                    # Claude Code tooling configuration
 │   ├── agents/                 # GSD agent definitions (12 agents)
 │   ├── commands/
@@ -74,7 +74,7 @@ todobox/
 
 **No application conventions established yet.** When adding application code:
 - Follow conventions documented in CONVENTIONS.md (to be written by quality mapper)
-- Project name "todobox" suggests a todo/task management domain
+- Project name "burrow" suggests a todo/task management domain
 
 ## Where to Add New Code
 

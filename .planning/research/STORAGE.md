@@ -6,7 +6,7 @@
 
 ## Summary
 
-This research evaluates six storage architectures for Todobox against the project's ranked priorities: (1) low token consumption, (2) speed, (3) minimality, (4) determinism, (5) elegance. The analysis reveals that the existing research's assumption -- one markdown file per item in a flat `items/` directory -- is suboptimal for the actual access patterns. The dominant operations (pan view, drill view) require reading ALL items to compute aggregates, meaning every common operation pays the cost of full enumeration.
+This research evaluates six storage architectures for Burrow against the project's ranked priorities: (1) low token consumption, (2) speed, (3) minimality, (4) determinism, (5) elegance. The analysis reveals that the existing research's assumption -- one markdown file per item in a flat `items/` directory -- is suboptimal for the actual access patterns. The dominant operations (pan view, drill view) require reading ALL items to compute aggregates, meaning every common operation pays the cost of full enumeration.
 
 **The recommended approach is: Single JSON file (`items.json`) with no separate item files.**
 
@@ -34,7 +34,7 @@ The CLI tool processes data internally and returns minimal JSON. The question is
 ## Approach 1: One File Per Item (Flat Directory)
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json
   items/
     fix-login-bug.md
@@ -88,7 +88,7 @@ Output is identical regardless of storage (CLI computes and returns JSON). But t
 ## Approach 2: One File Per Item (Bucket Subdirectories)
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json
   items/
     inbox/
@@ -140,7 +140,7 @@ Same as Approach 1, but items organized into subdirectories by bucket name.
 ## Approach 3: Single JSON File
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json
   items.json
 ```
@@ -204,9 +204,9 @@ All items in one JSON file:
 
 - **Concurrent writes.** Two processes read items.json simultaneously, both modify, one overwrites the other's changes. **Mitigation:** This is a single-user CLI tool invoked by one agent in one session. Concurrent writes are extremely unlikely. If they occur, the atomic write-then-rename at least prevents corruption.
 - **File corruption.** If items.json is corrupted, ALL data is lost. **Mitigation:** (a) Atomic writes prevent mid-write corruption. (b) Git provides history. (c) Could keep items.json.bak as a safety net.
-- **Large notes.** An item with a 10KB note inflates the JSON for every operation. **Mitigation:** At 500 items with average 200-byte notes, the file is ~150KB. `JSON.parse` handles this in <1ms. For truly large notes (multi-KB), consider the hybrid approach (Approach 4). But in practice, todobox notes are short -- a paragraph, a URL, a code snippet.
+- **Large notes.** An item with a 10KB note inflates the JSON for every operation. **Mitigation:** At 500 items with average 200-byte notes, the file is ~150KB. `JSON.parse` handles this in <1ms. For truly large notes (multi-KB), consider the hybrid approach (Approach 4). But in practice, burrow notes are short -- a paragraph, a URL, a code snippet.
 - **Not human-editable?** JSON is less pleasant to hand-edit than markdown. **Counter:** Users interact via the CLI and agent, not by editing files directly. The agent reads JSON output. Human editability of storage files is a nice-to-have, not a requirement.
-- **Merge conflicts.** If two branches modify items.json, git produces a merge conflict. **Mitigation:** This is per-project, single-developer. Branch conflicts on todobox data are extremely unlikely. And JSON merge conflicts are no worse than YAML merge conflicts.
+- **Merge conflicts.** If two branches modify items.json, git produces a merge conflict. **Mitigation:** This is per-project, single-developer. Branch conflicts on burrow data are extremely unlikely. And JSON merge conflicts are no worse than YAML merge conflicts.
 
 ### Verdict
 
@@ -217,7 +217,7 @@ All items in one JSON file:
 ## Approach 4: Single JSON + Markdown Notes
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json
   items.json        # Index with all item metadata
   notes/
@@ -240,14 +240,14 @@ All items in one JSON file:
 
 ### Verdict
 
-**Unnecessarily complex for the actual use case.** This approach optimizes for a problem that doesn't exist: items with large notes inflating the JSON file. In practice, todobox notes will be short (a sentence, a URL, a code snippet). The added complexity of a second storage location, a notes directory, and reference integrity (what if notes file exists but item was deleted?) is not justified. If a future version needs large notes, the migration from Approach 3 is trivial: extract `notes` fields into files.
+**Unnecessarily complex for the actual use case.** This approach optimizes for a problem that doesn't exist: items with large notes inflating the JSON file. In practice, burrow notes will be short (a sentence, a URL, a code snippet). The added complexity of a second storage location, a notes directory, and reference integrity (what if notes file exists but item was deleted?) is not justified. If a future version needs large notes, the migration from Approach 3 is trivial: extract `notes` fields into files.
 
 ---
 
 ## Approach 5: Bucket Subdirs + Manifest
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json
   manifest.json     # Lightweight index: {id, title, bucket, tags, created} for all items
   items/
@@ -360,7 +360,7 @@ True. If one item file corrupts, only that item is lost. With single JSON, corru
 
 **Counter:**
 1. Atomic writes (write to .tmp, rename) prevent mid-write corruption.
-2. Git history is the real backup. `git checkout .planning/todobox/items.json` restores any state.
+2. Git history is the real backup. `git checkout .planning/burrow/items.json` restores any state.
 3. `items.json.bak` can be written before each modification as belt-and-suspenders.
 4. In practice, JSON corruption from a Node.js `JSON.stringify` + `fs.writeFileSync` does not happen. The failure mode is a process kill during write, which atomic writes handle.
 
@@ -372,11 +372,11 @@ True. But who is reading these files?
 1. The primary consumer is the AI agent, reading CLI JSON output. Not a human reading files.
 2. The secondary consumer is the developer, using CLI commands. Not a human editing files.
 3. `JSON.stringify(data, null, 2)` produces perfectly readable, git-diffable JSON.
-4. If a human wants to inspect items, `cat items.json | jq .` or just `node todobox-tools.cjs item list`.
+4. If a human wants to inspect items, `cat items.json | jq .` or just `node burrow-tools.cjs item list`.
 
 ### "But the existing research says markdown files"
 
-The existing ARCHITECTURE.md and PITFALLS.md assume markdown files. This was inherited from GSD's pattern (which uses markdown for planning artifacts that humans DO read and edit directly). But Todobox items are NOT planning artifacts. They are structured data consumed by an agent. The pattern doesn't transfer.
+The existing ARCHITECTURE.md and PITFALLS.md assume markdown files. This was inherited from GSD's pattern (which uses markdown for planning artifacts that humans DO read and edit directly). But Burrow items are NOT planning artifacts. They are structured data consumed by an agent. The pattern doesn't transfer.
 
 The PITFALLS.md even identifies "YAML Frontmatter Parsing Fragility" as Pitfall #1. The single JSON approach eliminates this entire pitfall category.
 
@@ -395,7 +395,7 @@ This is a single-user CLI tool invoked by one agent in one session. Concurrent w
 ### File Layout
 
 ```
-.planning/todobox/
+.planning/burrow/
   config.json       # Bucket definitions, display order, limits, settings
   items.json        # All items (active + archived)
 ```
@@ -457,21 +457,21 @@ const id = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
 
 Short IDs serve two purposes:
 1. Low token cost when the agent references items
-2. Easy for humans to type if needed (`tb-move a1b2c3d4 done`)
+2. Easy for humans to type if needed (`bw-move a1b2c3d4 done`)
 
 ### Core Operations (Pseudocode)
 
 ```javascript
 // Read helper (used by every operation)
 function loadItems(cwd) {
-  const path = join(cwd, '.planning/todobox/items.json');
+  const path = join(cwd, '.planning/burrow/items.json');
   if (!existsSync(path)) return { version: 1, items: [] };
   return JSON.parse(readFileSync(path, 'utf-8'));
 }
 
 // Write helper (used by every mutation)
 function saveItems(cwd, data) {
-  const path = join(cwd, '.planning/todobox/items.json');
+  const path = join(cwd, '.planning/burrow/items.json');
   const tmp = path + '.tmp';
   writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n', 'utf-8');
   renameSync(tmp, path);
@@ -591,7 +591,7 @@ The recommended architecture in ARCHITECTURE.md needs these updates:
 | lib/archive.cjs | May not be needed as separate module. Archive is just `item.archived = true`. |
 | lib/renderer.cjs | No change. Still takes data, returns formatted text. |
 | lib/config.cjs | No change. Still reads/writes config.json. |
-| todobox-tools.cjs | No change. Still routes subcommands. |
+| burrow-tools.cjs | No change. Still routes subcommands. |
 
 The PITFALLS.md Pitfall #1 (YAML Frontmatter Parsing Fragility) is completely eliminated. Pitfall #2 (File I/O Race Conditions) is reduced to a single-file concern handled by atomic writes.
 

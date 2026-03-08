@@ -10,7 +10,7 @@
 - Project is in pre-development state with only tooling and planning infrastructure
 - No application source code, configuration files, or dependencies exist
 - GSD (Get Shit Done) Claude workflow tooling is installed and configured
-- Project name "todobox" suggests a todo/task management application is planned
+- Project name "burrow" suggests a todo/task management application is planned
 
 ## Layers
 

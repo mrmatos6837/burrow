@@ -6,7 +6,7 @@
 
 ## Constraint
 
-**Zero external npm dependencies.** Todobox is a Claude Code addon distributed as flat files. It cannot assume `npm install` has been run. Every capability must come from Node.js built-in modules or custom code vendored into the addon. This is not a preference -- it is a hard constraint inherited from the GSD framework pattern.
+**Zero external npm dependencies.** Burrow is a Claude Code addon distributed as flat files. It cannot assume `npm install` has been run. Every capability must come from Node.js built-in modules or custom code vendored into the addon. This is not a preference -- it is a hard constraint inherited from the GSD framework pattern.
 
 ## Recommended Stack
 
@@ -36,8 +36,8 @@
 
 | Component | Purpose | Complexity | Notes |
 |-----------|---------|------------|-------|
-| YAML frontmatter parser | Parse `---\nyaml\n---\nmarkdown` | Low | GSD already has `extractFrontmatter()` in `lib/frontmatter.cjs`. Fork and simplify for Todobox's narrower schema (no 3-level nesting needed). ~40 lines of code. |
-| YAML frontmatter serializer | Write frontmatter back to files | Low | GSD has `reconstructFrontmatter()`. Fork it. Todobox items have flat schemas (title, bucket, tags[], created, updated) -- simpler than GSD's deeply nested PLAN frontmatter. ~30 lines. |
+| YAML frontmatter parser | Parse `---\nyaml\n---\nmarkdown` | Low | GSD already has `extractFrontmatter()` in `lib/frontmatter.cjs`. Fork and simplify for Burrow's narrower schema (no 3-level nesting needed). ~40 lines of code. |
+| YAML frontmatter serializer | Write frontmatter back to files | Low | GSD has `reconstructFrontmatter()`. Fork it. Burrow items have flat schemas (title, bucket, tags[], created, updated) -- simpler than GSD's deeply nested PLAN frontmatter. ~30 lines. |
 | Frontmatter splice | Replace frontmatter in existing file | Low | GSD has `spliceFrontmatter()`. Direct reuse pattern. ~5 lines. |
 | Text renderer | Pan view, drill view, item display | Medium | Custom. Uses `util.styleText()` for colors, manual string padding for alignment. The dotted-leader pattern (bucket name . . . count) is ~10 lines. No need for a table library. |
 | Slug generator | Convert titles to filenames | Low | `text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')`. GSD has `generateSlug()`. |
@@ -56,8 +56,8 @@
 Follow GSD's established pattern:
 
 ```
-.claude/todobox/
-  todobox-tools.cjs          # Single entry point, all commands
+.claude/burrow/
+  burrow-tools.cjs          # Single entry point, all commands
   lib/
     frontmatter.cjs          # YAML frontmatter parse/serialize (forked from GSD)
     items.cjs                # Item CRUD operations
@@ -65,16 +65,16 @@ Follow GSD's established pattern:
     config.cjs               # Config read/write/validate
 ```
 
-**Why this structure:** Matches `gsd-tools.cjs` conventions. The agent calls `node .claude/todobox/todobox-tools.cjs <command> [args]`. Single entry point with subcommands. Lib modules keep concerns separated without any module system beyond `require()`.
+**Why this structure:** Matches `gsd-tools.cjs` conventions. The agent calls `node .claude/burrow/burrow-tools.cjs <command> [args]`. Single entry point with subcommands. Lib modules keep concerns separated without any module system beyond `require()`.
 
 ## Alternatives Considered
 
 | Recommended | Alternative | Why Not |
 |-------------|-------------|---------|
-| Custom YAML parser | `js-yaml` npm package | External dependency. Todobox's YAML is trivially simple (flat key-value + one array field). Full YAML spec support is unnecessary overhead and violates the zero-deps constraint. |
+| Custom YAML parser | `js-yaml` npm package | External dependency. Burrow's YAML is trivially simple (flat key-value + one array field). Full YAML spec support is unnecessary overhead and violates the zero-deps constraint. |
 | Custom YAML parser | `yaml` npm package | Same as above. More modern API but still an external dep. |
 | `util.styleText()` | `chalk` / `picocolors` | External dependencies. `styleText()` covers all needed formatting (bold, dim, colors) natively in Node.js 22. |
-| `util.parseArgs()` | `minimist` / `yargs` / `commander` | External dependencies. `parseArgs()` handles Todobox's simple argument patterns (subcommand + named flags + positionals). |
+| `util.parseArgs()` | `minimist` / `yargs` / `commander` | External dependencies. `parseArgs()` handles Burrow's simple argument patterns (subcommand + named flags + positionals). |
 | `crypto.randomUUID()` | `uuid` npm package | Built-in since Node.js 19. No reason for external package. |
 | Synchronous fs | `fs/promises` (async) | CLI tool does sequential file ops and exits. Async adds complexity (async/await boilerplate, error handling) with no performance benefit. GSD uses sync fs throughout. |
 | CommonJS | ESM | GSD convention is `.cjs`. Switching to ESM would create inconsistency with the parent framework. |
@@ -85,12 +85,12 @@ Follow GSD's established pattern:
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
 | Any npm package | Hard constraint: zero external dependencies. Addon is distributed as flat files with no install step. | Node.js built-in APIs + custom code |
-| `gray-matter` | Popular frontmatter parser, but it is an npm package with transitive deps. Overkill for Todobox's flat schema. | Custom `extractFrontmatter()` (forked from GSD's proven implementation) |
-| `inquirer` / `prompts` | Interactive CLI prompts. Todobox is not interactive -- the agent interprets user intent and calls the CLI tool with explicit arguments. | Direct argument parsing via `parseArgs()` |
-| `blessed` / `ink` / `terminal-kit` | TUI frameworks. Todobox renders simple formatted text, not interactive UIs. | `util.styleText()` + manual string formatting |
+| `gray-matter` | Popular frontmatter parser, but it is an npm package with transitive deps. Overkill for Burrow's flat schema. | Custom `extractFrontmatter()` (forked from GSD's proven implementation) |
+| `inquirer` / `prompts` | Interactive CLI prompts. Burrow is not interactive -- the agent interprets user intent and calls the CLI tool with explicit arguments. | Direct argument parsing via `parseArgs()` |
+| `blessed` / `ink` / `terminal-kit` | TUI frameworks. Burrow renders simple formatted text, not interactive UIs. | `util.styleText()` + manual string formatting |
 | `fs/promises` (async) | Adds unnecessary complexity for sequential single-file operations in a CLI that runs and exits. | `fs.readFileSync` / `fs.writeFileSync` |
-| `child_process.exec` for git | Todobox does not manage git. The GSD framework handles commits. | N/A -- out of scope |
-| Full YAML spec parser | YAML is complex (anchors, aliases, multiline, type coercion). Todobox needs none of this. Building or importing a full parser invites bugs for features never used. | Minimal parser that handles: `key: value`, `key: [a, b]`, and `- item` lists. Nothing else. |
+| `child_process.exec` for git | Burrow does not manage git. The GSD framework handles commits. | N/A -- out of scope |
+| Full YAML spec parser | YAML is complex (anchors, aliases, multiline, type coercion). Burrow needs none of this. Building or importing a full parser invites bugs for features never used. | Minimal parser that handles: `key: value`, `key: [a, b]`, and `- item` lists. Nothing else. |
 
 ## Stack Patterns
 
@@ -100,7 +100,7 @@ Follow GSD's established pattern:
 - Output JSON for agent consumption, formatted text for display (detect with `--json` flag)
 
 **For frontmatter parsing:**
-- Fork GSD's `extractFrontmatter()` but simplify: Todobox items max out at 1-level nesting (tags array). Remove GSD's 3-level nesting support.
+- Fork GSD's `extractFrontmatter()` but simplify: Burrow items max out at 1-level nesting (tags array). Remove GSD's 3-level nesting support.
 - Validate schema on write: reject items missing `title` or `bucket`
 
 **For text rendering:**
@@ -136,5 +136,5 @@ Follow GSD's established pattern:
 - [ANSI terminal color comparison](https://dev.to/webdiscus/comparison-of-nodejs-libraries-to-colorize-text-in-terminal-4j3a) -- confirmed `util.styleText()` as built-in alternative
 
 ---
-*Stack research for: Todobox CLI addon (zero-dependency Node.js tool)*
+*Stack research for: Burrow CLI addon (zero-dependency Node.js tool)*
 *Researched: 2026-03-06*
