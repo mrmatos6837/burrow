@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-cli-pretty-print-rendering-with-json-flag
 source: [03-01-SUMMARY.md, 03-02-SUMMARY.md]
 started: 2026-03-08T15:10:00Z
-updated: 2026-03-08T15:47:00Z
+updated: 2026-03-08T15:55:00Z
 ---
 
 ## Current Test
@@ -91,29 +91,52 @@ skipped: 0
   reason: "User reported: Move shows 'root → root' instead of correct destination parent title, and card didn't actually move to the target parent"
   severity: major
   test: 6
-  artifacts: []
-  missing: []
+  root_cause: "parseArgs in move command defines --parent but user passes --to. With strict:false, --to is silently ignored, so newParentId defaults to null (root). Card 'moves' from root to root — a no-op."
+  artifacts:
+    - path: ".claude/burrow/burrow-tools.cjs"
+      issue: "parseArgs options define 'parent' not 'to' (line 198). strict:false silently drops unknown --to flag."
+  missing:
+    - "Add 'to' as primary flag in parseArgs, keep --parent for backward compat"
+  debug_session: ".planning/debug/move-cmd-broken.md"
 
 - truth: "Children count column is consistent and aligned across all tree items"
   status: failed
   reason: "User reported: Children count (N) only appears on some items, making the column inconsistent and misaligned"
   severity: cosmetic
   test: 7
-  artifacts: []
-  missing: []
+  root_cause: "formatCardLine (render.cjs:121) sets countStr to empty when descCount === 0, making rightSide variable width. Each line is independently right-aligned but with different content widths."
+  artifacts:
+    - path: ".claude/burrow/lib/render.cjs"
+      issue: "Line 121: conditional count omission. Lines 124-139: padding uses variable-width right column."
+  missing:
+    - "Compute max right-side width across all siblings, then pad consistently (fixed-width right column)"
+  debug_session: ".planning/debug/tree-count-alignment.md"
 
 - truth: "Archived cards always show [archived] tag regardless of filter mode"
   status: failed
   reason: "User reported: --archived-only doesn't show the [archived] tag on cards, inconsistent with --include-archived"
   severity: cosmetic
   test: 12
-  artifacts: []
-  missing: []
+  root_cause: "render.cjs:196 sets showArchivedLabel = filter === 'include-archived', excluding 'archived-only' mode. formatCardLine receives showArchived=false, suppressing the tag."
+  artifacts:
+    - path: ".claude/burrow/lib/render.cjs"
+      issue: "Line 196: showArchivedLabel condition is too narrow, only checks 'include-archived'"
+  missing:
+    - "Change condition to filter === 'include-archived' || filter === 'archived-only'"
+  debug_session: ""
 
 - truth: "--depth flag expands nested children in pretty-print tree view"
   status: failed
   reason: "User reported: --depth flag doesn't affect pretty-print output, always shows only immediate children"
   severity: major
   test: 13
-  artifacts: []
-  missing: []
+  root_cause: "Two bugs: (1) burrow-tools.cjs:292 filters renderTree results to depth===1 only, discarding deeper entries. (2) render.cjs:197-200 renderCard has no recursive rendering, just a flat loop. Data layer (mongoose.cjs renderTree) works correctly."
+  artifacts:
+    - path: ".claude/burrow/burrow-tools.cjs"
+      issue: "Line 292: filters to depth === 1 only, discarding depth 2+ entries"
+    - path: ".claude/burrow/lib/render.cjs"
+      issue: "Lines 197-200: no recursive tree rendering in renderCard children section"
+  missing:
+    - "Reconstruct nested tree from flat renderTree output in router"
+    - "Add recursive rendering with indentation in renderCard children section"
+  debug_session: ".planning/debug/depth-flag-pretty-print.md"
