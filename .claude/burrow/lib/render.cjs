@@ -252,7 +252,7 @@ function renderCard(card, breadcrumbs, opts) {
 
 /**
  * Render mutation output.
- * @param {string} type - 'add'|'edit'|'delete'|'move'|'archive'|'unarchive'
+ * @param {string} type - 'add'|'edit'|'remove'|'move'|'archive'|'unarchive'
  * @param {object} result - Command result
  * @param {object} opts - {breadcrumbs, card, oldTitle, oldBody, fromParentTitle, termWidth}
  * @returns {string}
@@ -290,11 +290,11 @@ function renderMutation(type, result, opts) {
       return `${CHECKMARK} Edited card${diffSection}\n${detail}`;
     }
 
-    case 'delete': {
+    case 'remove': {
       const childPart = result.descendantCount > 0
         ? ` (and ${result.descendantCount} children)`
         : '';
-      return `${CHECKMARK} Deleted "${result.title}" [${result.id}]${childPart}`;
+      return `${CHECKMARK} Removed "${result.title}" [${result.id}]${childPart}`;
     }
 
     case 'move': {

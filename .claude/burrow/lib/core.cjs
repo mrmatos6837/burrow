@@ -5,25 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 /**
- * Write JSON success result to stdout and exit.
- * @param {*} result - The data payload
- */
-function output(result) {
-  process.stdout.write(JSON.stringify({ success: true, data: result }) + '\n');
-  process.exit(0);
-}
-
-/**
- * Write JSON error result to stdout and exit with code 1.
- * @param {string} message - Error description
- * @param {string} [code="INVALID_OPERATION"] - Error code
- */
-function errorOut(message, code = 'INVALID_OPERATION') {
-  process.stdout.write(JSON.stringify({ success: false, error: message, code }) + '\n');
-  process.exit(1);
-}
-
-/**
  * Ensure the .planning/burrow/ directory exists.
  * Does NOT create cards.json -- storage.load handles empty state.
  * @param {string} cwd - Working directory
@@ -65,4 +46,4 @@ function generateId(existingIds) {
   return id;
 }
 
-module.exports = { output, errorOut, ensureDataDir, generateId, collectAllIds };
+module.exports = { ensureDataDir, generateId, collectAllIds };
