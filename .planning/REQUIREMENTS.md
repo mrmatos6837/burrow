@@ -134,12 +134,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-02 | Phase 1 | Complete |
 | CLI-03 | Phase 2 | Complete |
 | CLI-04 | Phase 2 | Complete |
-| CMDS-01 | Phase 3 | Pending |
-| CMDS-02 | Phase 3 | Pending |
-| CMDS-03 | Phase 3 | Pending |
-| CMDS-04 | Phase 3 | Pending |
-| CMDS-05 | Phase 3 | Pending |
-| CMDS-06 | Phase 3 | Pending |
+| CMDS-01 | Phase 4 | Pending |
+| CMDS-02 | Phase 4 | Pending |
+| CMDS-03 | Phase 4 | Pending |
+| CMDS-04 | Phase 4 | Pending |
+| CMDS-05 | Phase 4 | Pending |
+| CMDS-06 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 32 total
@@ -148,4 +148,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-08 — cards terminology, Phase 2 decisions applied, search dropped*
+*Last updated: 2026-03-08 — phases 3/4 swapped: CLI rendering before agent interface*

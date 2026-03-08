@@ -2,7 +2,7 @@
 
 ## Overview
 
-Burrow delivers a recursive nested card tool navigated by an AI agent. The build follows strict dependency order: first the core data engine and CLI skeleton (recursive tree CRUD, single JSON storage, atomic writes, tree traversal), then schema simplification, views, and archive (drop position/ordering, rename notes→body, flat render array with depth control, cascade archive), and finally the agent interface (workflow file and GSD commands for natural language and shortcut interaction). Storage is a single JSON file (cards.json) with a recursive tree structure -- no buckets, no tags, no flat lists.
+Burrow delivers a recursive nested card tool navigated by an AI agent. The build follows strict dependency order: first the core data engine and CLI skeleton (recursive tree CRUD, single JSON storage, atomic writes, tree traversal), then schema simplification, views, and archive (drop position/ordering, rename notes→body, flat render array with depth control, cascade archive), then CLI pretty-print rendering (human-readable output by default, --json flag for raw structured JSON), and finally the agent interface (workflow file and GSD commands for natural language and shortcut interaction). Storage is a single JSON file (cards.json) with a recursive tree structure -- no buckets, no tags, no flat lists.
 
 ## Phases
 
@@ -14,7 +14,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Engine** - Recursive tree data layer with CLI tool skeleton and single JSON storage
 - [ ] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
-- [ ] **Phase 3: Agent Interface** - Workflow file and GSD commands for natural language and shortcut interaction
+- [ ] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
+- [ ] **Phase 4: Agent Interface** - Workflow file and GSD commands for natural language and shortcut interaction
 
 ## Phase Details
 
@@ -52,36 +53,41 @@ Plans:
 - [ ] 02-01-PLAN.md -- Schema migration: drop position/ordering, rename notes->body, flatten children, v1->v2 data migration
 - [ ] 02-02-PLAN.md -- Render tree, archive system, and CLI wiring: universal get with depth control, archive/unarchive, aliases
 
-### Phase 3: Agent Interface
-**Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and renders the right view
+### Phase 3: CLI Pretty-Print Rendering
+**Goal**: Every CLI command outputs human-readable formatted text by default. --json flag bypasses rendering and returns raw structured JSON. Each command internally produces structured data, then passes it through a render function.
 **Depends on**: Phase 2
-**Requirements**: CMDS-01, CMDS-02, CMDS-03, CMDS-04, CMDS-05, CMDS-06
+**Requirements**: TBD (new requirements to be defined)
 **Success Criteria** (what must be TRUE):
-  1. User can type /gsd:burrow with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and renders a useful response
-  2. User can use shortcut commands (/gsd:bw-add, /gsd:bw-show, /gsd:bw-move, /gsd:bw-archive) for common operations without typing full natural language
-  3. Workflow file defines clear agent behavior for all interactions -- intent parsing, tree navigation, depth selection, and output formatting
+  1. Every CLI command outputs human-readable text by default (indented tree with counts, confirmation messages, breadcrumb paths)
+  2. --json flag on any command bypasses the render function and returns raw structured JSON (current behavior becomes opt-in)
+  3. JSON output mirrors the semantic content of the readable output
+  4. Render function is a single code path shared by all commands
 **Plans**: TBD
 
 Plans:
 - [ ] 03-01: TBD
 
+### Phase 4: Agent Interface
+**Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and passes through the tool's rendered output
+**Depends on**: Phase 3
+**Requirements**: CMDS-01, CMDS-02, CMDS-03, CMDS-04, CMDS-05, CMDS-06
+**Success Criteria** (what must be TRUE):
+  1. User can type /gsd:burrow with any natural language request and the agent correctly interprets the intent, calls the right CLI operations, and presents the result
+  2. User can use shortcut commands (/gsd:burrow-add, /gsd:burrow-show, /gsd:burrow-move, /gsd:burrow-archive, etc.) for common operations without typing full natural language
+  3. Workflow file defines agent behavior: strict rules for data integrity, creative freedom for everything else, with worked examples
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
-| 3. Agent Interface | 0/1 | Not started | - |
-
-### Phase 4: CLI pretty-print rendering with --json flag
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 3
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 4 to break down)
+| 3. CLI Pretty-Print Rendering | 0/0 | Not started | - |
+| 4. Agent Interface | 0/0 | Not started | - |
