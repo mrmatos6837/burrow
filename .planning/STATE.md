@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 4 context updated — ready for planning
-last_updated: "2026-03-08T16:53:19.473Z"
-last_activity: 2026-03-08 -- Phase 3 verified, documentation gaps closed
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-08T21:05:22.368Z"
+last_activity: 2026-03-08 -- Completed 04-02 shortcut commands and help
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -25,19 +25,19 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 
 ## Current Position
 
-Phase: 4 of 5 (Agent Interface) -- NOT STARTED
-Plan: 0 of 0 in current phase -- Planning needed
-Status: Phase 3 verified and complete, advancing to Phase 4
-Last activity: 2026-03-08 -- Phase 3 verified, documentation gaps closed
+Phase: 4 of 5 (Agent Interface) -- IN PROGRESS
+Plan: 1 of 2 in current phase (04-02 complete)
+Status: Executing phase 4 plans
+Last activity: 2026-03-08 -- Completed 04-02 shortcut commands and help
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 3.3 min
-- Total execution time: 0.38 hours
+- Total plans completed: 8
+- Average duration: 3 min
+- Total execution time: 0.40 hours
 
 **By Phase:**
 
@@ -51,7 +51,14 @@ Progress: [██████████] 100%
 - Last 5 plans: 02-02 (4 min), 03-01 (3 min), 03-02 (4 min), 03-03 (3 min)
 - Trend: stable
 
+| 04-agent-interface | 1 | 1 min | 1 min |
+
+**Recent Trend:**
+- Last 5 plans: 03-01 (3 min), 03-02 (4 min), 03-03 (3 min), 04-02 (1 min)
+- Trend: stable
+
 *Updated after each plan completion*
+| Phase 04-agent-interface P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +97,12 @@ Recent decisions affecting current work:
 - [03-03]: Always show (N) count including (0) for consistent column width
 - [03-03]: nestFlatCards stack-based approach for flat-to-nested tree reconstruction
 - [03-03]: renderTreeLines recursive function for arbitrary depth box-drawing indentation
+- [04-02]: Shortcuts are thin wrappers -- no workflow file loaded, no NL parsing
+- [04-02]: show maps to CLI get command (user-facing name differs from internal)
+- [04-02]: delete.md shows target card before confirmation for safety
+- [04-02]: help.md outputs static text with no CLI invocation
+- [Phase 04-01]: Workflow file at .claude/burrow/workflows/burrow.md, separate from command files
+- [Phase 04-01]: 4 worked examples covering creation, viewing, multi-step, and ambiguity resolution
 
 ### Pending Todos
 
@@ -109,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T16:53:19.462Z
-Stopped at: Phase 4 context updated — ready for planning
-Resume file: .planning/phases/04-agent-interface/04-CONTEXT.md
+Last session: 2026-03-08T21:05:22.365Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

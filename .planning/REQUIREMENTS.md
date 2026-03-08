@@ -63,12 +63,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Commands
 
-- [ ] **CMDS-01**: `/burrow` handles any natural language command (agent interprets intent)
+- [x] **CMDS-01**: `/burrow` handles any natural language command (agent interprets intent)
 - [x] **CMDS-02**: `/burrow:add` shortcut for quick card creation
 - [x] **CMDS-03**: `/burrow:show` shortcut for viewing tree at specified depth/focus
 - [x] **CMDS-04**: `/burrow:move` shortcut for moving cards
 - [x] **CMDS-05**: `/burrow:archive` shortcut for archiving cards
-- [ ] **CMDS-06**: Workflow file (`burrow.md`) defines agent behavior for all interactions
+- [x] **CMDS-06**: Workflow file (`burrow.md`) defines agent behavior for all interactions
 - Note: Expanded shortcut surface also includes `/burrow:edit`, `/burrow:delete`, `/burrow:unarchive`, `/burrow:dump`, `/burrow:help`
 
 ## v2 Requirements
@@ -158,12 +158,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PP-08 | Phase 3 | Complete |
 | PP-09 | Phase 3 | Complete |
 | PP-10 | Phase 3 | Complete |
-| CMDS-01 | Phase 4 | Pending |
+| CMDS-01 | Phase 4 | Complete |
 | CMDS-02 | Phase 4 | Complete |
 | CMDS-03 | Phase 4 | Complete |
 | CMDS-04 | Phase 4 | Complete |
 | CMDS-05 | Phase 4 | Complete |
-| CMDS-06 | Phase 4 | Pending |
+| CMDS-06 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 42 total
