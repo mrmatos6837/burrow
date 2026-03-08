@@ -62,11 +62,12 @@ Plans:
   2. --json flag on any command bypasses the render function and returns raw structured JSON (current behavior becomes opt-in)
   3. JSON output mirrors the semantic content of the readable output
   4. Render function is a single code path shared by all commands
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Render module: build lib/render.cjs with all render functions (card detail, mutations, path, errors) and unit tests
-- [ ] 03-02-PLAN.md -- CLI wiring: refactor burrow-tools.cjs for --json flag, render integration, remove list/children, update integration tests
+- [x] 03-01-PLAN.md -- Render module: build lib/render.cjs with all render functions (card detail, mutations, path, errors) and unit tests
+- [x] 03-02-PLAN.md -- CLI wiring: refactor burrow-tools.cjs for --json flag, render integration, remove list/children, update integration tests
+- [ ] 03-03-PLAN.md -- Gap closure: fix move --to flag, --depth recursive rendering, archive tag, count alignment
 
 ### Phase 4: Agent Interface
 **Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and passes through the tool's rendered output
@@ -90,5 +91,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
-| 3. CLI Pretty-Print Rendering | 1/2 | In Progress|  |
+| 3. CLI Pretty-Print Rendering | 2/3 | In Progress|  |
 | 4. Agent Interface | 0/0 | Not started | - |
