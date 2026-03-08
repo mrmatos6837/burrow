@@ -139,6 +139,34 @@ function formatCardLine(card, prefix, termWidth, showArchived) {
   return `${leftContent}${' '.repeat(padding)}${rightSide}`;
 }
 
+/**
+ * Recursively render tree lines with proper indentation.
+ * @param {Array} children - Array of card objects (may have nested children)
+ * @param {number} depth - Current nesting depth (0 = top-level children)
+ * @param {string} indent - Accumulated indent prefix for this level
+ * @param {number} tw - Terminal width
+ * @param {boolean} showArchived - Whether to show [archived] label
+ * @returns {string[]} Array of formatted lines
+ */
+function renderTreeLines(children, depth, indent, tw, showArchived) {
+  const result = [];
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const isLast = i === children.length - 1;
+    const prefix = indent + (isLast ? CORNER : BRANCH);
+    result.push(formatCardLine(child, prefix, tw, showArchived));
+
+    if (child.children && child.children.length > 0) {
+      const nextIndent = indent + (isLast ? '    ' : `${PIPE}   `);
+      const subLines = renderTreeLines(child.children, depth + 1, nextIndent, tw, showArchived);
+      for (const sl of subLines) {
+        result.push(sl);
+      }
+    }
+  }
+  return result;
+}
+
 // --- Exported Functions ---
 
 /**
@@ -194,10 +222,9 @@ function renderCard(card, breadcrumbs, opts) {
     );
     lines.push(`children: ${activeCount} cards (${totalDescendants} total)`);
     const showArchivedLabel = filter === 'include-archived' || filter === 'archived-only';
-    for (let i = 0; i < filteredChildren.length; i++) {
-      const isLast = i === filteredChildren.length - 1;
-      const prefix = isLast ? CORNER : BRANCH;
-      lines.push(formatCardLine(filteredChildren[i], prefix, tw, showArchivedLabel));
+    const treeLines = renderTreeLines(filteredChildren, 0, '', tw, showArchivedLabel);
+    for (const tl of treeLines) {
+      lines.push(tl);
     }
   }
   lines.push(HR);

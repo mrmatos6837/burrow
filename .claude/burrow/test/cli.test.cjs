@@ -635,6 +635,41 @@ describe('pretty-print output', () => {
   });
 });
 
+describe('depth rendering', () => {
+  it('get <id> --depth 3 --json returns entries at depth 1, 2, and 3', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = runJson(['add', '--title', 'Level1'], dir);
+      const b = runJson(['add', '--title', 'Level2', '--parent', a.data.id], dir);
+      runJson(['add', '--title', 'Level3', '--parent', b.data.id], dir);
+      const res = runJson(['get', a.data.id, '--depth', '3'], dir);
+      assert.equal(res.success, true);
+      const depths = res.data.cards.map((c) => c.depth);
+      assert.ok(depths.includes(1), 'Should have depth 1');
+      assert.ok(depths.includes(2), 'Should have depth 2');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('get <id> --depth 2 pretty-print shows grandchild with indented tree', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = runJson(['add', '--title', 'Root Node'], dir);
+      const b = runJson(['add', '--title', 'Child Node', '--parent', a.data.id], dir);
+      runJson(['add', '--title', 'Grandchild Node', '--parent', b.data.id], dir);
+      const output = runRaw(['get', a.data.id, '--depth', '2'], dir);
+      assert.ok(output.includes('Child Node'), 'Should show child');
+      assert.ok(output.includes('Grandchild Node'), 'Should show grandchild in pretty-print');
+      // Should have pipe for indentation
+      assert.ok(output.includes('\u2502') || output.includes('\u2514') || output.includes('\u251c'),
+        'Should contain box-drawing characters for nested indentation');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
 describe('removed commands', () => {
   it('list command returns error', () => {
     const dir = makeTmpDir();

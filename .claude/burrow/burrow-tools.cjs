@@ -50,6 +50,41 @@ function getBreadcrumbs(data, id) {
   return pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
 }
 
+/**
+ * Reconstruct a nested tree from the flat renderTree output.
+ * Takes flat cards (each with a depth property) and nests deeper cards
+ * as children of their parent at depth N-1.
+ * @param {Array} flatCards - Flat array from renderTree (depth >= 1)
+ * @returns {Array} Top-level cards (depth 1) with nested children
+ */
+function nestFlatCards(flatCards) {
+  if (!flatCards || flatCards.length === 0) return [];
+  // Stack tracks the most recent card at each depth level
+  const stack = []; // stack[i] = card at depth i+1
+  const roots = [];
+
+  for (const entry of flatCards) {
+    const card = { ...entry, children: [] };
+    const d = card.depth;
+
+    if (d === 1) {
+      roots.push(card);
+      stack.length = 1;
+      stack[0] = card;
+    } else {
+      // Attach to parent at depth d-1
+      const parentIdx = d - 2; // stack index for depth d-1
+      if (parentIdx >= 0 && stack[parentIdx]) {
+        stack[parentIdx].children.push(card);
+      }
+      stack.length = d;
+      stack[d - 1] = card;
+    }
+  }
+
+  return roots;
+}
+
 function main() {
   const command = filteredArgv[2];
   const subArgs = filteredArgv.slice(3);
@@ -292,8 +327,8 @@ function main() {
           // For depth > 1 or depth 0, get subtree children from renderTree
           const treeResult = tree.renderTree(data, id, { depth, archiveFilter });
           if (treeResult && treeResult.cards.length > 1) {
-            // Build children from flat array (depth >= 1 entries are children)
-            const childCards = treeResult.cards.filter((c) => c.depth === 1);
+            // Reconstruct nested tree from flat renderTree output
+            const childCards = nestFlatCards(treeResult.cards.filter((c) => c.depth >= 1));
             // Attach rendered children to card for display
             const cardCopy = { ...card, children: childCards };
             const rendered = render.renderCard(cardCopy, breadcrumbs, {

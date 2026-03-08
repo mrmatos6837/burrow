@@ -214,6 +214,44 @@ describe('renderCard', () => {
     assert.ok(result.includes('[archived]'));
   });
 
+  it('renders nested children (grandchildren) with indented tree lines', () => {
+    const card = makeCard({
+      children: [
+        {
+          id: 'c1111111',
+          title: 'Parent child',
+          created: '2026-03-07T00:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [
+            {
+              id: 'c3333333',
+              title: 'Grandchild',
+              created: '2026-03-07T00:00:00.000Z',
+              archived: false,
+              body: '',
+              children: [],
+            },
+          ],
+        },
+        {
+          id: 'c2222222',
+          title: 'Sibling',
+          created: '2026-03-07T00:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [],
+        },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 120 });
+    // Should contain grandchild
+    assert.ok(result.includes('Grandchild'), 'Should render grandchild title');
+    assert.ok(result.includes('[c3333333]'), 'Should render grandchild ID');
+    // Grandchild should be indented with pipe continuation from parent
+    assert.ok(result.includes('\u2502'), 'Should contain pipe for continuation indent');
+  });
+
   it('renders body with indentation', () => {
     const card = makeCard({ body: 'Line 1\nLine 2\nLine 3' });
     const result = renderCard(card, [], {});
