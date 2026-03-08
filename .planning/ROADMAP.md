@@ -56,16 +56,17 @@ Plans:
 ### Phase 3: CLI Pretty-Print Rendering
 **Goal**: Every CLI command outputs human-readable formatted text by default. --json flag bypasses rendering and returns raw structured JSON. Each command internally produces structured data, then passes it through a render function.
 **Depends on**: Phase 2
-**Requirements**: TBD (new requirements to be defined)
+**Requirements**: PP-01, PP-02, PP-03, PP-04, PP-05, PP-06, PP-07, PP-08, PP-09, PP-10
 **Success Criteria** (what must be TRUE):
   1. Every CLI command outputs human-readable text by default (indented tree with counts, confirmation messages, breadcrumb paths)
   2. --json flag on any command bypasses the render function and returns raw structured JSON (current behavior becomes opt-in)
   3. JSON output mirrors the semantic content of the readable output
   4. Render function is a single code path shared by all commands
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md -- Render module: build lib/render.cjs with all render functions (card detail, mutations, path, errors) and unit tests
+- [ ] 03-02-PLAN.md -- CLI wiring: refactor burrow-tools.cjs for --json flag, render integration, remove list/children, update integration tests
 
 ### Phase 4: Agent Interface
 **Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and passes through the tool's rendered output
@@ -89,5 +90,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
-| 3. CLI Pretty-Print Rendering | 0/0 | Not started | - |
+| 3. CLI Pretty-Print Rendering | 0/2 | Not started | - |
 | 4. Agent Interface | 0/0 | Not started | - |
