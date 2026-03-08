@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Engine** - Recursive tree data layer with CLI tool skeleton and single JSON storage
 - [ ] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
-- [ ] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
+- [x] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
 - [ ] **Phase 4: Agent Interface** - Workflow file and GSD commands for natural language and shortcut interaction
 
 ## Phase Details
@@ -67,7 +67,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md -- Render module: build lib/render.cjs with all render functions (card detail, mutations, path, errors) and unit tests
 - [x] 03-02-PLAN.md -- CLI wiring: refactor burrow-tools.cjs for --json flag, render integration, remove list/children, update integration tests
-- [ ] 03-03-PLAN.md -- Gap closure: fix move --to flag, --depth recursive rendering, archive tag, count alignment
+- [x] 03-03-PLAN.md -- Gap closure: fix move --to flag, --depth recursive rendering, archive tag, count alignment
 
 ### Phase 4: Agent Interface
 **Goal**: Users interact with Burrow through natural language and shortcut commands -- the agent interprets intent, picks depth and focus, and passes through the tool's rendered output
@@ -91,5 +91,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
-| 3. CLI Pretty-Print Rendering | 2/3 | In Progress|  |
+| 3. CLI Pretty-Print Rendering | 3/3 | Complete | 2026-03-08 |
 | 4. Agent Interface | 0/0 | Not started | - |

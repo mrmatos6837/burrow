@@ -41,6 +41,19 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ARCH-02**: Active-only descendant counts — archived children not counted in `(N)`
 - [x] **ARCH-03**: Archived cards keep original tree position when viewed with `--include-archived`
 
+### Pretty-Print Rendering (Phase 3)
+
+- [x] **PP-01**: `renderCard()` produces card detail with breadcrumb header, title, metadata, children list, and body sections delimited by horizontal rules
+- [x] **PP-02**: Body truncation at ~200 chars with ellipsis and `--full` notice; `--full` flag shows complete body
+- [x] **PP-03**: `renderMutation()` formats add/edit/delete/move/archive/unarchive with checkmark symbols and structured output
+- [x] **PP-04**: `formatAge()` produces relative timestamps (just now, Xm ago, Xh ago, Xd ago, Xw ago, Xy ago)
+- [x] **PP-05**: Tree lines use box-drawing characters (├── └──) with right-aligned age column, body dot marker, and recursive depth indentation
+- [x] **PP-06**: `--json` flag on any command bypasses render and returns raw structured JSON (previous default becomes opt-in)
+- [x] **PP-07**: Default output is human-readable formatted text (pretty-print is the new default)
+- [x] **PP-08**: `list` and `children` commands removed; `dump` remains as alias for `get --depth 0`
+- [x] **PP-09**: `renderError()` produces cross-mark + message format for all error output
+- [x] **PP-10**: Root card rendered with `(root)` ID and synthesized virtual card data
+
 ### CLI
 
 - [x] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
@@ -134,6 +147,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-02 | Phase 1 | Complete |
 | CLI-03 | Phase 2 | Complete |
 | CLI-04 | Phase 2 | Complete |
+| PP-01 | Phase 3 | Complete |
+| PP-02 | Phase 3 | Complete |
+| PP-03 | Phase 3 | Complete |
+| PP-04 | Phase 3 | Complete |
+| PP-05 | Phase 3 | Complete |
+| PP-06 | Phase 3 | Complete |
+| PP-07 | Phase 3 | Complete |
+| PP-08 | Phase 3 | Complete |
+| PP-09 | Phase 3 | Complete |
+| PP-10 | Phase 3 | Complete |
 | CMDS-01 | Phase 4 | Pending |
 | CMDS-02 | Phase 4 | Pending |
 | CMDS-03 | Phase 4 | Pending |
@@ -142,8 +165,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMDS-06 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 42 total
+- Mapped to phases: 42
 - Unmapped: 0
 
 ---
