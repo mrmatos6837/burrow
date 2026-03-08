@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 02-01 schema simplification
-last_updated: "2026-03-08T10:17:31.000Z"
-last_activity: 2026-03-08 -- Completed 02-01 schema simplification
+stopped_at: Completed 02-02 views and archive
+last_updated: "2026-03-08T10:24:09.000Z"
+last_activity: 2026-03-08 -- Completed 02-02 views and archive
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -25,29 +25,29 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 
 ## Current Position
 
-Phase: 2 of 3 (Views and Features)
-Plan: 1 of 2 in current phase -- COMPLETE
+Phase: 2 of 3 (Views and Features) -- COMPLETE
+Plan: 2 of 2 in current phase -- COMPLETE
 Status: In Progress
-Last activity: 2026-03-08 -- Completed 02-01 schema simplification
+Last activity: 2026-03-08 -- Completed 02-02 views and archive
 
-Progress: [#######...] 75%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 3 min
-- Total execution time: 0.15 hours
+- Total plans completed: 4
+- Average duration: 3.5 min
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-core-engine | 2 | 5 min | 2.5 min |
-| 02-views-and-features | 1 | 4 min | 4 min |
+| 02-views-and-features | 2 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (2 min), 02-01 (4 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (2 min), 02-01 (4 min), 02-02 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -74,10 +74,18 @@ Recent decisions affecting current work:
 - [02-01]: findParent returns {parent, container} where container is the array
 - [02-01]: moveCard uses splice-at-index for requestedPosition instead of position field
 - [02-01]: migrate() exported from warren.cjs for direct use in tests
+- [02-02]: renderTree returns {breadcrumbs, cards} flat array -- not nested tree
+- [02-02]: depth default 1 (card + children); depth 0 = Infinity (full tree)
+- [02-02]: countActiveDescendants skips archived subtrees entirely
+- [02-02]: handleGet shared function in CLI for alias routing (list/dump/children -> get)
 
 ### Pending Todos
 
 None yet.
+
+### Roadmap Evolution
+
+- Phase 4 added: CLI pretty-print rendering with --json flag
 
 ### Blockers/Concerns
 
@@ -85,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T10:17:31.000Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-views-and-features/02-01-SUMMARY.md
+Last session: 2026-03-08T10:24:09.000Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-views-and-features/02-02-SUMMARY.md

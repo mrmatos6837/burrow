@@ -29,24 +29,24 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Rendering
 
-- [ ] **RNDR-01**: `get` is the universal view command — `get [id] [--depth N]` covers all read operations
-- [ ] **RNDR-02**: Flat render array output — each entry: `{id, title, depth, descendantCount, hasBody, bodyPreview, created, archived}`
-- [ ] **RNDR-03**: Depth model — no flag = card + direct children; `--depth N` = N levels; `--depth 0` = full tree; cards at cutoff show `(N)` active descendant count
-- [ ] **RNDR-04**: Breadcrumbs on focused subtree — ancestry path shown when viewing a non-root card
-- [ ] **RNDR-05**: Archived cards excluded from views by default; `--include-archived` or `--archived-only` flags to see them
+- [x] **RNDR-01**: `get` is the universal view command — `get [id] [--depth N]` covers all read operations
+- [x] **RNDR-02**: Flat render array output — each entry: `{id, title, depth, descendantCount, hasBody, bodyPreview, created, archived}`
+- [x] **RNDR-03**: Depth model — no flag = card + direct children; `--depth N` = N levels; `--depth 0` = full tree; cards at cutoff show `(N)` active descendant count
+- [x] **RNDR-04**: Breadcrumbs on focused subtree — ancestry path shown when viewing a non-root card
+- [x] **RNDR-05**: Archived cards excluded from views by default; `--include-archived` or `--archived-only` flags to see them
 
 ### Archive
 
-- [ ] **ARCH-01**: `archive <id>` and `unarchive <id>` commands — both cascade to all descendants
-- [ ] **ARCH-02**: Active-only descendant counts — archived children not counted in `(N)`
-- [ ] **ARCH-03**: Archived cards keep original tree position when viewed with `--include-archived`
+- [x] **ARCH-01**: `archive <id>` and `unarchive <id>` commands — both cascade to all descendants
+- [x] **ARCH-02**: Active-only descendant counts — archived children not counted in `(N)`
+- [x] **ARCH-03**: Archived cards keep original tree position when viewed with `--include-archived`
 
 ### CLI
 
 - [x] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
 - [x] **CLI-02**: CLI supports tree traversal operations (get card by ID, get children, get path to card)
-- [ ] **CLI-03**: `get` replaces list/dump/children as universal view — aliases for backward compat (list = get no args, dump = get --depth 0, children = get <id>)
-- [ ] **CLI-04**: Stateless CLI — no persistent working directory; agent holds context conversationally
+- [x] **CLI-03**: `get` replaces list/dump/children as universal view — aliases for backward compat (list = get no args, dump = get --depth 0, children = get <id>)
+- [x] **CLI-04**: Stateless CLI — no persistent working directory; agent holds context conversationally
 
 ### Commands
 
@@ -115,18 +115,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHEMA-02 | Phase 2 | Complete |
 | SCHEMA-03 | Phase 2 | Complete |
 | SCHEMA-04 | Phase 2 | Complete |
-| RNDR-01 | Phase 2 | Pending |
-| RNDR-02 | Phase 2 | Pending |
-| RNDR-03 | Phase 2 | Pending |
-| RNDR-04 | Phase 2 | Pending |
-| RNDR-05 | Phase 2 | Pending |
-| ARCH-01 | Phase 2 | Pending |
-| ARCH-02 | Phase 2 | Pending |
-| ARCH-03 | Phase 2 | Pending |
+| RNDR-01 | Phase 2 | Complete |
+| RNDR-02 | Phase 2 | Complete |
+| RNDR-03 | Phase 2 | Complete |
+| RNDR-04 | Phase 2 | Complete |
+| RNDR-05 | Phase 2 | Complete |
+| ARCH-01 | Phase 2 | Complete |
+| ARCH-02 | Phase 2 | Complete |
+| ARCH-03 | Phase 2 | Complete |
 | CLI-01 | Phase 1 | Complete |
 | CLI-02 | Phase 1 | Complete |
-| CLI-03 | Phase 2 | Pending |
-| CLI-04 | Phase 2 | Pending |
+| CLI-03 | Phase 2 | Complete |
+| CLI-04 | Phase 2 | Complete |
 | CMDS-01 | Phase 3 | Pending |
 | CMDS-02 | Phase 3 | Pending |
 | CMDS-03 | Phase 3 | Pending |

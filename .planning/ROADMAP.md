@@ -75,3 +75,13 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
 | 2. Schema, Views, and Archive | 0/2 | Not started | - |
 | 3. Agent Interface | 0/1 | Not started | - |
+
+### Phase 4: CLI pretty-print rendering with --json flag
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 3
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 4 to break down)
