@@ -8,6 +8,19 @@ const core = require('./lib/core.cjs');
 const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
 
+/**
+ * Shared handler for get/list/dump/children commands.
+ * @param {object} data - Root data object
+ * @param {object} opts - {id, depth, archiveFilter}
+ */
+function handleGet(data, { id, depth, archiveFilter }) {
+  const result = tree.renderTree(data, id || null, { depth, archiveFilter });
+  if (result === null) {
+    core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+  }
+  core.output(result);
+}
+
 function main() {
   const command = process.argv[2];
   const subArgs = process.argv.slice(3);
@@ -15,7 +28,7 @@ function main() {
 
   if (!command) {
     core.errorOut(
-      'No command provided. Available: add, edit, delete, move, get, children, list, path',
+      'No command provided. Available: add, edit, delete, move, get, list, dump, children, path, archive, unarchive',
       'INVALID_OPERATION'
     );
   }
@@ -147,25 +160,54 @@ function main() {
     }
 
     case 'get': {
-      const { positionals } = parseArgs({
+      const { values, positionals } = parseArgs({
         args: subArgs,
+        options: {
+          depth: { type: 'string' },
+          'include-archived': { type: 'boolean', default: false },
+          'archived-only': { type: 'boolean', default: false },
+        },
         allowPositionals: true,
         strict: false,
       });
 
-      const id = positionals[0];
-      if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
-      }
+      const id = positionals[0] || null;
+      const archiveFilter = values['archived-only']
+        ? 'archived-only'
+        : values['include-archived']
+          ? 'include-archived'
+          : 'active';
+      const depth = values.depth !== undefined ? parseInt(values.depth, 10) : 1;
 
       const data = storage.load(cwd);
-      const result = tree.findById(data, id);
+      handleGet(data, { id, depth, archiveFilter });
+      break;
+    }
 
-      if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
-      }
+    case 'list': {
+      const data = storage.load(cwd);
+      handleGet(data, { id: null, depth: 1, archiveFilter: 'active' });
+      break;
+    }
 
-      core.output(result);
+    case 'dump': {
+      const { values } = parseArgs({
+        args: subArgs,
+        options: {
+          'include-archived': { type: 'boolean', default: false },
+          'archived-only': { type: 'boolean', default: false },
+        },
+        strict: false,
+      });
+
+      const archiveFilter = values['archived-only']
+        ? 'archived-only'
+        : values['include-archived']
+          ? 'include-archived'
+          : 'active';
+
+      const data = storage.load(cwd);
+      handleGet(data, { id: null, depth: 0, archiveFilter });
       break;
     }
 
@@ -182,21 +224,54 @@ function main() {
       }
 
       const data = storage.load(cwd);
-      const result = tree.getChildren(data, id);
-      core.output(result);
+      handleGet(data, { id, depth: 1, archiveFilter: 'active' });
       break;
     }
 
-    case 'list': {
+    case 'archive': {
       const { positionals } = parseArgs({
         args: subArgs,
         allowPositionals: true,
         strict: false,
       });
 
-      const parentId = positionals[0] || null;
+      const id = positionals[0];
+      if (!id) {
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+      }
+
       const data = storage.load(cwd);
-      const result = tree.listCards(data, parentId);
+      const result = tree.archiveCard(data, id);
+
+      if (!result) {
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+      }
+
+      storage.save(cwd, data);
+      core.output(result);
+      break;
+    }
+
+    case 'unarchive': {
+      const { positionals } = parseArgs({
+        args: subArgs,
+        allowPositionals: true,
+        strict: false,
+      });
+
+      const id = positionals[0];
+      if (!id) {
+        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+      }
+
+      const data = storage.load(cwd);
+      const result = tree.unarchiveCard(data, id);
+
+      if (!result) {
+        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+      }
+
+      storage.save(cwd, data);
       core.output(result);
       break;
     }
@@ -228,7 +303,7 @@ function main() {
 
     default:
       core.errorOut(
-        `Unknown command: ${command}. Available: add, edit, delete, move, get, children, list, path`,
+        `Unknown command: ${command}. Available: add, edit, delete, move, get, list, dump, children, path, archive, unarchive`,
         'INVALID_OPERATION'
       );
   }

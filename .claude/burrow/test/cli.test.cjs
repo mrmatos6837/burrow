@@ -71,10 +71,12 @@ describe('add', () => {
     assert.equal(child.success, true);
     assert.equal(child.data.title, 'Child');
 
-    // Verify child is under parent
+    // Verify child is under parent via get (render array)
     const got = run(['get', parent.data.id], tmpDir);
-    assert.equal(got.data.children.length, 1);
-    assert.equal(got.data.children[0].id, child.data.id);
+    assert.equal(got.success, true);
+    const childEntries = got.data.cards.filter((c) => c.depth === 1);
+    assert.equal(childEntries.length, 1);
+    assert.equal(childEntries[0].id, child.data.id);
   });
 
   it('adds card with --body', () => {
@@ -115,9 +117,9 @@ describe('delete', () => {
     assert.equal(del.success, true);
     assert.equal(del.data.id, added.data.id);
 
-    // Verify it is gone
+    // Verify it is gone via list (render array)
     const list = run(['list'], tmpDir);
-    const ids = list.data.map((i) => i.id);
+    const ids = list.data.cards.map((c) => c.id);
     assert.ok(!ids.includes(added.data.id));
   });
 
@@ -146,9 +148,9 @@ describe('move', () => {
     const moved = run(['move', a.data.id, '--parent', b.data.id], tmpDir);
     assert.equal(moved.success, true);
 
-    // Verify A is now child of B
+    // Verify A is now child of B via get (render array)
     const got = run(['get', b.data.id], tmpDir);
-    const childIds = got.data.children.map((i) => i.id);
+    const childIds = got.data.cards.filter((c) => c.depth === 1).map((c) => c.id);
     assert.ok(childIds.includes(a.data.id));
   });
 
@@ -160,9 +162,9 @@ describe('move', () => {
       const moved = run(['move', child.data.id, '--parent', ''], dir);
       assert.equal(moved.success, true);
 
-      // Verify child is now at root
+      // Verify child is now at root via list (render array)
       const list = run(['list'], dir);
-      const rootIds = list.data.map((i) => i.id);
+      const rootIds = list.data.cards.map((c) => c.id);
       assert.ok(rootIds.includes(child.data.id));
     } finally {
       removeTmpDir(dir);
@@ -183,19 +185,100 @@ describe('move', () => {
   });
 });
 
-describe('get', () => {
+describe('get command', () => {
   let tmpDir;
   before(() => { tmpDir = makeTmpDir(); });
   after(() => { removeTmpDir(tmpDir); });
 
-  it('returns card with children as array', () => {
-    const parent = run(['add', '--title', 'Parent'], tmpDir);
-    run(['add', '--title', 'Child1', '--parent', parent.data.id], tmpDir);
-    run(['add', '--title', 'Child2', '--parent', parent.data.id], tmpDir);
-    const got = run(['get', parent.data.id], tmpDir);
-    assert.equal(got.success, true);
-    assert.ok(Array.isArray(got.data.children));
-    assert.equal(got.data.children.length, 2);
+  it('get with no args returns root cards as render array with breadcrumbs null', () => {
+    run(['add', '--title', 'GetRoot1'], tmpDir);
+    run(['add', '--title', 'GetRoot2'], tmpDir);
+    const res = run(['get'], tmpDir);
+    assert.equal(res.success, true);
+    assert.equal(res.data.breadcrumbs, null);
+    assert.ok(Array.isArray(res.data.cards));
+    assert.ok(res.data.cards.length >= 2);
+  });
+
+  it('get <id> returns focused view with breadcrumbs and card at depth 0', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = run(['add', '--title', 'Parent'], dir);
+      const child = run(['add', '--title', 'Child', '--parent', parent.data.id], dir);
+      const res = run(['get', child.data.id], dir);
+      assert.equal(res.success, true);
+      assert.ok(res.data.breadcrumbs);
+      assert.equal(res.data.breadcrumbs.length, 1);
+      assert.equal(res.data.breadcrumbs[0].id, parent.data.id);
+      assert.equal(res.data.cards[0].id, child.data.id);
+      assert.equal(res.data.cards[0].depth, 0);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('get <id> --depth 2 returns 2 levels', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = run(['add', '--title', 'A'], dir);
+      const b = run(['add', '--title', 'B', '--parent', a.data.id], dir);
+      run(['add', '--title', 'C', '--parent', b.data.id], dir);
+      const res = run(['get', a.data.id, '--depth', '2'], dir);
+      assert.equal(res.success, true);
+      const depths = res.data.cards.map((c) => c.depth);
+      assert.ok(depths.includes(0));
+      assert.ok(depths.includes(1));
+      assert.ok(depths.includes(2));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('get --depth 0 returns full tree', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = run(['add', '--title', 'A'], dir);
+      const b = run(['add', '--title', 'B', '--parent', a.data.id], dir);
+      run(['add', '--title', 'C', '--parent', b.data.id], dir);
+      const res = run(['get', '--depth', '0'], dir);
+      assert.equal(res.success, true);
+      assert.equal(res.data.cards.length, 3); // A, B, C
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('get <id> --depth 0 returns full subtree from that card', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = run(['add', '--title', 'A'], dir);
+      const b = run(['add', '--title', 'B', '--parent', a.data.id], dir);
+      run(['add', '--title', 'C', '--parent', b.data.id], dir);
+      const res = run(['get', a.data.id, '--depth', '0'], dir);
+      assert.equal(res.success, true);
+      assert.equal(res.data.cards.length, 3); // A at 0, B at 1, C at 2
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('render entries have correct shape', () => {
+    const dir = makeTmpDir();
+    try {
+      run(['add', '--title', 'ShapeTest', '--body', 'test body'], dir);
+      const res = run(['get'], dir);
+      const entry = res.data.cards[0];
+      assert.ok('id' in entry);
+      assert.ok('title' in entry);
+      assert.ok('depth' in entry);
+      assert.ok('descendantCount' in entry);
+      assert.ok('hasBody' in entry);
+      assert.ok('bodyPreview' in entry);
+      assert.ok('created' in entry);
+      assert.ok('archived' in entry);
+    } finally {
+      removeTmpDir(dir);
+    }
   });
 
   it('errors on missing ID', () => {
@@ -203,51 +286,182 @@ describe('get', () => {
     assert.equal(res.success, false);
     assert.equal(res.code, 'NOT_FOUND');
   });
-});
 
-describe('children', () => {
-  let tmpDir;
-  before(() => { tmpDir = makeTmpDir(); });
-  after(() => { removeTmpDir(tmpDir); });
+  it('get --include-archived includes archived cards', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'ArchTest'], dir);
+      run(['archive', card.data.id], dir);
+      const res = run(['get', '--include-archived'], dir);
+      const ids = res.data.cards.map((c) => c.id);
+      assert.ok(ids.includes(card.data.id));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
 
-  it('returns children as plain array', () => {
-    const parent = run(['add', '--title', 'Parent'], tmpDir);
-    run(['add', '--title', 'C1', '--parent', parent.data.id], tmpDir);
-    run(['add', '--title', 'C2', '--parent', parent.data.id], tmpDir);
-    run(['add', '--title', 'C3', '--parent', parent.data.id], tmpDir);
-    const res = run(['children', parent.data.id], tmpDir);
-    assert.equal(res.success, true);
-    assert.equal(res.data.length, 3);
-    assert.ok(Array.isArray(res.data));
-    // No position field on children
-    for (const child of res.data) {
-      assert.equal(child.position, undefined);
+  it('get --archived-only shows only archived', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'ArchOnly1'], dir);
+      run(['add', '--title', 'Active1'], dir);
+      run(['archive', card.data.id], dir);
+      const res = run(['get', '--archived-only'], dir);
+      assert.ok(res.data.cards.length > 0);
+      for (const c of res.data.cards) {
+        assert.equal(c.archived, true);
+      }
+    } finally {
+      removeTmpDir(dir);
     }
   });
 });
 
-describe('list', () => {
-  let tmpDir;
-  before(() => { tmpDir = makeTmpDir(); });
-  after(() => { removeTmpDir(tmpDir); });
-
-  it('returns root cards with no arg', () => {
-    run(['add', '--title', 'R1'], tmpDir);
-    run(['add', '--title', 'R2'], tmpDir);
-    const res = run(['list'], tmpDir);
-    assert.equal(res.success, true);
-    assert.ok(res.data.length >= 2);
-  });
-
-  it('returns children with parentId', () => {
+describe('archive command', () => {
+  it('archive <id> returns success with {id, title, descendantCount}', () => {
     const dir = makeTmpDir();
     try {
       const parent = run(['add', '--title', 'Parent'], dir);
-      const child = run(['add', '--title', 'Child', '--parent', parent.data.id], dir);
-      const res = run(['list', parent.data.id], dir);
+      run(['add', '--title', 'Child', '--parent', parent.data.id], dir);
+      const res = run(['archive', parent.data.id], dir);
       assert.equal(res.success, true);
-      assert.equal(res.data.length, 1);
-      assert.equal(res.data[0].id, child.data.id);
+      assert.equal(res.data.id, parent.data.id);
+      assert.equal(res.data.title, 'Parent');
+      assert.equal(res.data.descendantCount, 1);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('subsequent get excludes the archived card', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'ToArchive'], dir);
+      run(['archive', card.data.id], dir);
+      const res = run(['get'], dir);
+      const ids = res.data.cards.map((c) => c.id);
+      assert.ok(!ids.includes(card.data.id));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('get --include-archived shows the archived card', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'ArchVisible'], dir);
+      run(['archive', card.data.id], dir);
+      const res = run(['get', '--include-archived'], dir);
+      const ids = res.data.cards.map((c) => c.id);
+      assert.ok(ids.includes(card.data.id));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('missing id returns NOT_FOUND', () => {
+    const dir = makeTmpDir();
+    try {
+      const res = run(['archive', 'deadbeef'], dir);
+      assert.equal(res.success, false);
+      assert.equal(res.code, 'NOT_FOUND');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
+describe('unarchive command', () => {
+  it('unarchive <id> returns success', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'Unarch'], dir);
+      run(['archive', card.data.id], dir);
+      const res = run(['unarchive', card.data.id], dir);
+      assert.equal(res.success, true);
+      assert.equal(res.data.id, card.data.id);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('card reappears in default get view', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = run(['add', '--title', 'Reappear'], dir);
+      run(['archive', card.data.id], dir);
+      run(['unarchive', card.data.id], dir);
+      const res = run(['get'], dir);
+      const ids = res.data.cards.map((c) => c.id);
+      assert.ok(ids.includes(card.data.id));
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('missing id returns NOT_FOUND', () => {
+    const dir = makeTmpDir();
+    try {
+      const res = run(['unarchive', 'deadbeef'], dir);
+      assert.equal(res.success, false);
+      assert.equal(res.code, 'NOT_FOUND');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
+describe('alias routing', () => {
+  it('list returns same as get with no args', () => {
+    const dir = makeTmpDir();
+    try {
+      run(['add', '--title', 'AliasTest1'], dir);
+      run(['add', '--title', 'AliasTest2'], dir);
+      const getRes = run(['get'], dir);
+      const listRes = run(['list'], dir);
+      assert.deepStrictEqual(getRes.data, listRes.data);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('dump returns same as get --depth 0', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = run(['add', '--title', 'DumpA'], dir);
+      run(['add', '--title', 'DumpB', '--parent', a.data.id], dir);
+      const getRes = run(['get', '--depth', '0'], dir);
+      const dumpRes = run(['dump'], dir);
+      assert.deepStrictEqual(getRes.data, dumpRes.data);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('children <id> returns same as get <id>', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = run(['add', '--title', 'ChildAlias'], dir);
+      run(['add', '--title', 'C1', '--parent', parent.data.id], dir);
+      const getRes = run(['get', parent.data.id], dir);
+      const childRes = run(['children', parent.data.id], dir);
+      assert.deepStrictEqual(getRes.data, childRes.data);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('path <id> returns ancestry array [{id, title}, ...]', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = run(['add', '--title', 'PathA'], dir);
+      const b = run(['add', '--title', 'PathB', '--parent', a.data.id], dir);
+      const res = run(['path', b.data.id], dir);
+      assert.equal(res.success, true);
+      assert.equal(res.data.length, 2);
+      assert.equal(res.data[0].id, a.data.id);
+      assert.equal(res.data[0].title, 'PathA');
+      assert.equal(res.data[1].id, b.data.id);
     } finally {
       removeTmpDir(dir);
     }
@@ -296,7 +510,8 @@ describe('error handling', () => {
     try {
       const res = run(['list'], dir);
       assert.equal(res.success, true);
-      assert.deepEqual(res.data, []);
+      assert.deepStrictEqual(res.data.cards, []);
+      assert.equal(res.data.breadcrumbs, null);
 
       const dataDir = path.join(dir, '.planning', 'burrow');
       assert.ok(fs.existsSync(dataDir));
