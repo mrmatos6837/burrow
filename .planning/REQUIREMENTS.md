@@ -63,12 +63,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Commands
 
-- [ ] **CMDS-01**: `/gsd:burrow` handles any natural language command (agent interprets intent)
-- [ ] **CMDS-02**: `/gsd:bw-add` shortcut for quick card creation
-- [ ] **CMDS-03**: `/gsd:bw-show` shortcut for viewing tree at specified depth/focus
-- [ ] **CMDS-04**: `/gsd:bw-move` shortcut for moving cards
-- [ ] **CMDS-05**: `/gsd:bw-archive` shortcut for archiving cards
+- [ ] **CMDS-01**: `/burrow` handles any natural language command (agent interprets intent)
+- [x] **CMDS-02**: `/burrow:add` shortcut for quick card creation
+- [x] **CMDS-03**: `/burrow:show` shortcut for viewing tree at specified depth/focus
+- [x] **CMDS-04**: `/burrow:move` shortcut for moving cards
+- [x] **CMDS-05**: `/burrow:archive` shortcut for archiving cards
 - [ ] **CMDS-06**: Workflow file (`burrow.md`) defines agent behavior for all interactions
+- Note: Expanded shortcut surface also includes `/burrow:edit`, `/burrow:delete`, `/burrow:unarchive`, `/burrow:dump`, `/burrow:help`
 
 ## v2 Requirements
 
@@ -158,10 +159,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PP-09 | Phase 3 | Complete |
 | PP-10 | Phase 3 | Complete |
 | CMDS-01 | Phase 4 | Pending |
-| CMDS-02 | Phase 4 | Pending |
-| CMDS-03 | Phase 4 | Pending |
-| CMDS-04 | Phase 4 | Pending |
-| CMDS-05 | Phase 4 | Pending |
+| CMDS-02 | Phase 4 | Complete |
+| CMDS-03 | Phase 4 | Complete |
+| CMDS-04 | Phase 4 | Complete |
+| CMDS-05 | Phase 4 | Complete |
 | CMDS-06 | Phase 4 | Pending |
 
 **Coverage:**
