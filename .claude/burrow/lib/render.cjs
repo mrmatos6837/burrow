@@ -155,7 +155,11 @@ function renderCard(card, breadcrumbs, opts) {
   const lines = [];
 
   // Breadcrumb header
-  lines.push(formatBreadcrumb(breadcrumbs || [], card.title));
+  if (card.id === '(root)') {
+    lines.push('burrow');
+  } else {
+    lines.push(formatBreadcrumb(breadcrumbs || [], card.title));
+  }
   lines.push('');
 
   // Title section
@@ -227,7 +231,7 @@ function renderCard(card, breadcrumbs, opts) {
  * @returns {string}
  */
 function renderMutation(type, result, opts) {
-  const { breadcrumbs, card, oldTitle, oldBody, fromParentTitle, termWidth } = opts || {};
+  const { breadcrumbs, card, oldTitle, oldBody, fromParentTitle, toParentTitle, termWidth } = opts || {};
 
   switch (type) {
     case 'add': {
@@ -268,9 +272,8 @@ function renderMutation(type, result, opts) {
 
     case 'move': {
       const from = fromParentTitle || 'root';
-      // For move, we don't have the target parent info in result directly
-      // The caller passes what's needed
-      return `${CHECKMARK} Moved "${result.title}" [${result.id}]: ${from} ${ARROW} root`;
+      const to = toParentTitle || 'root';
+      return `${CHECKMARK} Moved "${result.title}" [${result.id}]: ${from} ${ARROW} ${to}`;
     }
 
     case 'archive': {

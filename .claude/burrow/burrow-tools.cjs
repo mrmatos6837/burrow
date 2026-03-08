@@ -7,28 +7,57 @@ const path = require('node:path');
 const core = require('./lib/core.cjs');
 const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
+const render = require('./lib/render.cjs');
+
+// --- Global --json flag ---
+const jsonMode = process.argv.includes('--json');
+// Filter --json from argv so parseArgs doesn't choke on it
+const filteredArgv = process.argv.filter((a) => a !== '--json');
 
 /**
- * Shared handler for get/list/dump/children commands.
- * @param {object} data - Root data object
- * @param {object} opts - {id, depth, archiveFilter}
+ * Handle error output: JSON when --json, human-readable otherwise.
+ * @param {string} message - Error description
+ * @param {string} code - Error code
  */
-function handleGet(data, { id, depth, archiveFilter }) {
-  const result = tree.renderTree(data, id || null, { depth, archiveFilter });
-  if (result === null) {
-    core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+function handleError(message, code) {
+  if (jsonMode) {
+    core.errorOut(message, code);
+  } else {
+    process.stdout.write(render.renderError(message) + '\n');
+    process.exit(1);
   }
-  core.output(result);
+}
+
+/**
+ * Write rendered output to stdout and exit 0.
+ * @param {string} rendered - Formatted string
+ */
+function writeAndExit(rendered) {
+  process.stdout.write(rendered + '\n');
+  process.exit(0);
+}
+
+/**
+ * Build breadcrumbs array for a card from getPath result.
+ * @param {object} data - Root data object
+ * @param {string} id - Card ID
+ * @returns {Array<{id, title}>} Ancestor breadcrumbs (not including the card itself)
+ */
+function getBreadcrumbs(data, id) {
+  const pathResult = tree.getPath(data, id);
+  if (!pathResult) return [];
+  // Strip the last element (the card itself), map to {id, title}
+  return pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
 }
 
 function main() {
-  const command = process.argv[2];
-  const subArgs = process.argv.slice(3);
+  const command = filteredArgv[2];
+  const subArgs = filteredArgv.slice(3);
   const cwd = process.cwd();
 
   if (!command) {
-    core.errorOut(
-      'No command provided. Available: add, edit, delete, move, get, list, dump, children, path, archive, unarchive',
+    handleError(
+      'No command provided. Available: add, edit, delete, move, get, dump, path, archive, unarchive',
       'INVALID_OPERATION'
     );
   }
@@ -48,7 +77,7 @@ function main() {
       });
 
       if (!values.title) {
-        core.errorOut('--title is required', 'INVALID_OPERATION');
+        handleError('--title is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
@@ -59,11 +88,22 @@ function main() {
       });
 
       if (!result) {
-        core.errorOut('Parent not found', 'NOT_FOUND');
+        handleError('Parent not found', 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        const breadcrumbs = getBreadcrumbs(data, result.id);
+        const rendered = render.renderMutation('add', result, {
+          breadcrumbs,
+          card: result,
+          termWidth: process.stdout.columns || 80,
+        });
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -80,21 +120,43 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
+
+      // Capture old values before editing
+      const cardBefore = tree.findById(data, id);
+      if (!cardBefore) {
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
+      }
+      const oldTitle = cardBefore.title;
+      const oldBody = cardBefore.body;
+
       const result = tree.editCard(data, id, {
         title: values.title,
         body: values.body,
       });
 
       if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        const breadcrumbs = getBreadcrumbs(data, id);
+        const rendered = render.renderMutation('edit', result, {
+          breadcrumbs,
+          card: result,
+          oldTitle,
+          oldBody,
+          termWidth: process.stdout.columns || 80,
+        });
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -107,18 +169,24 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.deleteCard(data, id);
 
       if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        const rendered = render.renderMutation('delete', result, {});
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -134,7 +202,7 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       // --parent "" or --parent "root" means move to root (null)
@@ -148,14 +216,34 @@ function main() {
       }
 
       const data = storage.load(cwd);
+
+      // Capture source parent title BEFORE moving
+      const sourceResult = tree.findParent(data, id);
+      const sourceParentTitle = sourceResult && sourceResult.parent
+        ? sourceResult.parent.title
+        : 'root';
+
       const result = tree.moveCard(data, id, newParentId);
 
       if (!result) {
-        core.errorOut('Move failed: card not found or would create cycle', 'INVALID_OPERATION');
+        handleError('Move failed: card not found or would create cycle', 'INVALID_OPERATION');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        // Get target parent title
+        const targetParentTitle = newParentId
+          ? (tree.findById(data, newParentId) || {}).title || 'unknown'
+          : 'root';
+        const rendered = render.renderMutation('move', result, {
+          fromParentTitle: sourceParentTitle,
+          toParentTitle: targetParentTitle,
+        });
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -164,6 +252,7 @@ function main() {
         args: subArgs,
         options: {
           depth: { type: 'string' },
+          full: { type: 'boolean', default: false },
           'include-archived': { type: 'boolean', default: false },
           'archived-only': { type: 'boolean', default: false },
         },
@@ -180,13 +269,61 @@ function main() {
       const depth = values.depth !== undefined ? parseInt(values.depth, 10) : 1;
 
       const data = storage.load(cwd);
-      handleGet(data, { id, depth, archiveFilter });
-      break;
-    }
 
-    case 'list': {
-      const data = storage.load(cwd);
-      handleGet(data, { id: null, depth: 1, archiveFilter: 'active' });
+      if (jsonMode) {
+        const result = tree.renderTree(data, id, { depth, archiveFilter });
+        if (result === null) {
+          core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        }
+        core.output(result);
+      } else {
+        // Pretty-print path
+        if (id) {
+          const card = tree.findById(data, id);
+          if (!card) {
+            handleError(`Card not found: ${id}`, 'NOT_FOUND');
+          }
+          const breadcrumbs = getBreadcrumbs(data, id);
+
+          // For depth > 1 or depth 0, get subtree children from renderTree
+          const treeResult = tree.renderTree(data, id, { depth, archiveFilter });
+          if (treeResult && treeResult.cards.length > 1) {
+            // Build children from flat array (depth >= 1 entries are children)
+            const childCards = treeResult.cards.filter((c) => c.depth === 1);
+            // Attach rendered children to card for display
+            const cardCopy = { ...card, children: childCards };
+            const rendered = render.renderCard(cardCopy, breadcrumbs, {
+              full: values.full,
+              termWidth: process.stdout.columns || 80,
+              archiveFilter,
+            });
+            writeAndExit(rendered);
+          } else {
+            const rendered = render.renderCard(card, breadcrumbs, {
+              full: values.full,
+              termWidth: process.stdout.columns || 80,
+              archiveFilter,
+            });
+            writeAndExit(rendered);
+          }
+        } else {
+          // Root view: synthesize root card
+          const rootCard = {
+            id: '(root)',
+            title: 'burrow',
+            created: data.cards[0]?.created || new Date().toISOString(),
+            archived: false,
+            body: '',
+            children: data.cards,
+          };
+          const rendered = render.renderCard(rootCard, [], {
+            full: values.full,
+            termWidth: process.stdout.columns || 80,
+            archiveFilter,
+          });
+          writeAndExit(rendered);
+        }
+      }
       break;
     }
 
@@ -194,6 +331,7 @@ function main() {
       const { values } = parseArgs({
         args: subArgs,
         options: {
+          full: { type: 'boolean', default: false },
           'include-archived': { type: 'boolean', default: false },
           'archived-only': { type: 'boolean', default: false },
         },
@@ -207,24 +345,30 @@ function main() {
           : 'active';
 
       const data = storage.load(cwd);
-      handleGet(data, { id: null, depth: 0, archiveFilter });
-      break;
-    }
 
-    case 'children': {
-      const { positionals } = parseArgs({
-        args: subArgs,
-        allowPositionals: true,
-        strict: false,
-      });
-
-      const id = positionals[0];
-      if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+      if (jsonMode) {
+        const result = tree.renderTree(data, null, { depth: 0, archiveFilter });
+        if (result === null) {
+          core.errorOut('Unexpected error', 'STORAGE_ERROR');
+        }
+        core.output(result);
+      } else {
+        // Dump as root card with full tree depth
+        const rootCard = {
+          id: '(root)',
+          title: 'burrow',
+          created: data.cards[0]?.created || new Date().toISOString(),
+          archived: false,
+          body: '',
+          children: data.cards,
+        };
+        const rendered = render.renderCard(rootCard, [], {
+          full: values.full,
+          termWidth: process.stdout.columns || 80,
+          archiveFilter,
+        });
+        writeAndExit(rendered);
       }
-
-      const data = storage.load(cwd);
-      handleGet(data, { id, depth: 1, archiveFilter: 'active' });
       break;
     }
 
@@ -237,18 +381,24 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.archiveCard(data, id);
 
       if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        const rendered = render.renderMutation('archive', result, {});
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -261,18 +411,24 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.unarchiveCard(data, id);
 
       if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       storage.save(cwd, data);
-      core.output(result);
+
+      if (jsonMode) {
+        core.output(result);
+      } else {
+        const rendered = render.renderMutation('unarchive', result, {});
+        writeAndExit(rendered);
+      }
       break;
     }
 
@@ -285,25 +441,31 @@ function main() {
 
       const id = positionals[0];
       if (!id) {
-        core.errorOut('Card ID is required', 'INVALID_OPERATION');
+        handleError('Card ID is required', 'INVALID_OPERATION');
       }
 
       const data = storage.load(cwd);
       const result = tree.getPath(data, id);
 
       if (!result) {
-        core.errorOut(`Card not found: ${id}`, 'NOT_FOUND');
+        handleError(`Card not found: ${id}`, 'NOT_FOUND');
       }
 
       // Strip children to keep path output clean
       const cleanPath = result.map((card) => ({ id: card.id, title: card.title }));
-      core.output(cleanPath);
+
+      if (jsonMode) {
+        core.output(cleanPath);
+      } else {
+        const rendered = render.renderPath(cleanPath);
+        writeAndExit(rendered);
+      }
       break;
     }
 
     default:
-      core.errorOut(
-        `Unknown command: ${command}. Available: add, edit, delete, move, get, list, dump, children, path, archive, unarchive`,
+      handleError(
+        `Unknown command: ${command}. Available: add, edit, delete, move, get, dump, path, archive, unarchive`,
         'INVALID_OPERATION'
       );
   }
@@ -312,5 +474,10 @@ function main() {
 try {
   main();
 } catch (err) {
-  core.errorOut(err.message, 'STORAGE_ERROR');
+  if (jsonMode) {
+    core.errorOut(err.message, 'STORAGE_ERROR');
+  } else {
+    process.stdout.write(render.renderError(err.message) + '\n');
+    process.exit(1);
+  }
 }
