@@ -350,7 +350,7 @@ function main() {
       const { values } = parseArgs({
         args: subArgs,
         options: {
-          full: { type: 'boolean', default: false },
+          full: { type: 'boolean', default: true },
           'include-archived': { type: 'boolean', default: false },
           'archived-only': { type: 'boolean', default: false },
         },

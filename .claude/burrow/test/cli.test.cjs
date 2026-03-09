@@ -414,6 +414,18 @@ describe('dump', () => {
       removeTmpDir(dir);
     }
   });
+
+  it('dump defaults to full:true (no truncation marker)', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('DumpCard', dir, { body: 'Some body content' });
+      const output = run(['dump'], dir);
+      assert.ok(!output.includes('(truncated'), 'dump should not contain truncation marker by default');
+      assert.ok(!output.includes('use --full'), 'dump should not suggest --full flag');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
 });
 
 describe('path', () => {
