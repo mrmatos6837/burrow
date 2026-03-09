@@ -301,17 +301,17 @@ describe('renderMutation', () => {
     assert.ok(result.includes('\u2192'));  // arrow
   });
 
-  it('renders delete as one-liner', () => {
-    const result = renderMutation('delete', { id: 'e5f6g7h8', title: 'API timeout', descendantCount: 2 }, {});
-    assert.ok(result.includes('\u2713 Deleted'));
+  it('renders remove as one-liner', () => {
+    const result = renderMutation('remove', { id: 'e5f6g7h8', title: 'API timeout', descendantCount: 2 }, {});
+    assert.ok(result.includes('\u2713 Removed'));
     assert.ok(result.includes('"API timeout"'));
     assert.ok(result.includes('[e5f6g7h8]'));
     assert.ok(result.includes('2 children'));
   });
 
-  it('omits child count when zero for delete', () => {
-    const result = renderMutation('delete', { id: 'e5f6g7h8', title: 'API timeout', descendantCount: 0 }, {});
-    assert.ok(result.includes('\u2713 Deleted'));
+  it('omits child count when zero for remove', () => {
+    const result = renderMutation('remove', { id: 'e5f6g7h8', title: 'API timeout', descendantCount: 0 }, {});
+    assert.ok(result.includes('\u2713 Removed'));
     assert.ok(!result.includes('children'));
   });
 
