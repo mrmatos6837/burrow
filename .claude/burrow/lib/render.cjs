@@ -1,5 +1,7 @@
 'use strict';
 
+const { countActiveDescendants } = require('./mongoose.cjs');
+
 // --- Constants ---
 
 const HR = '\u2500'.repeat(40);
@@ -84,32 +86,15 @@ function truncate(str, maxLen) {
   return str.slice(0, maxLen - 1) + '\u2026';
 }
 
-/**
- * Count active (non-archived) descendants recursively.
- * @param {object} card
- * @returns {number}
- */
-function countActiveDescendants(card) {
-  let count = 0;
-  if (card.children && card.children.length) {
-    for (const child of card.children) {
-      if (!child.archived) {
-        count += 1 + countActiveDescendants(child);
-      }
-    }
-  }
-  return count;
-}
 
 /**
  * Format a single card line for tree listing.
  * @param {object} card - {id, title, created, archived, body, children, hasBody, descendantCount}
  * @param {string} prefix - Box-drawing prefix (branch or corner)
  * @param {number} termWidth - Terminal width
- * @param {boolean} showArchived - Whether to show [archived] label
  * @returns {string}
  */
-function formatCardLine(card, prefix, termWidth, showArchived) {
+function formatCardLine(card, prefix, termWidth) {
   const tw = termWidth || 80;
   const id = `[${card.id}]`;
   const hasBody = card.hasBody !== undefined ? card.hasBody : !!(card.body && card.body.trim());
@@ -119,7 +104,7 @@ function formatCardLine(card, prefix, termWidth, showArchived) {
     ? card.descendantCount
     : countActiveDescendants(card);
   const countStr = `  (${descCount})`;
-  const archivedLabel = (showArchived && card.archived) ? ' [archived]' : '';
+  const archivedLabel = card.archived ? ' [archived]' : '';
 
   // Right side: age + count
   const rightSide = `${age}${countStr}`;
@@ -145,20 +130,19 @@ function formatCardLine(card, prefix, termWidth, showArchived) {
  * @param {number} depth - Current nesting depth (0 = top-level children)
  * @param {string} indent - Accumulated indent prefix for this level
  * @param {number} tw - Terminal width
- * @param {boolean} showArchived - Whether to show [archived] label
  * @returns {string[]} Array of formatted lines
  */
-function renderTreeLines(children, depth, indent, tw, showArchived) {
+function renderTreeLines(children, depth, indent, tw) {
   const result = [];
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
     const isLast = i === children.length - 1;
     const prefix = indent + (isLast ? CORNER : BRANCH);
-    result.push(formatCardLine(child, prefix, tw, showArchived));
+    result.push(formatCardLine(child, prefix, tw));
 
     if (child.children && child.children.length > 0) {
       const nextIndent = indent + (isLast ? '    ' : `${PIPE}   `);
-      const subLines = renderTreeLines(child.children, depth + 1, nextIndent, tw, showArchived);
+      const subLines = renderTreeLines(child.children, depth + 1, nextIndent, tw);
       for (const sl of subLines) {
         result.push(sl);
       }
@@ -221,8 +205,7 @@ function renderCard(card, breadcrumbs, opts) {
       (sum, c) => sum + 1 + countActiveDescendants(c), 0
     );
     lines.push(`children: ${activeCount} cards (${totalDescendants} total)`);
-    const showArchivedLabel = filter === 'include-archived' || filter === 'archived-only';
-    const treeLines = renderTreeLines(filteredChildren, 0, '', tw, showArchivedLabel);
+    const treeLines = renderTreeLines(filteredChildren, 0, '', tw);
     for (const tl of treeLines) {
       lines.push(tl);
     }
