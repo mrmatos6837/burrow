@@ -132,9 +132,10 @@ None yet.
 | 4 | Show [archived] tag on cards regardless of archive filter mode | 2026-03-09 | d64c360 | [4-show-archived-tag-on-cards-even-with-arc](./quick/4-show-archived-tag-on-cards-even-with-arc/) |
 | 5 | Move count after title, replace dot with ellipsis, reorder indicators | 2026-03-09 | dc44eef | [5-render-move-count-after-title-replace-do](./quick/5-render-move-count-after-title-replace-do/) |
 | 6 | Add position translation guidance to workflow for --at flag | 2026-03-09 | 62a36f4 | [6-agent-translate-natural-language-positio](./quick/6-agent-translate-natural-language-positio/) |
+| 7 | Change hasBody indicator from ellipsis to + symbol | 2026-03-09 | 25878df | [7-change-hasbody-indicator-from-ellipsis-t](./quick/7-change-hasbody-indicator-from-ellipsis-t/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T14:32:04Z
-Stopped at: Completed quick task 6
+Last session: 2026-03-09T20:51:31Z
+Stopped at: Completed quick task 7
 Resume file: None
