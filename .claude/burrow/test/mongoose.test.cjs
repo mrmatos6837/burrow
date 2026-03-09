@@ -230,6 +230,44 @@ describe('addCard', () => {
     const result = addCard(data, { title: 'Orphan', parentId: 'nonexist' });
     assert.equal(result, null);
   });
+
+  it('inserts at position 0 (beginning)', () => {
+    const data = emptyData();
+    addCard(data, { title: 'First' });
+    addCard(data, { title: 'Second' });
+    addCard(data, { title: 'Inserted', position: 0 });
+    assert.equal(data.cards.length, 3);
+    assert.equal(data.cards[0].title, 'Inserted');
+    assert.equal(data.cards[1].title, 'First');
+    assert.equal(data.cards[2].title, 'Second');
+  });
+
+  it('inserts at position 1 among 3 siblings', () => {
+    const data = emptyData();
+    addCard(data, { title: 'A' });
+    addCard(data, { title: 'B' });
+    addCard(data, { title: 'C' });
+    addCard(data, { title: 'Inserted', position: 1 });
+    assert.equal(data.cards[0].title, 'A');
+    assert.equal(data.cards[1].title, 'Inserted');
+    assert.equal(data.cards[2].title, 'B');
+    assert.equal(data.cards[3].title, 'C');
+  });
+
+  it('appends when position exceeds length', () => {
+    const data = emptyData();
+    addCard(data, { title: 'First' });
+    addCard(data, { title: 'Appended', position: 99 });
+    assert.equal(data.cards.length, 2);
+    assert.equal(data.cards[1].title, 'Appended');
+  });
+
+  it('appends when no position given (backward compat)', () => {
+    const data = emptyData();
+    addCard(data, { title: 'First' });
+    addCard(data, { title: 'Second' });
+    assert.equal(data.cards[1].title, 'Second');
+  });
 });
 
 describe('editCard', () => {

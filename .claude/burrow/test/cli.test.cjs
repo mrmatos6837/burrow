@@ -460,6 +460,89 @@ describe('error handling', () => {
   });
 });
 
+describe('add --at', () => {
+  it('inserts at beginning with --at 0', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('First', dir);
+      addCard('Second', dir);
+      run(['add', '--title', 'Inserted', '--at', '0'], dir);
+      const data = loadData(dir);
+      assert.equal(data.cards[0].title, 'Inserted');
+      assert.equal(data.cards[1].title, 'First');
+      assert.equal(data.cards[2].title, 'Second');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('inserts at position in parent with --parent --at', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = addCard('Parent', dir);
+      addCard('ChildA', dir, { parent: parent.id });
+      addCard('ChildB', dir, { parent: parent.id });
+      run(['add', '--title', 'Inserted', '--parent', parent.id, '--at', '0'], dir);
+      const data = loadData(dir);
+      const p = findById(data.cards, parent.id);
+      assert.equal(p.children[0].title, 'Inserted');
+      assert.equal(p.children[1].title, 'ChildA');
+      assert.equal(p.children[2].title, 'ChildB');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('appends to root without --at (backward compat)', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('First', dir);
+      run(['add', '--title', 'Second'], dir);
+      const data = loadData(dir);
+      assert.equal(data.cards[data.cards.length - 1].title, 'Second');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
+describe('move --at', () => {
+  it('reorders within current parent with --at 0 (no --to)', () => {
+    const dir = makeTmpDir();
+    try {
+      const a = addCard('A', dir);
+      const b = addCard('B', dir);
+      const c = addCard('C', dir);
+      // Move C to position 0 among root siblings
+      run(['move', c.id, '--at', '0'], dir);
+      const data = loadData(dir);
+      assert.equal(data.cards[0].title, 'C');
+      assert.equal(data.cards[1].title, 'A');
+      assert.equal(data.cards[2].title, 'B');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('places at position in destination with --to --at', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = addCard('Parent', dir);
+      addCard('ChildA', dir, { parent: parent.id });
+      addCard('ChildB', dir, { parent: parent.id });
+      const outsider = addCard('Outsider', dir);
+      run(['move', outsider.id, '--to', parent.id, '--at', '1'], dir);
+      const data = loadData(dir);
+      const p = findById(data.cards, parent.id);
+      assert.equal(p.children[0].title, 'ChildA');
+      assert.equal(p.children[1].title, 'Outsider');
+      assert.equal(p.children[2].title, 'ChildB');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
 describe('removed commands', () => {
   it('get command returns error', () => {
     const dir = makeTmpDir();
