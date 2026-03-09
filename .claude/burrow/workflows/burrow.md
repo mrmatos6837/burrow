@@ -53,15 +53,33 @@ All commands invoked as: `node .claude/burrow/burrow-tools.cjs <command> [args]`
 | Command | Usage | Description |
 |---------|-------|-------------|
 | read | `read [id] [--depth N] [--full] [--include-archived] [--archived-only]` | View a card. Default depth 1. |
-| add | `add --title "..." [--parent <id>] [--body "..."]` | Create a card. |
+| add | `add --title "..." [--parent <id>] [--body "..."] [--at N]` | Create a card. --at N places at 0-based position. |
 | edit | `edit <id> [--title "..."] [--body "..."]` | Modify a card. |
 | remove | `remove <id>` | Remove card and all descendants. Requires confirmation. |
-| move | `move <id> --to <parent-id>` | Move card to a new parent. |
+| move | `move <id> --to <parent-id> [--at N]` | Move card. --at N places at 0-based position. Omit --to to reorder within current parent. |
 | archive | `archive <id>` | Archive card and descendants. |
 | unarchive | `unarchive <id>` | Restore card and descendants. |
 | find | `find <query>` | Fuzzy search cards by title. Returns IDs and paths. |
 | dump | `dump` | Alias for `read --depth 0` (full tree). |
 | path | `path <id>` | Show ancestry from root to card. |
+
+## Position Translation
+
+The --at flag uses 0-based indexing. When users reference positions in natural language,
+translate to 0-based index before constructing the CLI command.
+
+| User says | --at value | Rule |
+|-----------|------------|------|
+| "first", "top", "beginning" | --at 0 | Always 0 |
+| "second" | --at 1 | Ordinal minus 1 |
+| "third" | --at 2 | Ordinal minus 1 |
+| "position N" / "slot N" | --at (N-1) | Human position minus 1 |
+| "last", "end", "bottom" | omit --at | Default append behavior |
+| "before card X" | --at (index of X) | Look up X's current index |
+| "after card X" | --at (index of X + 1) | Look up X's current index, add 1 |
+
+The agent resolves positions during THINK (Step 2) by inspecting the in-memory tree
+to find the target container's children array and computing the correct index.
 
 ## Rendering Rules
 
@@ -155,3 +173,12 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 3. Ask: "Multiple cards match 'login'. Which one?" (list with IDs and parents)
 4. User selects "Login bug".
 5. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs archive b2b2b2b2`. Stop.
+
+### Example 8: Position-based insertion
+
+**User:** `/burrow add "Urgent fix" under bugs, make it first`
+
+**Agent behavior:**
+1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+2. THINK: Match "bugs" -> `a1b2c3d4` "Bugs". "First" -> --at 0.
+3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "Urgent fix" --parent a1b2c3d4 --at 0`. Then re-LOAD.
