@@ -127,9 +127,10 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Add CLAUDE.md safeguard preventing destructive burrow operations without explicit user consent | 2026-03-08 | c0a8293 | [1-add-claude-md-safeguard-preventing-destr](./quick/1-add-claude-md-safeguard-preventing-destr/) |
+| 2 | Add --at flag for position-based insertion/reordering on add and move | 2026-03-09 | b41d080 | [2-add-at-flag-for-position-based-reorderin](./quick/2-add-at-flag-for-position-based-reorderin/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T12:43:13.784Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-09T13:12:00Z
+Stopped at: Completed quick task 2
 Resume file: None
