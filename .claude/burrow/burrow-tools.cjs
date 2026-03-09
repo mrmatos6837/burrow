@@ -96,6 +96,7 @@ function main() {
           title: { type: 'string' },
           parent: { type: 'string' },
           body: { type: 'string', default: '' },
+          at: { type: 'string' },
         },
         strict: false,
       });
@@ -104,11 +105,14 @@ function main() {
         handleError('--title is required');
       }
 
+      const position = values.at !== undefined ? parseInt(values.at, 10) : undefined;
+
       const data = storage.load(cwd);
       const result = tree.addCard(data, {
         title: values.title,
         parentId: values.parent || null,
         body: values.body,
+        position,
       });
 
       if (!result) {
@@ -208,6 +212,7 @@ function main() {
         options: {
           to: { type: 'string' },
           parent: { type: 'string' },
+          at: { type: 'string' },
         },
         allowPositionals: true,
         strict: true,
@@ -221,9 +226,20 @@ function main() {
       // --to is primary flag, --parent is backward compat
       const rawParent = values.to !== undefined ? values.to : values.parent;
 
-      // --parent "" or --parent "root" means move to root (null)
+      const position = values.at !== undefined ? parseInt(values.at, 10) : undefined;
+
+      const data = storage.load(cwd);
+
+      // Determine newParentId
       let newParentId;
-      if (rawParent === undefined) {
+      if (rawParent === undefined && values.at !== undefined) {
+        // Reorder in place: --at without --to means stay in current parent
+        const parentResult = tree.findParent(data, id);
+        if (!parentResult) {
+          handleError('Card not found');
+        }
+        newParentId = parentResult.parent ? parentResult.parent.id : null;
+      } else if (rawParent === undefined) {
         newParentId = null;
       } else if (rawParent === '' || rawParent === 'root') {
         newParentId = null;
@@ -231,15 +247,13 @@ function main() {
         newParentId = rawParent;
       }
 
-      const data = storage.load(cwd);
-
       // Capture source parent title BEFORE moving
       const sourceResult = tree.findParent(data, id);
       const sourceParentTitle = sourceResult && sourceResult.parent
         ? sourceResult.parent.title
         : 'root';
 
-      const result = tree.moveCard(data, id, newParentId);
+      const result = tree.moveCard(data, id, newParentId, position);
 
       if (!result) {
         handleError('Move failed: card not found or would create cycle');

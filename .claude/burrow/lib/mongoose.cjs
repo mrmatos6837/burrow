@@ -113,7 +113,7 @@ function countDescendants(card) {
  * @param {object} opts - {title, parentId, body}
  * @returns {object} The created card
  */
-function addCard(data, { title, parentId, body }) {
+function addCard(data, { title, parentId, body, position }) {
   const container = getContainer(data, parentId);
   if (!container) return null;
 
@@ -129,7 +129,11 @@ function addCard(data, { title, parentId, body }) {
     children: [],
   };
 
-  container.push(card);
+  if (position != null && position < container.length) {
+    container.splice(position, 0, card);
+  } else {
+    container.push(card);
+  }
   return card;
 }
 
