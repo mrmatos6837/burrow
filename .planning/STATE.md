@@ -130,9 +130,10 @@ None yet.
 | 2 | Add --at flag for position-based insertion/reordering on add and move | 2026-03-09 | b41d080 | [2-add-at-flag-for-position-based-reorderin](./quick/2-add-at-flag-for-position-based-reorderin/) |
 | 3 | Make dump command always use full depth (default full:true) | 2026-03-09 | 3a6adc9 | [3-make-dump-command-always-use-full-depth-](./quick/3-make-dump-command-always-use-full-depth-/) |
 | 4 | Show [archived] tag on cards regardless of archive filter mode | 2026-03-09 | d64c360 | [4-show-archived-tag-on-cards-even-with-arc](./quick/4-show-archived-tag-on-cards-even-with-arc/) |
+| 5 | Move count after title, replace dot with ellipsis, reorder indicators | 2026-03-09 | dc44eef | [5-render-move-count-after-title-replace-do](./quick/5-render-move-count-after-title-replace-do/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T13:20:16Z
-Stopped at: Completed quick task 4
+Last session: 2026-03-09T13:28:25Z
+Stopped at: Completed quick task 5
 Resume file: None
