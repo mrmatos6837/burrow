@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
 - [x] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
 - [ ] **Phase 4: Agent Interface** - Workflow file and slash commands for natural language and shortcut interaction
+- [ ] **Phase 5: v1 Tech Debt Cleanup** - Fix init bug, stale tests, and documentation drift from audit
 
 ## Phase Details
 
@@ -83,6 +84,23 @@ Plans:
 - [ ] 04-01-PLAN.md -- Workflow file and /burrow NL command: agent behavior definition with invariants, command reference, worked examples
 - [ ] 04-02-PLAN.md -- Shortcut commands, help, and REQUIREMENTS.md update: thin wrapper slash commands for all CLI operations
 
+### Phase 5: v1 Tech Debt Cleanup
+**Goal**: Close all tech debt gaps identified by v1.0 milestone audit — fix init.cjs data format bug, update stale tests, reconcile documentation drift from intentional refactors
+**Depends on**: Phase 4
+**Requirements**: DATA-02, DATA-09, PP-03, PP-06, CLI-01, RNDR-01, CLI-03, CMDS-03
+**Gap Closure:** Closes gaps from v1.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `init.cjs` writes `{version:2,cards:[]}` — new project init flow works end-to-end
+  2. All 134 tests pass (0 failures) — stale `renderMutation('delete')` calls fixed to `'remove'`
+  3. Requirement text for PP-06, CLI-01, RNDR-01, CLI-03, CMDS-03 matches current codebase (no `--json`, no `get`, no `/burrow:show`, no `/burrow:delete`)
+  4. `find` command reconciled with Out of Scope table in REQUIREMENTS.md
+  5. ROADMAP.md Phase 2 and Phase 4 show correct completion status
+  6. No empty stale phase directories exist
+**Plans**: 0 plans
+
+Plans:
+- [ ] 05-01-PLAN.md -- Fix init.cjs format bug, stale tests, and documentation drift
+
 ## Progress
 
 **Execution Order:**
@@ -91,6 +109,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 2/2 | Complete | 2026-03-07 |
-| 2. Schema, Views, and Archive | 0/2 | Not started | - |
+| 2. Schema, Views, and Archive | 2/2 | Complete | 2026-03-08 |
 | 3. CLI Pretty-Print Rendering | 3/3 | Complete | 2026-03-08 |
-| 4. Agent Interface | 0/2 | Not started | - |
+| 4. Agent Interface | 2/2 | Complete | 2026-03-08 |
+| 5. v1 Tech Debt Cleanup | 0/1 | Not started | - |
