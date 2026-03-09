@@ -12,13 +12,12 @@ const {
   editCard,
   deleteCard,
   moveCard,
-  getChildren,
-  listCards,
+
   renderTree,
   archiveCard,
   unarchiveCard,
   countActiveDescendants,
-} = require('../lib/mongoose.cjs');
+} = require('../.claude/burrow/lib/mongoose.cjs');
 
 /**
  * Helper: create a fresh empty v2 data structure.
@@ -368,47 +367,25 @@ describe('moveCard', () => {
   });
 });
 
-describe('getChildren / listCards', () => {
-  it('getChildren returns children array', () => {
-    const data = sampleTree();
-    const children = getChildren(data, 'aaaaaaaa');
-    assert.equal(children.length, 2);
-    assert.equal(children[0].id, 'a1a1a1a1');
-    assert.equal(children[1].id, 'a2a2a2a2');
-  });
-
-  it('listCards with no arg returns root cards', () => {
-    const data = sampleTree();
-    const cards = listCards(data);
-    assert.equal(cards.length, 3);
-    assert.equal(cards[0].title, 'Card A');
-    assert.equal(cards[1].title, 'Card B');
-    assert.equal(cards[2].title, 'Card C');
-  });
-
-  it('listCards with parentId returns children of that card', () => {
-    const data = sampleTree();
-    const cards = listCards(data, 'aaaaaaaa');
-    assert.equal(cards.length, 2);
-    assert.equal(cards[0].id, 'a1a1a1a1');
-  });
-
-  it('getChildren returns empty array for leaf card', () => {
-    const data = sampleTree();
-    const children = getChildren(data, 'cccccccc');
-    assert.deepStrictEqual(children, []);
-  });
-});
-
 describe('removed exports', () => {
   it('recompact is not exported', () => {
-    const mongoose = require('../lib/mongoose.cjs');
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
     assert.equal(mongoose.recompact, undefined);
   });
 
   it('getOrderedChildren is not exported', () => {
-    const mongoose = require('../lib/mongoose.cjs');
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
     assert.equal(mongoose.getOrderedChildren, undefined);
+  });
+
+  it('getChildren is not exported', () => {
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+    assert.equal(mongoose.getChildren, undefined);
+  });
+
+  it('listCards is not exported', () => {
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+    assert.equal(mongoose.listCards, undefined);
   });
 });
 

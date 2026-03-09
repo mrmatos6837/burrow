@@ -3,14 +3,12 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const os = require('node:os');
 
 // ── Paths ──────────────────────────────────────────────────────────
-const BURROW_SOURCE = path.resolve(__dirname, '..');
-const COMMANDS_SOURCE = path.resolve(__dirname, '..', '..', 'commands', 'burrow');
-const GLOBAL_CLAUDE = path.join(os.homedir(), '.claude');
-const GLOBAL_BURROW = path.join(GLOBAL_CLAUDE, 'burrow');
-const GLOBAL_COMMANDS = path.join(GLOBAL_CLAUDE, 'commands', 'burrow');
+const BURROW_SOURCE = path.join(__dirname, '.claude', 'burrow');
+const COMMANDS_DIR = path.join(__dirname, '.claude', 'commands');
+const COMMAND_FILE = path.join(COMMANDS_DIR, 'burrow.md');
+const COMMAND_DIR = path.join(COMMANDS_DIR, 'burrow');
 
 // ── CLAUDE.md snippet ──────────────────────────────────────────────
 const CLAUDE_MD_SNIPPET = `
@@ -24,6 +22,8 @@ Burrow is your persistent memory. On every session start, silently read \`.plann
 - Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth
 
 **Root card body = project context.** If a root-level card has a body, read it for project description, conventions, or priorities.
+
+**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
 
 **Safeguards:**
 - NEVER run remove, archive, move, or edit without explicit user consent
@@ -41,41 +41,59 @@ function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
-function ensureSymlink(target, linkPath, label) {
-  if (fs.existsSync(linkPath)) {
-    try {
-      const existing = fs.readlinkSync(linkPath);
-      if (existing === target) { skip(label); return; }
-      fs.unlinkSync(linkPath);
-    } catch {
-      // exists but not a symlink — don't clobber
-      skip(label);
-      return;
+function copyDirSync(src, dest) {
+  ensureDir(dest);
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
     }
   }
-  fs.symlinkSync(target, linkPath, 'dir');
-  ok(`${label} → ${target}`);
 }
 
-// ── Single command: init ───────────────────────────────────────────
+// ── Install ───────────────────────────────────────────────────────
 
-function init(projectDir) {
-  console.log('\n── Burrow Init ──\n');
+function install(projectDir) {
+  console.log('\n── Burrow Install ──\n');
 
-  // Verify source repo
+  // Verify we're running from the burrow repo
   if (!fs.existsSync(path.join(BURROW_SOURCE, 'burrow-tools.cjs'))) {
     fail('Cannot find burrow-tools.cjs. Run this from the burrow repo.');
   }
-  if (!fs.existsSync(COMMANDS_SOURCE)) {
-    fail('Cannot find commands/burrow/. Run this from the burrow repo.');
+
+  const targetBurrow = path.join(projectDir, '.claude', 'burrow');
+  const targetCommandFile = path.join(projectDir, '.claude', 'commands', 'burrow.md');
+  const targetCommandDir = path.join(projectDir, '.claude', 'commands', 'burrow');
+
+  // Step 1: Copy source
+  if (fs.existsSync(path.join(targetBurrow, 'burrow-tools.cjs'))) {
+    skip('.claude/burrow');
+  } else {
+    copyDirSync(BURROW_SOURCE, targetBurrow);
+    ok('Copied .claude/burrow');
   }
 
-  // Step 1: Global symlinks (idempotent)
-  ensureDir(path.join(GLOBAL_CLAUDE, 'commands'));
-  ensureSymlink(BURROW_SOURCE, GLOBAL_BURROW, '~/.claude/burrow');
-  ensureSymlink(COMMANDS_SOURCE, GLOBAL_COMMANDS, '~/.claude/commands/burrow');
+  // Step 2: Copy commands
+  ensureDir(path.join(projectDir, '.claude', 'commands'));
 
-  // Step 2: Project data
+  if (fs.existsSync(targetCommandFile)) {
+    skip('.claude/commands/burrow.md');
+  } else {
+    fs.copyFileSync(COMMAND_FILE, targetCommandFile);
+    ok('Copied .claude/commands/burrow.md');
+  }
+
+  if (fs.existsSync(targetCommandDir)) {
+    skip('.claude/commands/burrow/');
+  } else {
+    copyDirSync(COMMAND_DIR, targetCommandDir);
+    ok('Copied .claude/commands/burrow/');
+  }
+
+  // Step 3: Create data file
   const dataDir = path.join(projectDir, '.planning', 'burrow');
   const dataFile = path.join(dataDir, 'cards.json');
   ensureDir(dataDir);
@@ -86,7 +104,7 @@ function init(projectDir) {
     ok('Created .planning/burrow/cards.json');
   }
 
-  // Step 3: CLAUDE.md
+  // Step 4: CLAUDE.md
   const claudeMd = path.join(projectDir, 'CLAUDE.md');
   if (fs.existsSync(claudeMd)) {
     const content = fs.readFileSync(claudeMd, 'utf-8');
@@ -94,11 +112,11 @@ function init(projectDir) {
       skip('CLAUDE.md already has Burrow section');
     } else {
       fs.writeFileSync(claudeMd, content.trimEnd() + '\n\n' + CLAUDE_MD_SNIPPET);
-      ok('Appended Burrow memory section to CLAUDE.md');
+      ok('Appended Burrow section to CLAUDE.md');
     }
   } else {
     fs.writeFileSync(claudeMd, CLAUDE_MD_SNIPPET);
-    ok('Created CLAUDE.md with Burrow memory section');
+    ok('Created CLAUDE.md with Burrow section');
   }
 
   console.log('\n  Done. Say /burrow to get started.\n');
@@ -106,4 +124,9 @@ function init(projectDir) {
 
 // ── CLI ────────────────────────────────────────────────────────────
 
-init(process.argv[2] || process.cwd());
+const target = process.argv[2];
+if (!target) {
+  fail('Usage: node .claude/burrow/bin/init.cjs <target-project-path>');
+}
+
+install(path.resolve(target));

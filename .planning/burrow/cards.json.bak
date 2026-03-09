@@ -289,88 +289,6 @@
       ]
     },
     {
-      "id": "bfb9243c",
-      "title": "v2 Ideas",
-      "created": "2026-03-08T10:34:47.973Z",
-      "archived": false,
-      "body": "Future work — only if v1 proves the value. Focus: making burrow bulletproof for production multi-agent use.",
-      "children": [
-        {
-          "id": "3afc0a09",
-          "title": "--minimal flag for machine-parseable compact output",
-          "created": "2026-03-08T16:16:39.676Z",
-          "archived": false,
-          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
-          "children": []
-        },
-        {
-          "id": "a02a309e",
-          "title": "Concurrency & Multi-Agent",
-          "created": "2026-03-08T10:34:52.261Z",
-          "archived": false,
-          "body": "File locking, stale lock detection, multi-agent safety. Two Claude Code sessions on the same burrow shouldn't lose data.",
-          "children": [
-            {
-              "id": "3146ffa0",
-              "title": "Lock file semaphore",
-              "created": "2026-03-08T10:34:57.827Z",
-              "archived": false,
-              "body": "cards.json.lock — check before writing, create, write, delete. Prevents concurrent write conflicts.",
-              "children": []
-            },
-            {
-              "id": "0339621e",
-              "title": "Stale lock cleanup",
-              "created": "2026-03-08T10:34:57.864Z",
-              "archived": false,
-              "body": "Handle crashed processes that left a lock file behind. Timeout or PID check.",
-              "children": []
-            },
-            {
-              "id": "4f7d26c6",
-              "title": "Multi-agent write safety",
-              "created": "2026-03-08T10:34:57.899Z",
-              "archived": false,
-              "body": "Multiple agents operating on the same burrow without silent data loss. The real problem: read-modify-write race condition.",
-              "children": []
-            }
-          ]
-        },
-        {
-          "id": "a43b93cc",
-          "title": "GSD integration",
-          "created": "2026-03-08T10:35:03.581Z",
-          "archived": false,
-          "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
-          "children": []
-        },
-        {
-          "id": "8a01bb38",
-          "title": "Improve tree alignment at deep nesting levels",
-          "created": "2026-03-08T16:18:42.784Z",
-          "archived": false,
-          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
-          "children": []
-        },
-        {
-          "id": "e99ede6b",
-          "title": "Multi-file scaling",
-          "created": "2026-03-08T10:35:03.509Z",
-          "archived": false,
-          "body": "Split large trees across separate files. For when a single cards.json gets too big. Don't compromise simplicity for this.",
-          "children": []
-        },
-        {
-          "id": "9b03816c",
-          "title": "Plugin packaging",
-          "created": "2026-03-08T10:35:03.545Z",
-          "archived": false,
-          "body": "Standalone Claude Code plugin, not GSD-dependent. Generic command adapter, install script for any project.",
-          "children": []
-        }
-      ]
-    },
-    {
       "id": "30059067",
       "title": "Branding",
       "created": "2026-03-08T10:38:08.550Z",
@@ -389,7 +307,7 @@
           "id": "fb15dc7b",
           "title": "Security & Privacy Awareness",
           "created": "2026-03-08T10:48:35.545Z",
-          "archived": false,
+          "archived": true,
           "body": "The burrow file lives in the repo — anything stored in cards is in git history forever. The agent should: (1) never put API keys, secrets, or sensitive data in cards, (2) warn users if card content looks sensitive, (3) treat cards as public-by-default. Same risk as hardcoding an API key — users should know, and the agent should actively guard against it.",
           "children": []
         }
@@ -596,6 +514,79 @@
           "created": "2026-03-09T13:46:40.957Z",
           "archived": false,
           "body": "Support operating on multiple cards in a single command. E.g. archive multiple IDs, move multiple cards to a parent, bulk edit. Reduces round-trips for multi-card operations the agent currently does one at a time.",
+          "children": []
+        },
+        {
+          "id": "3afc0a09",
+          "title": "--minimal flag for machine-parseable compact output",
+          "created": "2026-03-08T16:16:39.676Z",
+          "archived": false,
+          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
+          "children": []
+        },
+        {
+          "id": "a43b93cc",
+          "title": "GSD integration",
+          "created": "2026-03-08T10:35:03.581Z",
+          "archived": false,
+          "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
+          "children": []
+        },
+        {
+          "id": "a02a309e",
+          "title": "Concurrency & Multi-Agent",
+          "created": "2026-03-08T10:34:52.261Z",
+          "archived": false,
+          "body": "File locking, stale lock detection, multi-agent safety. Two Claude Code sessions on the same burrow shouldn't lose data.",
+          "children": [
+            {
+              "id": "3146ffa0",
+              "title": "Lock file semaphore",
+              "created": "2026-03-08T10:34:57.827Z",
+              "archived": false,
+              "body": "cards.json.lock — check before writing, create, write, delete. Prevents concurrent write conflicts.",
+              "children": []
+            },
+            {
+              "id": "0339621e",
+              "title": "Stale lock cleanup",
+              "created": "2026-03-08T10:34:57.864Z",
+              "archived": false,
+              "body": "Handle crashed processes that left a lock file behind. Timeout or PID check.",
+              "children": []
+            },
+            {
+              "id": "4f7d26c6",
+              "title": "Multi-agent write safety",
+              "created": "2026-03-08T10:34:57.899Z",
+              "archived": false,
+              "body": "Multiple agents operating on the same burrow without silent data loss. The real problem: read-modify-write race condition.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "8a01bb38",
+          "title": "Improve tree alignment at deep nesting levels",
+          "created": "2026-03-08T16:18:42.784Z",
+          "archived": false,
+          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
+          "children": []
+        },
+        {
+          "id": "e99ede6b",
+          "title": "Multi-file scaling",
+          "created": "2026-03-08T10:35:03.509Z",
+          "archived": false,
+          "body": "Split large trees across separate files. For when a single cards.json gets too big. Don't compromise simplicity for this.",
+          "children": []
+        },
+        {
+          "id": "9b03816c",
+          "title": "Plugin packaging",
+          "created": "2026-03-08T10:35:03.545Z",
+          "archived": false,
+          "body": "npm package for standalone installation. Zero deps = no build step needed. Core engine (mongoose, warren, render, core) needs zero changes — just packaging plumbing. Key tasks: (1) Create package.json with bin entry pointing to burrow-tools.cjs, (2) Update init.cjs to resolve paths from installed package location instead of symlinks, (3) Update CLAUDE.md snippet to use 'burrow' or 'npx burrow' instead of 'node .claude/burrow/burrow-tools.cjs', (4) Bundle slash command .md files and workflow so init can copy them from the package. Design decision: support both global install (npm i -g) and npx. Estimated effort: a few hours.",
           "children": []
         }
       ]

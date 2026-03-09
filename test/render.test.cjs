@@ -8,7 +8,7 @@ const {
   renderMutation,
   renderPath,
   renderError,
-} = require('../lib/render.cjs');
+} = require('../.claude/burrow/lib/render.cjs');
 
 // --- Fixtures ---
 
@@ -558,7 +558,7 @@ describe('formatCardLine indicator ordering', () => {
 
 describe('exports', () => {
   it('exports all four functions', () => {
-    const mod = require('../lib/render.cjs');
+    const mod = require('../.claude/burrow/lib/render.cjs');
     assert.equal(typeof mod.renderCard, 'function');
     assert.equal(typeof mod.renderMutation, 'function');
     assert.equal(typeof mod.renderPath, 'function');
@@ -566,7 +566,7 @@ describe('exports', () => {
   });
 
   it('exports only four functions', () => {
-    const mod = require('../lib/render.cjs');
+    const mod = require('../.claude/burrow/lib/render.cjs');
     const keys = Object.keys(mod);
     assert.equal(keys.length, 4);
   });

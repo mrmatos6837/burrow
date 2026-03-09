@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { load, save } = require('../lib/warren.cjs');
+const { load, save } = require('../.claude/burrow/lib/warren.cjs');
 
 describe('storage', () => {
   let tmpDir;

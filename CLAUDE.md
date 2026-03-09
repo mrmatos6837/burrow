@@ -1,6 +1,6 @@
 ## Project overview
 - Burrow: infinitely nestable card tool for AI agents
-- Source: .claude/burrow/ (lib/, test/, burrow-tools.cjs)
+- Source: .claude/burrow/ (lib/, burrow-tools.cjs)
 - Data: .planning/burrow/cards.json
 - Commands: .claude/commands/burrow/*.md
 - Workflow: .claude/burrow/workflows/burrow.md
@@ -49,4 +49,4 @@ CRITICAL RULES -- these apply at ALL times, not just during /burrow commands:
 ## Code conventions
 - Zero external dependencies -- Node built-ins only
 - CommonJS (.cjs) throughout
-- Tests: node --test .claude/burrow/test/
+- Tests: node --test test/*.test.cjs

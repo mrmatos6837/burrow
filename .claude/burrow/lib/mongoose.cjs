@@ -216,30 +216,6 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
   return card;
 }
 
-/**
- * Get children of a card.
- * @param {object} data - Root data object
- * @param {string} id - Card ID
- * @returns {Array<object>} Children array
- */
-function getChildren(data, id) {
-  const card = findById(data, id);
-  if (!card || !card.children) return [];
-  return card.children;
-}
-
-/**
- * List cards: root cards (no arg) or children of parentId.
- * @param {object} data - Root data object
- * @param {string} [parentId] - Optional parent ID
- * @returns {Array<object>} Cards array
- */
-function listCards(data, parentId) {
-  if (parentId == null) {
-    return data.cards;
-  }
-  return getChildren(data, parentId);
-}
 
 /**
  * Count non-archived descendants recursively.
@@ -392,8 +368,7 @@ module.exports = {
   editCard,
   deleteCard,
   moveCard,
-  getChildren,
-  listCards,
+
   countDescendants,
   countActiveDescendants,
   renderTree,

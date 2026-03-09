@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const CLI_PATH = path.resolve(__dirname, '..', 'burrow-tools.cjs');
+const CLI_PATH = path.resolve(__dirname, '..', '.claude', 'burrow', 'burrow-tools.cjs');
 
 /**
  * Run a CLI command and return the raw stdout string.
