@@ -373,6 +373,44 @@ describe('renderMutation', () => {
   });
 });
 
+describe('[archived] tag always shown on archived cards', () => {
+  it('shows [archived] tag in archived-only filter mode', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'archived-only' });
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag in archived-only mode');
+  });
+
+  it('shows [archived] tag in include-archived filter mode', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'include-archived' });
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag on archived cards in include-archived mode');
+    // Active card should NOT have [archived] tag - check the line specifically
+    const lines = result.split('\n');
+    const activeTaskLine = lines.find(l => l.includes('Active task'));
+    assert.ok(activeTaskLine, 'Active task should be in output');
+    assert.ok(!activeTaskLine.includes('[archived]'), 'Active task should NOT have [archived] tag');
+  });
+
+  it('does not show [archived] on non-archived cards in any mode', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'active' });
+    assert.ok(!result.includes('[archived]'), 'Non-archived cards should never show [archived] tag');
+  });
+});
+
 describe('exports', () => {
   it('exports all four functions', () => {
     const mod = require('../lib/render.cjs');
