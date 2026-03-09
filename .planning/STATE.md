@@ -131,9 +131,10 @@ None yet.
 | 3 | Make dump command always use full depth (default full:true) | 2026-03-09 | 3a6adc9 | [3-make-dump-command-always-use-full-depth-](./quick/3-make-dump-command-always-use-full-depth-/) |
 | 4 | Show [archived] tag on cards regardless of archive filter mode | 2026-03-09 | d64c360 | [4-show-archived-tag-on-cards-even-with-arc](./quick/4-show-archived-tag-on-cards-even-with-arc/) |
 | 5 | Move count after title, replace dot with ellipsis, reorder indicators | 2026-03-09 | dc44eef | [5-render-move-count-after-title-replace-do](./quick/5-render-move-count-after-title-replace-do/) |
+| 6 | Add position translation guidance to workflow for --at flag | 2026-03-09 | 62a36f4 | [6-agent-translate-natural-language-positio](./quick/6-agent-translate-natural-language-positio/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T13:28:25Z
-Stopped at: Completed quick task 5
+Last session: 2026-03-09T14:32:04Z
+Stopped at: Completed quick task 6
 Resume file: None
