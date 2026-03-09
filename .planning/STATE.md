@@ -128,9 +128,10 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 1 | Add CLAUDE.md safeguard preventing destructive burrow operations without explicit user consent | 2026-03-08 | c0a8293 | [1-add-claude-md-safeguard-preventing-destr](./quick/1-add-claude-md-safeguard-preventing-destr/) |
 | 2 | Add --at flag for position-based insertion/reordering on add and move | 2026-03-09 | b41d080 | [2-add-at-flag-for-position-based-reorderin](./quick/2-add-at-flag-for-position-based-reorderin/) |
+| 3 | Make dump command always use full depth (default full:true) | 2026-03-09 | 3a6adc9 | [3-make-dump-command-always-use-full-depth-](./quick/3-make-dump-command-always-use-full-depth-/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T13:12:00Z
-Stopped at: Completed quick task 2
+Last session: 2026-03-09T13:15:50Z
+Stopped at: Completed quick task 3
 Resume file: None
