@@ -29,7 +29,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Rendering
 
-- [x] **RNDR-01**: `get` is the universal view command — `get [id] [--depth N]` covers all read operations
+- [x] **RNDR-01**: `read` is the universal view command — `read [id] [--depth N]` covers all read operations
 - [x] **RNDR-02**: Flat render array output — each entry: `{id, title, depth, descendantCount, hasBody, bodyPreview, created, archived}`
 - [x] **RNDR-03**: Depth model — no flag = card + direct children; `--depth N` = N levels; `--depth 0` = full tree; cards at cutoff show `(N)` active descendant count
 - [x] **RNDR-04**: Breadcrumbs on focused subtree — ancestry path shown when viewing a non-root card
@@ -48,7 +48,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PP-03**: `renderMutation()` formats add/edit/delete/move/archive/unarchive with checkmark symbols and structured output
 - [x] **PP-04**: `formatAge()` produces relative timestamps (just now, Xm ago, Xh ago, Xd ago, Xw ago, Xy ago)
 - [x] **PP-05**: Tree lines use box-drawing characters (├── └──) with right-aligned age column, body dot marker, and recursive depth indentation
-- [x] **PP-06**: `--json` flag on any command bypasses render and returns raw structured JSON (previous default becomes opt-in)
+- [x] **PP-06**: Pretty-print is the only output mode — no --json flag (removed in v1.0)
 - [x] **PP-07**: Default output is human-readable formatted text (pretty-print is the new default)
 - [x] **PP-08**: `list` and `children` commands removed; `dump` remains as alias for `get --depth 0`
 - [x] **PP-09**: `renderError()` produces cross-mark + message format for all error output
@@ -56,20 +56,20 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### CLI
 
-- [x] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
+- [x] **CLI-01**: CLI helper (`burrow-tools.cjs`) returns pretty-printed text for all operations
 - [x] **CLI-02**: CLI supports tree traversal operations (get card by ID, get children, get path to card)
-- [x] **CLI-03**: `get` replaces list/dump/children as universal view — aliases for backward compat (list = get no args, dump = get --depth 0, children = get <id>)
+- [x] **CLI-03**: `read` replaces list/dump/children as universal view — aliases for backward compat (list = read no args, dump = read --depth 0, children = read <id>)
 - [x] **CLI-04**: Stateless CLI — no persistent working directory; agent holds context conversationally
 
 ### Commands
 
 - [x] **CMDS-01**: `/burrow` handles any natural language command (agent interprets intent)
 - [x] **CMDS-02**: `/burrow:add` shortcut for quick card creation
-- [x] **CMDS-03**: `/burrow:show` shortcut for viewing tree at specified depth/focus
+- [x] **CMDS-03**: `/burrow:read` shortcut for viewing tree at specified depth/focus
 - [x] **CMDS-04**: `/burrow:move` shortcut for moving cards
 - [x] **CMDS-05**: `/burrow:archive` shortcut for archiving cards
 - [x] **CMDS-06**: Workflow file (`burrow.md`) defines agent behavior for all interactions
-- Note: Expanded shortcut surface also includes `/burrow:edit`, `/burrow:delete`, `/burrow:unarchive`, `/burrow:dump`, `/burrow:help`
+- Note: Expanded shortcut surface also includes `/burrow:edit`, `/burrow:remove`, `/burrow:unarchive`, `/burrow:dump`, `/burrow:help`
 
 ## v2 Requirements
 
@@ -106,7 +106,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Search command | Agent ingests full tree via `get --depth 0` and searches in memory. Burrow is a structured dataset + view renderer, not a query engine. |
+| Search / query engine | `find` exists as a lightweight title-match lookup command. A full search/query engine is out of scope — the agent ingests the full tree via `read --depth 0` and searches in memory. |
 | Priority scores / sorting | Tree structure IS the organization. Nesting = priority. |
 | Due dates and reminders | No daemon. Use tree structure to signal urgency. |
 | Recurring tasks | No scheduler. Use permanent cards for rituals. |

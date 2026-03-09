@@ -13,9 +13,9 @@ Burrow delivers a recursive nested card tool navigated by an AI agent. The build
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Engine** - Recursive tree data layer with CLI tool skeleton and single JSON storage
-- [ ] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
+- [x] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
 - [x] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
-- [ ] **Phase 4: Agent Interface** - Workflow file and slash commands for natural language and shortcut interaction
+- [x] **Phase 4: Agent Interface** - Workflow file and slash commands for natural language and shortcut interaction
 - [ ] **Phase 5: v1 Tech Debt Cleanup** - Fix init bug, stale tests, and documentation drift from audit
 
 ## Phase Details
@@ -51,8 +51,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Schema migration: drop position/ordering, rename notes->body, flatten children, v1->v2 data migration
-- [ ] 02-02-PLAN.md -- Render tree, archive system, and CLI wiring: universal get with depth control, archive/unarchive, aliases
+- [x] 02-01-PLAN.md -- Schema migration: drop position/ordering, rename notes->body, flatten children, v1->v2 data migration
+- [x] 02-02-PLAN.md -- Render tree, archive system, and CLI wiring: universal get with depth control, archive/unarchive, aliases
 
 ### Phase 3: CLI Pretty-Print Rendering
 **Goal**: Every CLI command outputs human-readable formatted text by default. --json flag bypasses rendering and returns raw structured JSON. Each command internally produces structured data, then passes it through a render function.
@@ -81,8 +81,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- Workflow file and /burrow NL command: agent behavior definition with invariants, command reference, worked examples
-- [ ] 04-02-PLAN.md -- Shortcut commands, help, and REQUIREMENTS.md update: thin wrapper slash commands for all CLI operations
+- [x] 04-01-PLAN.md -- Workflow file and /burrow NL command: agent behavior definition with invariants, command reference, worked examples
+- [x] 04-02-PLAN.md -- Shortcut commands, help, and REQUIREMENTS.md update: thin wrapper slash commands for all CLI operations
 
 ### Phase 5: v1 Tech Debt Cleanup
 **Goal**: Close all tech debt gaps identified by v1.0 milestone audit — fix init.cjs data format bug, update stale tests, reconcile documentation drift from intentional refactors
