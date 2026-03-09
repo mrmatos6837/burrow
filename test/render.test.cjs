@@ -267,11 +267,11 @@ describe('renderCard', () => {
   it('shows body ellipsis marker for children with body', () => {
     const card = makeCardWithChildren();
     const result = renderCard(card, [], { termWidth: 80 });
-    // Root cause has body, should have ellipsis marker (U+2026)
+    // Root cause has body, should have + body marker
     const lines = result.split('\n');
     const rootCauseLine = lines.find(l => l.includes('Root cause'));
     assert.ok(rootCauseLine, 'Root cause line should exist');
-    assert.ok(rootCauseLine.includes('\u2026'), 'Should use ellipsis (U+2026) as body indicator');
+    assert.ok(rootCauseLine.includes(' +'), 'Should use + as body indicator');
   });
 });
 
@@ -419,7 +419,7 @@ describe('[archived] tag always shown on archived cards', () => {
 });
 
 describe('formatCardLine indicator ordering', () => {
-  it('renders count + body: Title (N) \u2026', () => {
+  it('renders count + body: Title (N) +', () => {
     const card = makeCard({
       children: [
         { id: 'c1111111', title: 'Child 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
@@ -455,11 +455,11 @@ describe('formatCardLine indicator ordering', () => {
     const featureLine = lines2.find(l => l.includes('Feature work'));
     assert.ok(featureLine, 'Feature work line should exist');
     assert.ok(featureLine.includes('(6)'), 'Should show (6) for 6 descendants');
-    assert.ok(featureLine.includes('\u2026'), 'Should show ellipsis for body');
-    // Count should appear before ellipsis
+    assert.ok(featureLine.includes(' +'), 'Should show + for body');
+    // Count should appear before body marker
     const countIdx = featureLine.indexOf('(6)');
-    const ellipsisIdx = featureLine.indexOf('\u2026');
-    assert.ok(countIdx < ellipsisIdx, 'Count (6) should appear before ellipsis');
+    const bodyIdx = featureLine.indexOf(' +');
+    assert.ok(countIdx < bodyIdx, 'Count (6) should appear before + body marker');
   });
 
   it('renders count only: Title (N)', () => {
@@ -483,10 +483,10 @@ describe('formatCardLine indicator ordering', () => {
     // Note: ellipsis may appear in other lines, so check this line specifically
     // The line should not have the body marker pattern " \u2026" immediately after count
     const afterCount = line.slice(line.indexOf('(1)') + 3);
-    assert.ok(!afterCount.startsWith(' \u2026'), 'Should not have ellipsis body marker when no body');
+    assert.ok(!afterCount.startsWith(' +'), 'Should not have + body marker when no body');
   });
 
-  it('renders body only: Title \u2026', () => {
+  it('renders body only: Title +', () => {
     const parent = makeCard({
       children: [
         {
@@ -500,7 +500,7 @@ describe('formatCardLine indicator ordering', () => {
     const lines = result.split('\n');
     const line = lines.find(l => l.includes('Leaf with body'));
     assert.ok(line, 'Line should exist');
-    assert.ok(line.includes('\u2026'), 'Should show ellipsis for body');
+    assert.ok(line.includes(' +'), 'Should show + for body');
     assert.ok(!line.includes('(0)'), 'Should NOT show (0) count for leaf');
   });
 
@@ -523,10 +523,10 @@ describe('formatCardLine indicator ordering', () => {
     const titleIdx = line.indexOf('Plain leaf');
     const afterTitle = line.slice(titleIdx + 'Plain leaf'.length);
     // afterTitle should be just whitespace + age
-    assert.ok(!afterTitle.includes('\u2026'), 'Should NOT show ellipsis when no body');
+    assert.ok(!afterTitle.includes(' +'), 'Should NOT show + when no body');
   });
 
-  it('renders all indicators: Title (N) \u2026 [archived]', () => {
+  it('renders all indicators: Title (N) + [archived]', () => {
     const parent = makeCard({
       children: [
         {
@@ -545,14 +545,14 @@ describe('formatCardLine indicator ordering', () => {
     assert.ok(line, 'Line should exist');
     // Verify all indicators present
     assert.ok(line.includes('(2)'), 'Should show (2) for 2 descendants');
-    assert.ok(line.includes('\u2026'), 'Should show ellipsis for body');
+    assert.ok(line.includes(' +'), 'Should show + for body');
     assert.ok(line.includes('[archived]'), 'Should show [archived] tag');
-    // Verify ordering: count before ellipsis before [archived]
+    // Verify ordering: count before + before [archived]
     const countIdx = line.indexOf('(2)');
-    const ellipsisIdx = line.indexOf('\u2026');
+    const bodyIdx = line.indexOf(' +');
     const archivedIdx = line.indexOf('[archived]');
-    assert.ok(countIdx < ellipsisIdx, 'Count should appear before ellipsis');
-    assert.ok(ellipsisIdx < archivedIdx, 'Ellipsis should appear before [archived]');
+    assert.ok(countIdx < bodyIdx, 'Count should appear before + body marker');
+    assert.ok(bodyIdx < archivedIdx, '+ body marker should appear before [archived]');
   });
 });
 

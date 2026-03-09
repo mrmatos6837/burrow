@@ -98,7 +98,7 @@ function formatCardLine(card, prefix, termWidth) {
   const tw = termWidth || 80;
   const id = `[${card.id}]`;
   const hasBody = card.hasBody !== undefined ? card.hasBody : !!(card.body && card.body.trim());
-  const bodyMarker = hasBody ? ' \u2026' : '';
+  const bodyMarker = hasBody ? ' +' : '';
   const age = formatAge(card.created);
   const descCount = card.descendantCount !== undefined
     ? card.descendantCount
