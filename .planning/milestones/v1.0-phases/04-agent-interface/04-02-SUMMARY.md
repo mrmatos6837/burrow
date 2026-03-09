@@ -33,13 +33,13 @@ key-files:
 
 key-decisions:
   - "Shortcuts are thin wrappers -- no workflow file loaded, no NL parsing"
-  - "show maps to CLI get command (user-facing name differs from internal)"
-  - "delete.md shows target card before confirmation for safety"
+  - "read maps to CLI read command (renamed from show in Phase 5)"
+  - "remove.md shows target card before confirmation for safety (renamed from delete in Phase 5)"
   - "help.md outputs static text with no CLI invocation"
 
 patterns-established:
   - "Slash command pattern: frontmatter with name/description/argument-hint/allowed-tools, single Bash invocation of burrow-tools.cjs"
-  - "User-facing show maps to internal get -- naming abstraction at command layer"
+  - "read command maps directly to CLI read (renamed from show→get abstraction in Phase 5)"
 
 requirements-completed: [CMDS-02, CMDS-03, CMDS-04, CMDS-05]
 
@@ -61,8 +61,8 @@ completed: 2026-03-08
 
 ## Accomplishments
 - Created all 9 slash command files covering every CLI operation
-- show.md maps to CLI get command (user-facing naming abstraction)
-- delete.md includes confirmation step showing target before execution
+- read.md maps to CLI read command (renamed from show.md in Phase 5)
+- remove.md includes confirmation step showing target before execution (renamed from delete.md in Phase 5)
 - help.md provides formatted command reference table with usage examples
 - REQUIREMENTS.md updated from /gsd:bw-* to /burrow:* namespace
 
@@ -75,10 +75,10 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 - `.claude/commands/burrow/add.md` - /burrow:add shortcut (maps to burrow-tools.cjs add)
-- `.claude/commands/burrow/show.md` - /burrow:show shortcut (maps to burrow-tools.cjs get)
+- `.claude/commands/burrow/read.md` - /burrow:read shortcut (maps to burrow-tools.cjs read; renamed from show.md in Phase 5)
 - `.claude/commands/burrow/edit.md` - /burrow:edit shortcut (maps to burrow-tools.cjs edit)
 - `.claude/commands/burrow/move.md` - /burrow:move shortcut (maps to burrow-tools.cjs move)
-- `.claude/commands/burrow/delete.md` - /burrow:delete shortcut with confirmation step
+- `.claude/commands/burrow/remove.md` - /burrow:remove shortcut with confirmation step (renamed from delete.md in Phase 5)
 - `.claude/commands/burrow/archive.md` - /burrow:archive shortcut
 - `.claude/commands/burrow/unarchive.md` - /burrow:unarchive shortcut
 - `.claude/commands/burrow/dump.md` - /burrow:dump shortcut (alias for get --depth 0)
@@ -87,8 +87,8 @@ Each task was committed atomically:
 
 ## Decisions Made
 - Shortcuts are thin wrappers with no workflow file references and no NL parsing
-- show maps to CLI get -- user-facing name differs from internal command name
-- delete.md previews target card via get before asking for confirmation
+- read maps to CLI read command (renamed from show in Phase 5)
+- remove.md previews target card via read before asking for confirmation (renamed from delete in Phase 5)
 - help.md uses static text output with no allowed-tools needed
 
 ## Deviations from Plan

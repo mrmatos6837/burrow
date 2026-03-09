@@ -4,7 +4,7 @@
 
 ## What This Is
 
-A general-purpose agent-navigated nested list tool for Claude Code. Burrow stores everything as cards that can contain cards — infinitely nestable, like Workflowy — but instead of a human struggling to navigate deep trees, the AI agent is the navigator. The user talks naturally ("show me all my bugs with details", "add a note under the OAuth issue"), and the agent traverses, renders, and manipulates the tree. It sits in the sweet spot between a flat todo list and a full project manager: enough structure to stay organized, zero ceremony. V1 ships as a GSD addon with GSD commands; the core engine is designed to be adapter-agnostic for future Claude Code plugin packaging.
+A general-purpose agent-navigated nested card tool for Claude Code. Burrow stores everything as cards that can contain cards — infinitely nestable, like Workflowy — but instead of a human struggling to navigate deep trees, the AI agent is the navigator. The user talks naturally ("show me all my bugs with details", "add a note under the OAuth issue"), and the agent traverses, renders, and manipulates the tree. It sits in the sweet spot between a flat todo list and a full project manager: enough structure to stay organized, zero ceremony. V1 ships with its own `/burrow` command namespace; the core engine is adapter-agnostic for future standalone Claude Code plugin packaging.
 
 ### Branding
 
@@ -24,22 +24,21 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+- ✓ Infinitely nestable cards (each card can contain child cards) — v1.0
+- ✓ Single JSON storage (`cards.json`) — one file, all data, fast and deterministic — v1.0
+- ✓ CLI helper (`burrow-tools.cjs`) returns pretty-printed text for all operations — v1.0
+- ✓ Depth-configurable rendering: box-drawing tree with counts, body indicators, relative ages — v1.0
+- ✓ Natural language navigation via `/burrow` (agent interprets intent, picks depth/focus) — v1.0
+- ✓ Direct shortcut commands (`/burrow:add`, `/burrow:read`, `/burrow:move`, etc.) — v1.0
+- ✓ Archive system: cascade archive/unarchive, hidden from active views by default — v1.0
+- ✓ Per-project scope (`.planning/burrow/`) — v1.0
+- ✓ Agent memory: persistent instructions stored as cards, read on session start — v1.0
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Infinitely nestable cards (each card can contain child cards)
-- [ ] Single JSON storage (`cards.json`) — one file, all data, fast and deterministic
-- [ ] CLI helper (`burrow-tools.cjs`) returns structured JSON for all operations
-- [ ] Depth-configurable rendering: indented list with cutoff, collapsed descendant counts shown as `(N)`
-- [ ] Natural language navigation via `/gsd:burrow` (agent interprets intent, picks depth/focus)
-- [ ] Direct shortcut commands for common operations
-- [ ] Archive system: archived cards hidden from active views but searchable
-- [ ] Search across all cards at any depth
-- [ ] Per-project scope (`.planning/burrow/`)
-- [ ] GSD adapter: commands registered as `/gsd:burrow`, `/gsd:bw-*` shortcuts
+(v1 shipped — define v2 requirements with `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -51,98 +50,87 @@ One recursive data structure — cards containing cards — navigated by an agen
 - Multi-user or sync features — single dev + agent, local files
 - Interactive TUI (full-screen) — nested TUI breaks agent output model
 - Due dates, recurring tasks, custom fields — use nesting and natural text instead
+- Search / query engine — `find` command does lightweight title-match; agent ingests full tree and searches in memory
 - GSD workflow integration (reconciliation, auto-tracking) — deferred to v2
 
 ## Context
 
-Burrow is a standalone tool that ships as a GSD addon for v1. It lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — GSD commands are one adapter; a generic Claude Code plugin adapter can be built later.
+Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
 
 ```json
 {
-  "version": 1,
-  "ordering": "custom",
+  "version": 2,
   "cards": [
     {
       "id": "a1b2c3d4",
       "title": "bugs",
-      "position": 0,
       "created": "2026-03-06T14:30:00Z",
       "archived": false,
-      "notes": "",
-      "children": {
-        "ordering": "custom",
-        "cards": [
-          {
-            "id": "e5f6g7h8",
-            "title": "Login redirect broken",
-            "position": 0,
-            "created": "2026-03-06T14:35:00Z",
-            "archived": false,
-            "notes": "OAuth callback sends to /dashboard instead of original page",
-            "children": {
-              "ordering": "custom",
-              "cards": [
-                {
-                  "id": "i9j0k1l2",
-                  "title": "Root cause: callback URL not stored in session",
-                  "position": 0,
-                  "created": "2026-03-06T15:00:00Z",
-                  "archived": false,
-                  "notes": "",
-                  "children": { "ordering": "custom", "cards": [] }
-                }
-              ]
-            }
-          }
-        ]
-      }
+      "body": "",
+      "children": [
+        {
+          "id": "e5f6g7h8",
+          "title": "Login redirect broken",
+          "created": "2026-03-06T14:35:00Z",
+          "archived": false,
+          "body": "OAuth callback sends to /dashboard instead of original page",
+          "children": []
+        }
+      ]
     }
   ]
 }
 ```
 
 **Rendering model:**
-Indented list with configurable depth cutoff. Cards beyond the cutoff collapse into a descendant count `(N)` — total cards at all depths below that point.
+Pretty-printed tree with box-drawing characters, descendant counts, body indicators, and right-aligned relative ages. Depth-configurable — default shows card + direct children, `--depth 0` shows the full tree.
 
 ```
-depth=1:
-  bugs ...................... (5)
-  features .................. (3)
-  research .................. (4)
-
-depth=2:
-  bugs
-    * Login redirect broken
-    * API timeout ........... (2)
-    * Dark mode flicker
-    * Sidebar overlap
-    * Auth token race
+  ├─ [a1b2c3d4] bugs (5)                                          1d ago
+  │   ├─ [e5f6g7h8] Login redirect broken (1) …                   1d ago
+  │   ├─ [f1234567] API timeout (2)                                1d ago
+  │   └─ [abcdef01] Dark mode flicker …                            2d ago
+  └─ [deadbeef] features (3)                                       3d ago
 ```
 
-**Addon code:**
+**Source code:**
 ```
 .claude/burrow/
-  burrow-tools.cjs       # CLI helper (CRUD, tree traversal, rendering data)
-  workflows/burrow.md    # Agent workflow (all interaction)
+  burrow-tools.cjs         # CLI entry point (all commands)
+  lib/core.cjs             # ID generation, directory setup
+  lib/mongoose.cjs         # Tree operations engine (CRUD, find, archive)
+  lib/warren.cjs           # Storage layer (atomic load/save, migration)
+  lib/render.cjs           # Pretty-print rendering (tree, cards, mutations)
+  workflows/burrow.md      # Agent workflow (NL interpretation, safeguards)
 ```
 
-**GSD adapter (commands):**
+**Commands:**
 ```
-.claude/commands/gsd/
-  burrow.md              # /gsd:burrow — natural language
-  bw-add.md               # /gsd:bw-add
-  bw-show.md              # /gsd:bw-show
-  bw-move.md              # /gsd:bw-move
-  bw-archive.md           # /gsd:bw-archive
+.claude/commands/
+  burrow.md                # /burrow — natural language
+  burrow/add.md            # /burrow:add
+  burrow/read.md           # /burrow:read
+  burrow/edit.md           # /burrow:edit
+  burrow/move.md           # /burrow:move
+  burrow/remove.md         # /burrow:remove
+  burrow/archive.md        # /burrow:archive
+  burrow/unarchive.md      # /burrow:unarchive
+  burrow/dump.md           # /burrow:dump
+  burrow/help.md           # /burrow:help
 ```
 
 **Data:**
 ```
 .planning/burrow/
-  cards.json              # The entire tree
+  cards.json               # The entire tree (version 2 schema)
+```
+
+**Installer:**
+```
+install.cjs                # Copies source, commands, and data into target project
 ```
 
 ## Constraints
@@ -150,8 +138,8 @@ depth=2:
 - **Runtime**: Node.js built-in APIs only — zero npm dependencies
 - **Storage**: Single JSON file (`cards.json`) — atomic writes (tmp + rename)
 - **Independence**: Must not modify any files inside `.claude/get-shit-done/`
-- **GSD compatibility**: Works alongside GSD v1.22.4+ without conflicts
-- **Context efficiency**: CLI returns structured JSON; agent does rendering and navigation
+- **GSD compatibility**: Works alongside GSD without conflicts
+- **Context efficiency**: CLI returns pretty-printed text; agent reads cards.json directly for full state
 
 ## Key Decisions
 
@@ -159,16 +147,18 @@ depth=2:
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Nested list model (not buckets + tags) | One recursive concept replaces three separate models. Simpler data, simpler code, more flexible. Agent handles navigation complexity. | -- Pending |
-| Single JSON storage | One file read per operation. No YAML parsing, no directory enumeration. Fast, minimal, deterministic. | -- Pending |
-| Position + ordering per parent | Each card has a `position`; each parent has `children.ordering` (custom/alpha-asc/alpha-desc). Moves are deterministic. | -- Pending |
-| Plain JS for v1 | Schema is small enough that TS types don't buy much. Upgrade to TS if/when plugin packaging happens. | -- Pending |
-| General-purpose core + GSD adapter | Core engine is adapter-agnostic. GSD commands are v1 adapter. Opens path to standalone Claude Code plugin. | -- Pending |
-| Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | -- Pending |
-| Metaphysical branding | The burrow is infinite and recursive. Something fast lives in it. The name sells the concept; the code rewards the curious. | -- Pending |
-| Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | -- Pending |
-| Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | -- Pending |
-| Per-project scope only | Keeps contexts isolated, simpler data model | -- Pending |
+| Nested list model (not buckets + tags) | One recursive concept replaces three separate models. Simpler data, simpler code, more flexible. Agent handles navigation complexity. | ✓ Good — cards-in-cards handles every use case cleanly |
+| Single JSON storage | One file read per operation. No YAML parsing, no directory enumeration. Fast, minimal, deterministic. | ✓ Good — near-instant reads, agent ingests full state every session |
+| Drop position + ordering (v2 schema) | Array index IS display order. No position field, no ordering mode. Agent sorts via move operations. | ✓ Good — eliminated recompact logic, simplified schema to 6 fields |
+| Plain JS for v1 | Schema is small enough that TS types don't buy much. Upgrade to TS if/when plugin packaging happens. | ✓ Good — zero build step, 150 tests pass, clean code |
+| General-purpose core + `/burrow` namespace | Core engine is adapter-agnostic. `/burrow` commands are the v1 interface. Opens path to standalone Claude Code plugin. | ✓ Good — clean separation between engine and commands |
+| Agent-as-navigator | Humans struggle with deep trees (Workflowy problem). Agents don't. The agent picks depth, focus, and rendering — user just talks. | ✓ Good — natural language works well for all operations |
+| Metaphysical branding | The burrow is infinite and recursive. Something fast lives in it. The name sells the concept; the code rewards the curious. | ✓ Good — mongoose easter egg in lib/mongoose.cjs |
+| Depth-configurable rendering | One view model with a depth parameter. No separate "pan" vs "drill" concepts — just different depths of the same tree. | ✓ Good — `--depth N` covers all use cases |
+| Pretty-print default, no --json flag | CLI outputs human-readable tree by default. Removed --json flag — agent reads cards.json directly for structured data. | ✓ Good — simpler CLI, agent gets structured data from source |
+| Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | ✓ Good — install.cjs copies into target project |
+| Per-project scope only | Keeps contexts isolated, simpler data model | ✓ Good — `.planning/burrow/` per project |
+| Rename notes → body | Generic free-form content field. Can store descriptions, instructions, rationale. Parent body can describe schema of children. | ✓ Good — self-documenting tree structures |
 
 ---
-*Last updated: 2026-03-07 — renamed from Todobox to Burrow*
+*Last updated: 2026-03-09 after v1.0 milestone*
