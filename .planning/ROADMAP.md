@@ -96,7 +96,7 @@ Plans:
   4. `find` command reconciled with Out of Scope table in REQUIREMENTS.md
   5. ROADMAP.md Phase 2 and Phase 4 show correct completion status
   6. No empty stale phase directories exist
-**Plans**: 0 plans
+**Plans**: 1 plan
 
 Plans:
 - [ ] 05-01-PLAN.md -- Fix init.cjs format bug, stale tests, and documentation drift
