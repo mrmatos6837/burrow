@@ -187,7 +187,7 @@ describe('renderCard', () => {
     assert.ok(result.includes('[archived]'), 'Should show [archived] tag in archived-only mode');
   });
 
-  it('shows consistent count column with (0) for leaves', () => {
+  it('shows count for cards with descendants and hides (0) for leaves', () => {
     const card = makeCard({
       children: [
         { id: 'c1111111', title: 'Has children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [
@@ -198,7 +198,11 @@ describe('renderCard', () => {
     });
     const result = renderCard(card, [], { termWidth: 80 });
     assert.ok(result.includes('(1)'), 'Should show (1) for card with 1 descendant');
-    assert.ok(result.includes('(0)'), 'Should show (0) for leaf card');
+    // Leaf cards should NOT show (0)
+    const lines = result.split('\n');
+    const leafLine = lines.find(l => l.includes('No children'));
+    assert.ok(leafLine, 'Leaf card line should exist');
+    assert.ok(!leafLine.includes('(0)'), 'Leaf card should NOT show (0) count');
   });
 
   it('shows [archived] label when include-archived', () => {
@@ -260,11 +264,14 @@ describe('renderCard', () => {
     assert.ok(result.includes('  Line 3'));
   });
 
-  it('shows body dot marker for children with body', () => {
+  it('shows body ellipsis marker for children with body', () => {
     const card = makeCardWithChildren();
     const result = renderCard(card, [], { termWidth: 80 });
-    // Root cause has body, should have dot marker
-    assert.ok(result.includes('\u2022'));
+    // Root cause has body, should have ellipsis marker (U+2026)
+    const lines = result.split('\n');
+    const rootCauseLine = lines.find(l => l.includes('Root cause'));
+    assert.ok(rootCauseLine, 'Root cause line should exist');
+    assert.ok(rootCauseLine.includes('\u2026'), 'Should use ellipsis (U+2026) as body indicator');
   });
 });
 
@@ -408,6 +415,144 @@ describe('[archived] tag always shown on archived cards', () => {
     });
     const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'active' });
     assert.ok(!result.includes('[archived]'), 'Non-archived cards should never show [archived] tag');
+  });
+});
+
+describe('formatCardLine indicator ordering', () => {
+  it('renders count + body: Title (N) \u2026', () => {
+    const card = makeCard({
+      children: [
+        { id: 'c1111111', title: 'Child 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+        { id: 'c2222222', title: 'Child 2', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const childLine = lines.find(l => l.includes('[c1111111]'));
+    assert.ok(childLine, 'Child line should exist');
+    // Child 1 has no body and no descendants - skip this one
+    // Use the parent's child list rendering: check first child
+    // Actually, we need a card where the CHILD has descendants and body
+    // Let me use a proper parent card
+    const parent = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Feature work', created: '2026-03-07T00:00:00.000Z',
+          archived: false, body: 'Some details about this',
+          children: [
+            { id: 'c3333333', title: 'Sub-task A', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c4444444', title: 'Sub-task B', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c5555555', title: 'Sub-task C', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c6666666', title: 'Sub-task D', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c7777777', title: 'Sub-task E', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c8888888', title: 'Sub-task F', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+          ],
+        },
+      ],
+    });
+    const result2 = renderCard(parent, [], { termWidth: 120 });
+    const lines2 = result2.split('\n');
+    const featureLine = lines2.find(l => l.includes('Feature work'));
+    assert.ok(featureLine, 'Feature work line should exist');
+    assert.ok(featureLine.includes('(6)'), 'Should show (6) for 6 descendants');
+    assert.ok(featureLine.includes('\u2026'), 'Should show ellipsis for body');
+    // Count should appear before ellipsis
+    const countIdx = featureLine.indexOf('(6)');
+    const ellipsisIdx = featureLine.indexOf('\u2026');
+    assert.ok(countIdx < ellipsisIdx, 'Count (6) should appear before ellipsis');
+  });
+
+  it('renders count only: Title (N)', () => {
+    const parent = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Has child', created: '2026-03-07T00:00:00.000Z',
+          archived: false, body: '',
+          children: [
+            { id: 'c2222222', title: 'Only child', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+          ],
+        },
+      ],
+    });
+    const result = renderCard(parent, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const line = lines.find(l => l.includes('Has child'));
+    assert.ok(line, 'Line should exist');
+    assert.ok(line.includes('(1)'), 'Should show (1) for 1 descendant');
+    // Should NOT have ellipsis body marker on this specific line (no body)
+    // Note: ellipsis may appear in other lines, so check this line specifically
+    // The line should not have the body marker pattern " \u2026" immediately after count
+    const afterCount = line.slice(line.indexOf('(1)') + 3);
+    assert.ok(!afterCount.startsWith(' \u2026'), 'Should not have ellipsis body marker when no body');
+  });
+
+  it('renders body only: Title \u2026', () => {
+    const parent = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Leaf with body', created: '2026-03-07T00:00:00.000Z',
+          archived: false, body: 'Some body content',
+          children: [],
+        },
+      ],
+    });
+    const result = renderCard(parent, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const line = lines.find(l => l.includes('Leaf with body'));
+    assert.ok(line, 'Line should exist');
+    assert.ok(line.includes('\u2026'), 'Should show ellipsis for body');
+    assert.ok(!line.includes('(0)'), 'Should NOT show (0) count for leaf');
+  });
+
+  it('renders neither: Title', () => {
+    const parent = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Plain leaf', created: '2026-03-07T00:00:00.000Z',
+          archived: false, body: '',
+          children: [],
+        },
+      ],
+    });
+    const result = renderCard(parent, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const line = lines.find(l => l.includes('Plain leaf'));
+    assert.ok(line, 'Line should exist');
+    assert.ok(!line.includes('(0)'), 'Should NOT show (0) count');
+    // Check no body marker - the line between title and age should have no ellipsis
+    const titleIdx = line.indexOf('Plain leaf');
+    const afterTitle = line.slice(titleIdx + 'Plain leaf'.length);
+    // afterTitle should be just whitespace + age
+    assert.ok(!afterTitle.includes('\u2026'), 'Should NOT show ellipsis when no body');
+  });
+
+  it('renders all indicators: Title (N) \u2026 [archived]', () => {
+    const parent = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Legacy feature', created: '2026-03-07T00:00:00.000Z',
+          archived: true, body: 'Deprecated since v2',
+          children: [
+            { id: 'c2222222', title: 'Sub 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c3333333', title: 'Sub 2', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+          ],
+        },
+      ],
+    });
+    const result = renderCard(parent, [], { termWidth: 120, archiveFilter: 'include-archived' });
+    const lines = result.split('\n');
+    const line = lines.find(l => l.includes('Legacy feature'));
+    assert.ok(line, 'Line should exist');
+    // Verify all indicators present
+    assert.ok(line.includes('(2)'), 'Should show (2) for 2 descendants');
+    assert.ok(line.includes('\u2026'), 'Should show ellipsis for body');
+    assert.ok(line.includes('[archived]'), 'Should show [archived] tag');
+    // Verify ordering: count before ellipsis before [archived]
+    const countIdx = line.indexOf('(2)');
+    const ellipsisIdx = line.indexOf('\u2026');
+    const archivedIdx = line.indexOf('[archived]');
+    assert.ok(countIdx < ellipsisIdx, 'Count should appear before ellipsis');
+    assert.ok(ellipsisIdx < archivedIdx, 'Ellipsis should appear before [archived]');
   });
 });
 
