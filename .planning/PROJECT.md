@@ -90,9 +90,9 @@ Pretty-printed tree with box-drawing characters, descendant counts, body indicat
 
 ```
   ├─ [a1b2c3d4] bugs (5)                                          1d ago
-  │   ├─ [e5f6g7h8] Login redirect broken (1) …                   1d ago
+  │   ├─ [e5f6g7h8] Login redirect broken (1) +                   1d ago
   │   ├─ [f1234567] API timeout (2)                                1d ago
-  │   └─ [abcdef01] Dark mode flicker …                            2d ago
+  │   └─ [abcdef01] Dark mode flicker +                            2d ago
   └─ [deadbeef] features (3)                                       3d ago
 ```
 

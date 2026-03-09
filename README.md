@@ -28,19 +28,19 @@ archived: no
 ────────────────────────────────────────
 children: 3 cards (14 total)
   ├─ [82c35e2c] Backend Services (9)                                    1d ago
-  │   ├─ [8698f27b] Auth API (6) …                                      1d ago
-  │   │   ├─ [7d274551] Token Refresh Flow (3) …                        1d ago
+  │   ├─ [8698f27b] Auth API (6) +                                      1d ago
+  │   │   ├─ [7d274551] Token Refresh Flow (3) +                        1d ago
   │   │   └─ [a91b72bb] Rate Limiter (1)                                1d ago
   │   └─ [1a763ccd] Data Pipeline (1)                                   1d ago
   │       └─ [df36b887] ETL Jobs                                        1d ago
   ├─ [4f42eb4e] Frontend App (6)                                        1d ago
   │   ├─ [e044cc9f] Dashboard (4)                                       1d ago
-  │   │   ├─ [f7ee4392] Widget Grid …                                   1d ago
+  │   │   ├─ [f7ee4392] Widget Grid +                                   1d ago
   │   │   └─ [69f7e0d4] Charts (2)                                      1d ago
-  │   └─ [5a9daea7] Settings Page …                                     1d ago
+  │   └─ [5a9daea7] Settings Page +                                     1d ago
   └─ [cbe50a76] DevOps (2)                                              1d ago
       └─ [c5b5131a] CI/CD (1)                                           1d ago
-          └─ [dd4fc5d8] GitHub Actions …
+          └─ [dd4fc5d8] GitHub Actions +
 ────────────────────────────────────────
 body:
   Demo data for showcasing nested tree rendering at various depths.
@@ -212,11 +212,11 @@ IDs are 8-character hex strings, generated automatically. Timestamps are ISO 860
 The pretty-printed tree shows indicators after each card title:
 
 ```
-  ├─ [8698f27b] Auth API (6) …                   1d ago
+  ├─ [8698f27b] Auth API (6) +                   1d ago
 ```
 
 - `(N)` — active descendant count (hidden when 0)
-- `…` — card has a body (read the card to see it)
+- `+` — card has a body (read the card to see it)
 - `[archived]` — card is archived (only visible with `--include-archived`)
 - `1d ago` — relative age, right-aligned
 
