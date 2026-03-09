@@ -98,26 +98,27 @@ function formatCardLine(card, prefix, termWidth) {
   const tw = termWidth || 80;
   const id = `[${card.id}]`;
   const hasBody = card.hasBody !== undefined ? card.hasBody : !!(card.body && card.body.trim());
-  const bodyMarker = hasBody ? ` ${DOT}` : '';
+  const bodyMarker = hasBody ? ' \u2026' : '';
   const age = formatAge(card.created);
   const descCount = card.descendantCount !== undefined
     ? card.descendantCount
     : countActiveDescendants(card);
-  const countStr = `  (${descCount})`;
+  const countStr = descCount > 0 ? ` (${descCount})` : '';
   const archivedLabel = card.archived ? ' [archived]' : '';
 
-  // Right side: age + count
-  const rightSide = `${age}${countStr}`;
   // Left side without title: prefix + space + id + space
   const leftFixedParts = `  ${prefix} ${id} `;
-  const rightFixedParts = `${bodyMarker}${archivedLabel}  ${rightSide}`;
+  // Right side: just age
+  const rightSide = age;
+  // Indicators after title
+  const indicators = `${countStr}${bodyMarker}${archivedLabel}`;
 
   // Available space for title
-  const availableForTitle = tw - leftFixedParts.length - rightFixedParts.length;
+  const availableForTitle = tw - leftFixedParts.length - indicators.length - 2 - rightSide.length;
   const title = availableForTitle > 0 ? truncate(card.title, availableForTitle) : card.title;
 
   // Pad middle to right-align age
-  const leftContent = `${leftFixedParts}${title}${bodyMarker}${archivedLabel}`;
+  const leftContent = `${leftFixedParts}${title}${indicators}`;
   const totalContentLen = leftContent.length + 2 + rightSide.length;
   const padding = Math.max(1, tw - totalContentLen);
 
