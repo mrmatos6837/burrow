@@ -20,10 +20,10 @@ tech-stack:
 key-files:
   created:
     - .claude/commands/burrow/add.md
-    - .claude/commands/burrow/show.md
+    - .claude/commands/burrow/read.md
     - .claude/commands/burrow/edit.md
     - .claude/commands/burrow/move.md
-    - .claude/commands/burrow/delete.md
+    - .claude/commands/burrow/remove.md
     - .claude/commands/burrow/archive.md
     - .claude/commands/burrow/unarchive.md
     - .claude/commands/burrow/dump.md

@@ -234,7 +234,7 @@
           "id": "eb8c40d0",
           "title": "Move --at flag for reordering",
           "created": "2026-03-08T15:36:32.601Z",
-          "archived": false,
+          "archived": true,
           "body": "Support --at <position> on move command. Without --to, reorders within current parent. With --to, places at specific position in destination. Both flags optional independently.\n\nDefault: if --at is not specified, card is added last (appended to end of children array). This matches current behavior for add and move.",
           "children": []
         },
@@ -242,7 +242,7 @@
           "id": "3d0b5680",
           "title": "dump command should always use --full --depth 0",
           "created": "2026-03-08T15:40:53.611Z",
-          "archived": false,
+          "archived": true,
           "body": "dump is an alias for read with --full --depth 0 (full tree, full bodies). It's the 'show me everything' command. Currently dump does not pass --full by default — this card tracks adding that.",
           "children": []
         },
@@ -258,7 +258,7 @@
           "id": "e804a55f",
           "title": "archived-only should still show [archived] tag",
           "created": "2026-03-08T15:44:41.425Z",
-          "archived": false,
+          "archived": true,
           "body": "When using --archived-only, cards don't show the [archived] tag. For consistency, the tag should always appear on archived cards regardless of filter mode.",
           "children": []
         },
@@ -268,6 +268,22 @@
           "created": "2026-03-08T10:35:12.461Z",
           "archived": true,
           "body": "Workflow file + slash commands. /gsd:burrow for natural language, shortcuts for common ops. Depends on phase 2 (complete).",
+          "children": []
+        },
+        {
+          "id": "d338a013",
+          "title": "Render: move count after title, replace dot with ellipsis",
+          "created": "2026-03-09T13:28:19.500Z",
+          "archived": true,
+          "body": "Change tree line format. Move (N) descendant count right after title (hide when 0). Replace • body indicator with … ellipsis after count. Order of indicators: title → count → ellipsis → [archived] → time. Five combos: 'Title (6) …' (count+body), 'Title (1)' (count only), 'Title …' (body only), 'Title' (neither), 'Title (25) … [archived]' (all indicators).",
+          "children": []
+        },
+        {
+          "id": "696cc6c6",
+          "title": "Agent: translate natural language positions to 0-based --at index",
+          "created": "2026-03-09T13:42:30.050Z",
+          "archived": true,
+          "body": "The --at flag uses 0-based indexing (CS standard). Keep it that way. When users say 'move to position 3' or 'make it third', the agent should translate to --at 2. The workflow layer handles the human-friendly ↔ programmatic mapping, not the CLI.",
           "children": []
         }
       ]
@@ -279,6 +295,22 @@
       "archived": false,
       "body": "Future work — only if v1 proves the value. Focus: making burrow bulletproof for production multi-agent use.",
       "children": [
+        {
+          "id": "3afc0a09",
+          "title": "--minimal flag for machine-parseable compact output",
+          "created": "2026-03-08T16:16:39.676Z",
+          "archived": false,
+          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
+          "children": []
+        },
+        {
+          "id": "a43b93cc",
+          "title": "GSD integration",
+          "created": "2026-03-08T10:35:03.581Z",
+          "archived": false,
+          "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
+          "children": []
+        },
         {
           "id": "a02a309e",
           "title": "Concurrency & Multi-Agent",
@@ -313,6 +345,14 @@
           ]
         },
         {
+          "id": "8a01bb38",
+          "title": "Improve tree alignment at deep nesting levels",
+          "created": "2026-03-08T16:18:42.784Z",
+          "archived": false,
+          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
+          "children": []
+        },
+        {
           "id": "e99ede6b",
           "title": "Multi-file scaling",
           "created": "2026-03-08T10:35:03.509Z",
@@ -326,30 +366,6 @@
           "created": "2026-03-08T10:35:03.545Z",
           "archived": false,
           "body": "Standalone Claude Code plugin, not GSD-dependent. Generic command adapter, install script for any project.",
-          "children": []
-        },
-        {
-          "id": "a43b93cc",
-          "title": "GSD integration",
-          "created": "2026-03-08T10:35:03.581Z",
-          "archived": false,
-          "body": "Agent-driven reconciliation: compare completed work vs open cards, suggest matches. Bulk ops during reconciliation.",
-          "children": []
-        },
-        {
-          "id": "3afc0a09",
-          "title": "--minimal flag for machine-parseable compact output",
-          "created": "2026-03-08T16:16:39.676Z",
-          "archived": false,
-          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
-          "children": []
-        },
-        {
-          "id": "8a01bb38",
-          "title": "Improve tree alignment at deep nesting levels",
-          "created": "2026-03-08T16:18:42.784Z",
-          "archived": false,
-          "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
           "children": []
         }
       ]
@@ -568,12 +584,21 @@
       ]
     },
     {
-      "id": "4cae8af7",
-      "title": "test card",
-      "created": "2026-03-08T22:32:56.131Z",
+      "id": "d6e53b29",
+      "title": "Backlog",
+      "created": "2026-03-09T13:46:34.866Z",
       "archived": false,
-      "body": "",
-      "children": []
+      "body": "Future work items and ideas. Not tied to a specific version or milestone.",
+      "children": [
+        {
+          "id": "988b4781",
+          "title": "Batch operations for commands",
+          "created": "2026-03-09T13:46:40.957Z",
+          "archived": false,
+          "body": "Support operating on multiple cards in a single command. E.g. archive multiple IDs, move multiple cards to a parent, bulk edit. Reduces round-trips for multi-card operations the agent currently does one at a time.",
+          "children": []
+        }
+      ]
     }
   ]
 }

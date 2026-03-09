@@ -99,7 +99,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md -- Fix init.cjs format bug, stale tests, and documentation drift
+- [x] 05-01-PLAN.md -- Fix init.cjs format bug, stale tests, and documentation drift
 
 ## Progress
 

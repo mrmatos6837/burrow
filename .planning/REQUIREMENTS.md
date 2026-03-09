@@ -169,7 +169,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 42 total
 - Mapped to phases: 42
 - Unmapped: 0
-- Pending (gap closure): 8
+- Pending (gap closure): 0
 
 ---
 *Requirements defined: 2026-03-07*

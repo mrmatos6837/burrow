@@ -5,6 +5,27 @@
 - Commands: .claude/commands/burrow/*.md
 - Workflow: .claude/burrow/workflows/burrow.md
 
+## Burrow as agent memory
+
+On every session start, silently read `.planning/burrow/cards.json` using the Read tool to load project context, tasks, and notes into your working memory. This is your persistent state — treat it like a briefing.
+
+**When the user says "remember", "don't forget", "always do X", or any instruction meant to persist across sessions:**
+- Store it as a Burrow card using the CLI: `node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"`
+- Organize under relevant parent cards (create parents if needed for grouping)
+- Do NOT write to loose markdown files, auto-memory, or other ad-hoc storage — Burrow is the single source of truth
+
+**Root card body = project context.** If a root-level card has a body, read it for project description, conventions, or priorities the user has set.
+
+**What to store in Burrow:**
+- User preferences and conventions ("always use bun", "prefer snake_case")
+- Recurring tasks, TODOs, ideas
+- Project decisions and rationale
+- Anything the user wants remembered across sessions
+
+**What NOT to store:**
+- Ephemeral session state (current debugging context, temp variables)
+- Information already in CLAUDE.md (don't duplicate)
+
 ## Burrow safeguards
 
 CRITICAL RULES -- these apply at ALL times, not just during /burrow commands:
