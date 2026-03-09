@@ -123,20 +123,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Complete |
-| DATA-02 | Phase 1, Phase 5 (gap closure) | Pending |
+| DATA-02 | Phase 1, Phase 5 (gap closure) | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Complete |
 | DATA-07 | Phase 1 | Complete |
 | DATA-08 | Phase 1 | Complete (superseded by SCHEMA-01/02 in Phase 2) |
-| DATA-09 | Phase 1, Phase 5 (gap closure) | Pending |
+| DATA-09 | Phase 1, Phase 5 (gap closure) | Complete |
 | DATA-10 | Phase 1 | Complete |
 | SCHEMA-01 | Phase 2 | Complete |
 | SCHEMA-02 | Phase 2 | Complete |
 | SCHEMA-03 | Phase 2 | Complete |
 | SCHEMA-04 | Phase 2 | Complete |
-| RNDR-01 | Phase 2, Phase 5 (gap closure) | Pending |
+| RNDR-01 | Phase 2, Phase 5 (gap closure) | Complete |
 | RNDR-02 | Phase 2 | Complete |
 | RNDR-03 | Phase 2 | Complete |
 | RNDR-04 | Phase 2 | Complete |
@@ -144,23 +144,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ARCH-01 | Phase 2 | Complete |
 | ARCH-02 | Phase 2 | Complete |
 | ARCH-03 | Phase 2 | Complete |
-| CLI-01 | Phase 1, Phase 5 (gap closure) | Pending |
+| CLI-01 | Phase 1, Phase 5 (gap closure) | Complete |
 | CLI-02 | Phase 1 | Complete |
-| CLI-03 | Phase 2, Phase 5 (gap closure) | Pending |
+| CLI-03 | Phase 2, Phase 5 (gap closure) | Complete |
 | CLI-04 | Phase 2 | Complete |
 | PP-01 | Phase 3 | Complete |
 | PP-02 | Phase 3 | Complete |
-| PP-03 | Phase 3, Phase 5 (gap closure) | Pending |
+| PP-03 | Phase 3, Phase 5 (gap closure) | Complete |
 | PP-04 | Phase 3 | Complete |
 | PP-05 | Phase 3 | Complete |
-| PP-06 | Phase 3, Phase 5 (gap closure) | Pending |
+| PP-06 | Phase 3, Phase 5 (gap closure) | Complete |
 | PP-07 | Phase 3 | Complete |
 | PP-08 | Phase 3 | Complete |
 | PP-09 | Phase 3 | Complete |
 | PP-10 | Phase 3 | Complete |
 | CMDS-01 | Phase 4 | Complete |
 | CMDS-02 | Phase 4 | Complete |
-| CMDS-03 | Phase 4, Phase 5 (gap closure) | Pending |
+| CMDS-03 | Phase 4, Phase 5 (gap closure) | Complete |
 | CMDS-04 | Phase 4 | Complete |
 | CMDS-05 | Phase 4 | Complete |
 | CMDS-06 | Phase 4 | Complete |

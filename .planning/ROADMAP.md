@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Schema, Views, and Archive** - Simplify schema, depth-configurable flat render array, cascade archive system
 - [x] **Phase 3: CLI Pretty-Print Rendering** - Human-readable output by default, --json flag for raw structured JSON
 - [x] **Phase 4: Agent Interface** - Workflow file and slash commands for natural language and shortcut interaction
-- [ ] **Phase 5: v1 Tech Debt Cleanup** - Fix init bug, stale tests, and documentation drift from audit
+- [x] **Phase 5: v1 Tech Debt Cleanup** - Fix init bug, stale tests, and documentation drift from audit (completed 2026-03-09)
 
 ## Phase Details
 
@@ -112,4 +112,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Schema, Views, and Archive | 2/2 | Complete | 2026-03-08 |
 | 3. CLI Pretty-Print Rendering | 3/3 | Complete | 2026-03-08 |
 | 4. Agent Interface | 2/2 | Complete | 2026-03-08 |
-| 5. v1 Tech Debt Cleanup | 0/1 | Not started | - |
+| 5. v1 Tech Debt Cleanup | 1/1 | Complete   | 2026-03-09 |
