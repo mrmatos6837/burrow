@@ -26,10 +26,11 @@ Burrow is your persistent memory. On every session start, silently read \`.plann
 **Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
 
 **Safeguards:**
-- NEVER run remove, archive, move, or edit without explicit user consent
-- Read-only operations (read, dump) are always safe
-- All mutations go through the CLI: \`node .claude/burrow/burrow-tools.cjs <command>\`
-- NEVER edit cards.json directly
+1. NEVER run remove, archive, move, or edit without explicit user consent in the current conversation turn
+2. Before any destructive operation, show what will be affected (descendant count, old vs new value, source and destination)
+3. NEVER batch-remove or batch-archive without listing each card and getting confirmation
+4. Read-only operations (read, dump, find, path) are always safe
+5. All mutations go through the CLI — NEVER edit cards.json directly
 `.trimStart();
 
 // ── Helpers ────────────────────────────────────────────────────────
