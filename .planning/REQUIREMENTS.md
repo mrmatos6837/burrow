@@ -100,13 +100,45 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| REND-01 | Phase 6 | Pending |
+| REND-02 | Phase 6 | Pending |
+| REND-03 | Phase 6 | Pending |
+| REND-04 | Phase 6 | Pending |
+| REND-05 | Phase 6 | Pending |
+| REND-06 | Phase 7 | Pending |
+| REND-07 | Phase 7 | Pending |
+| REND-08 | Phase 7 | Pending |
+| REND-09 | Phase 7 | Pending |
+| REND-10 | Phase 7 | Pending |
+| PERF-01 | Phase 8 | Pending |
+| PERF-02 | Phase 8 | Pending |
+| PERF-03 | Phase 8 | Pending |
+| PERF-04 | Phase 8 | Pending |
+| PERF-05 | Phase 8 | Pending |
+| PERF-06 | Phase 8 | Pending |
+| PERF-07 | Phase 7 | Pending |
+| PERF-08 | Phase 8 | Pending |
+| PERF-09 | Phase 8 | Pending |
+| PERF-10 | Phase 8 | Pending |
+| VALID-01 | Phase 8 | Pending |
+| VALID-02 | Phase 8 | Pending |
+| VALID-03 | Phase 8 | Pending |
+| QUAL-01 | Phase 8 | Pending |
+| QUAL-02 | Phase 8 | Pending |
+| QUAL-03 | Phase 8 | Pending |
+| QUAL-04 | Phase 8 | Pending |
+| DATA-01 | Phase 8 | Pending |
+| DATA-02 | Phase 8 | Pending |
+| API-01 | Phase 8 | Pending |
+| API-02 | Phase 8 | Pending |
+| INST-01 | Phase 8 | Pending |
+| INST-02 | Phase 8 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36 ⚠️
+- v1.1 requirements: 33 total (note: originally noted as 36, actual count is 33)
+- Mapped to phases: 33
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 — traceability populated after roadmap creation*
