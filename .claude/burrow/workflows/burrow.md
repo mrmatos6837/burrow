@@ -43,7 +43,7 @@ Perform the action.
 - **For views**: Run `read [id]` (pretty-print). Say nothing after — the output is the presentation.
 - **For mutations** (add, edit, remove, move, archive, unarchive): Run the CLI command, then one-line confirmation. After mutation, re-LOAD by reading `cards.json` with the Read tool to sync agent memory.
 - **For questions/analysis**: Respond with the answer directly. No CLI call needed.
-- **For multi-step operations**: Run all mutations, summarize changes in plain English, then run one `read` to show end state.
+- **For multi-step operations**: Run all mutations in a single Bash call by chaining with `&&`, summarize changes in plain English, then run one `read` to show end state.
 - **For bulk operations**: Confirm before executing. Example: "This will archive 5 cards under 'bugs'. Proceed?"
 
 ## Command Reference

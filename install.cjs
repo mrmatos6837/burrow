@@ -21,8 +21,6 @@ Burrow is your persistent memory. On every session start, silently read \`.plann
 - Organize under relevant parent cards (create parents if needed)
 - Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth
 
-**Root card body = project context.** If a root-level card has a body, read it for project description, conventions, or priorities.
-
 **Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
 
 All mutations go through the CLI — NEVER edit cards.json directly.
