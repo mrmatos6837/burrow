@@ -1,65 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed quick task 6
-last_updated: "2026-03-09T19:25:53.706Z"
-last_activity: 2026-03-09 - Completed quick task 7: change hasbody indicator from ellipsis to + and update docs
+milestone: v1.1
+milestone_name: Rendering & Ergonomics
+status: planning
+stopped_at: Defining requirements
+last_updated: "2026-03-12T20:30:00.000Z"
+last_activity: 2026-03-12 - Milestone v1.1 started
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-09)
+See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** v1.0 shipped — planning next milestone
+**Current focus:** v1.1 Rendering & Ergonomics
 
 ## Current Position
 
-Phase: 5 of 5 (v1 Tech Debt Cleanup) -- COMPLETE
-Plan: 1 of 1 in current phase (05-01 complete)
-Status: All phases complete -- v1.0 milestone done
-Last activity: 2026-03-09 - Completed quick task 7: change hasbody indicator from ellipsis to + and update docs
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-12 — Milestone v1.1 started
 
-Progress: [██████████] 100%
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 8
-- Average duration: 3 min
-- Total execution time: 0.40 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-core-engine | 2 | 5 min | 2.5 min |
-| 02-views-and-features | 2 | 8 min | 4 min |
-| 03-cli-pretty-print | 3 | 10 min | 3.3 min |
-
-**Recent Trend:**
-- Last 5 plans: 02-02 (4 min), 03-01 (3 min), 03-02 (4 min), 03-03 (3 min)
-- Trend: stable
-
-| 04-agent-interface | 1 | 1 min | 1 min |
-
-**Recent Trend:**
-- Last 5 plans: 03-01 (3 min), 03-02 (4 min), 03-03 (3 min), 04-02 (1 min)
-- Trend: stable
-
-*Updated after each plan completion*
-| Phase 04-agent-interface P01 | 2 | 2 tasks | 2 files |
-| Phase 05-v1-tech-debt-cleanup P01 | 2 | 2 tasks | 4 files |
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -70,72 +41,27 @@ Recent decisions affecting current work:
 
 - [Roadmap]: Nested list model (recursive tree) replaces buckets + tags
 - [Roadmap]: Single JSON storage (items.json) with recursive structure -- no YAML, no markdown files
-- [Roadmap]: Coarse 3-phase structure: Core Engine -> Views and Features -> Agent Interface
-- [Roadmap]: GSD integration and reconciliation deferred to v2
-- [01-01]: crypto.randomUUID for 8-char hex ID generation with collision check
-- [01-01]: Null-return pattern for not-found cases (no exceptions)
-- [01-01]: Alpha-ordered items get position 0 (position irrelevant for alpha sorting)
-- [01-01]: Container pattern: root data and item.children share {ordering, items} shape
-- [Phase 01-02]: Used util.parseArgs (Node built-in) for CLI argument parsing -- zero dependencies
-- [Phase 01-02]: Move cycle/not-found errors use INVALID_OPERATION code (tree returns null for both)
-- [Phase 01-02]: Path command strips children from output for clean ancestry display
-- [02-01]: getContainer returns raw array (data.cards or card.children), not wrapper object
-- [02-01]: findParent returns {parent, container} where container is the array
-- [02-01]: moveCard uses splice-at-index for requestedPosition instead of position field
-- [02-01]: migrate() exported from warren.cjs for direct use in tests
-- [02-02]: renderTree returns {breadcrumbs, cards} flat array -- not nested tree
-- [02-02]: depth default 1 (card + children); depth 0 = Infinity (full tree)
-- [02-02]: countActiveDescendants skips archived subtrees entirely
-- [02-02]: handleGet shared function in CLI for alias routing (list/dump/children -> get)
+- [03-03]: nestFlatCards stack-based approach for flat-to-nested tree reconstruction
 - [03-01]: Pure render functions return strings, no stdout, no side effects
 - [03-01]: Body truncation at 200 chars with --full bypass
 - [03-01]: countActiveDescendants duplicated in render.cjs to keep it dependency-free
-- [03-02]: Global --json flag parsed before command switch, filtered from argv
-- [03-02]: handleError helper routes to JSON or pretty-print based on jsonMode
-- [03-02]: Root card synthesized with id (root) for pretty-print root view
-- [03-02]: list and children commands removed from CLI surface
-- [03-03]: Move --to is primary flag, --parent kept for backward compat
-- [03-03]: Always show (N) count including (0) for consistent column width
-- [03-03]: nestFlatCards stack-based approach for flat-to-nested tree reconstruction
-- [03-03]: renderTreeLines recursive function for arbitrary depth box-drawing indentation
-- [04-02]: Shortcuts are thin wrappers -- no workflow file loaded, no NL parsing
-- [04-02]: show maps to CLI get command (user-facing name differs from internal)
-- [04-02]: delete.md shows target card before confirmation for safety
-- [04-02]: help.md outputs static text with no CLI invocation
-- [Phase 04-01]: Workflow file at .claude/burrow/workflows/burrow.md, separate from command files
-- [Phase 04-01]: 4 worked examples covering creation, viewing, multi-step, and ambiguity resolution
-- [Phase 05-01]: No new patterns -- pure cleanup of existing drift
 
 ### Pending Todos
 
 See burrow cards for tracked work:
-- `burrow get 90eb1ae1` — v1 Remaining Work (6 cards: agent interface, dump behavior, --at flag, etc.)
-- `burrow get bfb9243c` — v2 Ideas (9 cards: concurrency, multi-file, plugin packaging, GSD integration, --minimal flag, alignment)
-
-Full backlog: `burrow get --depth 3`
+- `burrow get 0155be04` — v1.1 milestone cards (5 items)
+- `burrow get d6e53b29` — Backlog (future work)
 
 ### Roadmap Evolution
 
-- Phase 4 added: CLI pretty-print rendering with --json flag
+(v1.1 — defining roadmap)
 
 ### Blockers/Concerns
 
 None yet.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 1 | Add CLAUDE.md safeguard preventing destructive burrow operations without explicit user consent | 2026-03-08 | c0a8293 | [1-add-claude-md-safeguard-preventing-destr](./quick/1-add-claude-md-safeguard-preventing-destr/) |
-| 2 | Add --at flag for position-based insertion/reordering on add and move | 2026-03-09 | b41d080 | [2-add-at-flag-for-position-based-reorderin](./quick/2-add-at-flag-for-position-based-reorderin/) |
-| 3 | Make dump command always use full depth (default full:true) | 2026-03-09 | 3a6adc9 | [3-make-dump-command-always-use-full-depth-](./quick/3-make-dump-command-always-use-full-depth-/) |
-| 4 | Show [archived] tag on cards regardless of archive filter mode | 2026-03-09 | d64c360 | [4-show-archived-tag-on-cards-even-with-arc](./quick/4-show-archived-tag-on-cards-even-with-arc/) |
-| 5 | Move count after title, replace dot with ellipsis, reorder indicators | 2026-03-09 | dc44eef | [5-render-move-count-after-title-replace-do](./quick/5-render-move-count-after-title-replace-do/) |
-| 6 | Add position translation guidance to workflow for --at flag | 2026-03-09 | 62a36f4 | [6-agent-translate-natural-language-positio](./quick/6-agent-translate-natural-language-positio/) |
-| 7 | Change hasBody indicator from ellipsis to + symbol | 2026-03-09 | 25878df | [7-change-hasbody-indicator-from-ellipsis-t](./quick/7-change-hasbody-indicator-from-ellipsis-t/) |
-
 ## Session Continuity
 
-Last session: 2026-03-09T20:51:31Z
-Stopped at: Completed quick task 7
+Last session: 2026-03-12
+Stopped at: Milestone v1.1 started
 Resume file: None

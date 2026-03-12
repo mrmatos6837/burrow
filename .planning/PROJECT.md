@@ -38,7 +38,16 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 <!-- Current scope. Building toward these. -->
 
-(v1 shipped — define v2 requirements with `/gsd:new-milestone`)
+## Current Milestone: v1.1 Rendering & Ergonomics
+
+**Goal:** Improve rendering pipeline quality (eliminate flatten-renest, fix alignment, dynamic width) and add developer ergonomics (--minimal flag, installer improvements).
+
+**Target features:**
+- Refactor renderTree to keep nested structure, eliminate redundant computations
+- Consistent tree alignment at deep nesting levels
+- Dynamic render width based on terminal size
+- Init script adds cards.json.bak to .gitignore
+- --minimal flag for machine-parseable compact output
 
 ### Out of Scope
 
@@ -161,4 +170,4 @@ install.cjs                # Copies source, commands, and data into target proje
 | Rename notes → body | Generic free-form content field. Can store descriptions, instructions, rationale. Parent body can describe schema of children. | ✓ Good — self-documenting tree structures |
 
 ---
-*Last updated: 2026-03-09 after v1.0 milestone*
+*Last updated: 2026-03-12 after v1.1 milestone start*
