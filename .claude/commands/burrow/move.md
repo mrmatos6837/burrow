@@ -1,7 +1,7 @@
 ---
 name: burrow:move
 description: Move a card to a different parent
-argument-hint: "<id> --to <parent-id>"
+argument-hint: "<id> --to <parent-id> [--at N]"
 allowed-tools:
   - Bash
 ---
