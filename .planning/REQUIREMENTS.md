@@ -13,7 +13,7 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 - [x] **REND-02**: Breadcrumb computation happens once (eliminate duplicate in renderTree + getBreadcrumbs)
 - [x] **REND-03**: countActiveDescendants called once per card (eliminate triple-computation across renderTree/renderCard/formatCardLine)
 - [x] **REND-04**: Archive filtering happens once (eliminate duplicate in renderTree + renderCard)
-- [ ] **REND-05**: nestFlatCards removed as dead code after renderTree refactor
+- [x] **REND-05**: nestFlatCards removed as dead code after renderTree refactor
 - [ ] **REND-06**: Tree alignment consistent at 3+ nesting levels (columns don't drift)
 - [ ] **REND-07**: Render width adapts to terminal size (process.stdout.columns) instead of hardcoded width
 - [ ] **REND-08**: Empty/undefined title handled gracefully in formatCardLine (no crash)
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REND-02 | Phase 6 | Complete |
 | REND-03 | Phase 6 | Complete |
 | REND-04 | Phase 6 | Complete |
-| REND-05 | Phase 6 | Pending |
+| REND-05 | Phase 6 | Complete |
 | REND-06 | Phase 7 | Pending |
 | REND-07 | Phase 7 | Pending |
 | REND-08 | Phase 7 | Pending |

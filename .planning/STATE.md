@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-13T10:05:09.230Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-13T10:09:15.333Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 06-rendering-pipeline-refactor P01 | 6min | 2 tasks | 4 files |
+| Phase 06-rendering-pipeline-refactor P02 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - [Phase 06-01]: renderTree output changed from flat array with depth to nested tree with children arrays; depth implicit from nesting
 - [Phase 06-01]: render.cjs has zero mongoose dependency — formatCardLine uses pre-computed descendantCount only
 - [Phase 06-01]: Archive filtering consolidated into renderTree only; renderCard no longer re-filters children
+- [Phase 06-02]: nestFlatCards deleted — CLI now passes renderTree nested output directly to renderCard, eliminating flatten-renest roundtrip
+- [Phase 06-02]: getBreadcrumbs kept for add/edit (no renderTree call there); read now uses treeResult.breadcrumbs to avoid duplicate tree walk
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:05:09.228Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-13T10:09:15.331Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

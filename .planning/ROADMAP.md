@@ -24,7 +24,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Improve rendering pipeline quality (eliminate flatten-renest, fix alignment, dynamic width) and ship engine optimizations, input validation, and developer ergonomics.
 
-- [ ] **Phase 6: Rendering Pipeline Refactor** - Rewrite renderTree to keep nested structure, eliminate redundant computations and dead code
+- [x] **Phase 6: Rendering Pipeline Refactor** - Rewrite renderTree to keep nested structure, eliminate redundant computations and dead code (completed 2026-03-13)
 - [ ] **Phase 7: Rendering Enhancements** - Dynamic width, alignment fixes, edge case handling — depends on Phase 6 refactor
 - [ ] **Phase 8: Engine Quality & Ergonomics** - Tree walk optimizations, input validation, code quality, data integrity, API consistency, installer fixes
 
@@ -40,7 +40,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
   3. countActiveDescendants is called exactly once per card (not three times across renderTree, renderCard, formatCardLine)
   4. Archive filtering happens in one place (not duplicated between renderTree and renderCard)
   5. nestFlatCards is deleted from render.cjs and all tests pass
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — Refactor renderTree to nested output + update renderCard to consume pre-computed metadata
@@ -79,6 +79,6 @@ Plans:
 | 3. CLI Pretty-Print Rendering | v1.0 | 3/3 | Complete | 2026-03-08 |
 | 4. Agent Interface | v1.0 | 2/2 | Complete | 2026-03-08 |
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
-| 6. Rendering Pipeline Refactor | 1/2 | In Progress|  | - |
+| 6. Rendering Pipeline Refactor | 2/2 | Complete   | 2026-03-13 | - |
 | 7. Rendering Enhancements | v1.1 | 0/TBD | Not started | - |
 | 8. Engine Quality & Ergonomics | v1.1 | 0/TBD | Not started | - |
