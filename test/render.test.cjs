@@ -823,3 +823,146 @@ describe('exports', () => {
     assert.equal(keys.length, 4);
   });
 });
+
+// Helper to create a minimal card for tree-line tests
+function makeTreeCard(overrides = {}) {
+  return {
+    id: 'a1b2c3d4',
+    title: 'Test card',
+    created: '2026-03-06T12:00:00.000Z',
+    archived: false,
+    body: '',
+    children: [],
+    descendantCount: 0,
+    hasBody: false,
+    ...overrides,
+  };
+}
+
+describe('MIN_TERM_WIDTH floor (width clamping)', () => {
+  // The MIN_TERM_WIDTH constant in render.cjs is 40.
+  // formatCardLine is tested indirectly via renderCard which calls renderTreeLines -> formatCardLine.
+  // We build a parent card with one child and check the tree line length.
+
+  it('narrow termWidth (20) clamps to MIN_TERM_WIDTH (40): line is at least 40 chars', () => {
+    const parent = makeCard({
+      children: [makeTreeCard({ id: 'c1111111', title: 'Short' })],
+    });
+    const result = renderCard(parent, [], { termWidth: 20 });
+    const lines = result.split('\n');
+    const childLine = lines.find(l => l.includes('[c1111111]'));
+    assert.ok(childLine, 'Child line should exist');
+    // Line should be MIN_TERM_WIDTH (40) not 20
+    assert.ok(childLine.length >= 40, `Expected line >= 40 chars, got ${childLine.length}`);
+  });
+
+  it('termWidth=120 produces a tree line of 120 chars', () => {
+    const parent = makeCard({
+      children: [makeTreeCard({ id: 'c1111111', title: 'Short' })],
+    });
+    const result = renderCard(parent, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const childLine = lines.find(l => l.includes('[c1111111]'));
+    assert.ok(childLine, 'Child line should exist');
+    assert.equal(childLine.length, 120, `Expected line of exactly 120 chars, got ${childLine.length}`);
+  });
+
+  it('termWidth=40 (at floor) produces valid output with no crash', () => {
+    const parent = makeCard({
+      children: [makeTreeCard({ id: 'c1111111', title: 'Short' })],
+    });
+    assert.doesNotThrow(() => {
+      renderCard(parent, [], { termWidth: 40 });
+    });
+    const result = renderCard(parent, [], { termWidth: 40 });
+    const lines = result.split('\n');
+    const childLine = lines.find(l => l.includes('[c1111111]'));
+    assert.ok(childLine, 'Child line should exist at termWidth=40');
+    assert.equal(childLine.length, 40, `Expected line of exactly 40 chars, got ${childLine.length}`);
+  });
+
+  it('termWidth=80 (standard) produces tree lines of exactly 80 chars', () => {
+    const parent = makeCard({
+      children: [makeTreeCard({ id: 'c1111111', title: 'Short' })],
+    });
+    const result = renderCard(parent, [], { termWidth: 80 });
+    const lines = result.split('\n');
+    const childLine = lines.find(l => l.includes('[c1111111]'));
+    assert.ok(childLine, 'Child line should exist');
+    assert.equal(childLine.length, 80, `Expected line of exactly 80 chars, got ${childLine.length}`);
+  });
+});
+
+describe('depth 3+ alignment (all lines exactly termWidth chars)', () => {
+  // Build a 4-level deep tree: root -> L1 -> L2 -> L3
+  function makeDeepTree() {
+    return makeCard({
+      children: [
+        {
+          id: 'l1111111',
+          title: 'Level 1',
+          created: '2026-03-06T12:00:00.000Z',
+          archived: false,
+          body: '',
+          descendantCount: 1,
+          hasBody: false,
+          children: [
+            {
+              id: 'l2222222',
+              title: 'Level 2',
+              created: '2026-03-06T12:00:00.000Z',
+              archived: false,
+              body: '',
+              descendantCount: 1,
+              hasBody: false,
+              children: [
+                {
+                  id: 'l3333333',
+                  title: 'Level 3',
+                  created: '2026-03-06T12:00:00.000Z',
+                  archived: false,
+                  body: '',
+                  descendantCount: 0,
+                  hasBody: false,
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'l4444444',
+          title: 'Sibling L1',
+          created: '2026-03-06T12:00:00.000Z',
+          archived: false,
+          body: '',
+          descendantCount: 0,
+          hasBody: false,
+          children: [],
+        },
+      ],
+    });
+  }
+
+  it('renderTreeLines at depth 3 with termWidth=80: all tree lines are exactly 80 chars', () => {
+    const parent = makeDeepTree();
+    const result = renderCard(parent, [], { termWidth: 80 });
+    const lines = result.split('\n');
+    // Tree lines start with '  ' (2-space indent) + box-drawing character
+    const treeLines = lines.filter(l => l.includes('[l1111111]') || l.includes('[l2222222]') || l.includes('[l3333333]') || l.includes('[l4444444]'));
+    assert.ok(treeLines.length >= 4, `Expected at least 4 tree lines (L1, L2, L3, sibling), got ${treeLines.length}`);
+    for (const line of treeLines) {
+      assert.equal(line.length, 80, `Tree line should be exactly 80 chars, got ${line.length}: "${line}"`);
+    }
+  });
+
+  it('age column right-aligns consistently: all lines same length', () => {
+    const parent = makeDeepTree();
+    const result = renderCard(parent, [], { termWidth: 80 });
+    const lines = result.split('\n');
+    const treeLines = lines.filter(l => l.includes('[l1111111]') || l.includes('[l2222222]') || l.includes('[l3333333]') || l.includes('[l4444444]'));
+    const lengths = treeLines.map(l => l.length);
+    const unique = [...new Set(lengths)];
+    assert.equal(unique.length, 1, `All tree lines should have the same length, but got: ${lengths.join(', ')}`);
+  });
+});

@@ -13,6 +13,8 @@ const ARROW = '\u2192';
 const BREADCRUMB_SEP = ' \u203a ';
 const BODY_TRUNCATE_LENGTH = 200;
 const DIFF_TRUNCATE_LENGTH = 40;
+// Minimum terminal width floor: 2 (margin) + 2 (branch) + 1 (space) + 10 (id bracket) + 1 (space) + 15 (min title) + 2 (padding) + 7 (age) = 40
+const MIN_TERM_WIDTH = 40;
 
 // --- Internal Helpers ---
 
@@ -98,7 +100,7 @@ function truncate(str, maxLen) {
  * @returns {string}
  */
 function formatCardLine(card, prefix, termWidth) {
-  const tw = termWidth || 80;
+  const tw = Math.max(MIN_TERM_WIDTH, termWidth || 80);
   const id = `[${card.id}]`;
   const hasBody = card.hasBody !== undefined ? card.hasBody : !!(card.body && card.body.trim());
   const bodyMarker = hasBody ? ' +' : '';
@@ -117,12 +119,11 @@ function formatCardLine(card, prefix, termWidth) {
 
   // Available space for title
   const availableForTitle = tw - leftFixedParts.length - indicators.length - 2 - rightSide.length;
-  const title = availableForTitle > 0 ? truncate(safeTitle, availableForTitle) : safeTitle;
+  const title = availableForTitle > 0 ? truncate(safeTitle, availableForTitle) : truncate(safeTitle, 1);
 
   // Pad middle to right-align age
   const leftContent = `${leftFixedParts}${title}${indicators}`;
-  const totalContentLen = leftContent.length + 2 + rightSide.length;
-  const padding = Math.max(1, tw - totalContentLen);
+  const padding = Math.max(1, tw - leftContent.length - rightSide.length);
 
   return `${leftContent}${' '.repeat(padding)}${rightSide}`;
 }
@@ -165,7 +166,7 @@ function renderTreeLines(children, depth, indent, tw) {
  */
 function renderCard(card, breadcrumbs, opts) {
   const { full, termWidth } = opts || {};
-  const tw = termWidth || 80;
+  const tw = Math.max(MIN_TERM_WIDTH, termWidth || 80);
   const lines = [];
   const safeTitle = (card.title && card.title.trim()) ? card.title : '(untitled)';
 
