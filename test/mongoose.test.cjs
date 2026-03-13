@@ -500,78 +500,106 @@ describe('countActiveDescendants', () => {
   });
 });
 
+/**
+ * Helper: flatten a nested card tree into an array (for archive filter assertions).
+ */
+function flattenCards(cards) {
+  const result = [];
+  for (const card of cards) {
+    result.push(card);
+    if (card.children && card.children.length) {
+      for (const c of flattenCards(card.children)) {
+        result.push(c);
+      }
+    }
+  }
+  return result;
+}
+
 describe('renderTree', () => {
-  it('root view (no rootId): returns root cards at depth 0 with breadcrumbs null', () => {
+  it('root view (no rootId): returns root cards as nested tree with breadcrumbs null', () => {
     const data = sampleTreeWithBody();
     const result = renderTree(data, null, { depth: 0 });
     assert.equal(result.breadcrumbs, null);
-    // depth 0 = full tree, all cards present
-    assert.ok(result.cards.length > 0);
-    // Root cards should be at depth 0
-    const rootCards = result.cards.filter((c) => c.depth === 0);
-    assert.equal(rootCards.length, 3);
+    // depth 0 = full tree, root level has 3 cards
+    assert.equal(result.cards.length, 3);
+    // No depth property on cards (depth is implicit from nesting)
+    assert.equal(result.cards[0].depth, undefined);
   });
 
-  it('root view with depth 1: includes root cards and their direct children', () => {
+  it('root view with depth 1: root cards have children arrays limited to direct children', () => {
     const data = sampleTree();
     const result = renderTree(data, null, { depth: 1 });
     assert.equal(result.breadcrumbs, null);
-    const rootCards = result.cards.filter((c) => c.depth === 0);
-    assert.equal(rootCards.length, 3);
-    const childCards = result.cards.filter((c) => c.depth === 1);
-    // Card A has 2 children, B has 0, C has 0
-    assert.equal(childCards.length, 2);
-    // No depth 2 cards
-    const deepCards = result.cards.filter((c) => c.depth === 2);
-    assert.equal(deepCards.length, 0);
+    // 3 root cards
+    assert.equal(result.cards.length, 3);
+    // Card A has 2 direct children
+    const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
+    assert.equal(cardA.children.length, 2);
+    // Children at maxDepth have empty children arrays (depth-limited)
+    assert.equal(cardA.children[0].children.length, 0);
   });
 
-  it('root view with depth 0: full tree, all cards at correct depths', () => {
+  it('root view with depth 0: full tree, grandchild accessible via nesting', () => {
     const data = sampleTree();
     const result = renderTree(data, null, { depth: 0 });
-    // Total: 3 root + 2 children of A + 1 grandchild = 6
-    assert.equal(result.cards.length, 6);
-    const grandchild = result.cards.find((c) => c.id === 'g1g1g1g1');
-    assert.equal(grandchild.depth, 2);
+    // 3 root cards
+    assert.equal(result.cards.length, 3);
+    // Grandchild accessible via Card A > Child A1 > Grandchild
+    const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
+    const childA1 = cardA.children.find((c) => c.id === 'a1a1a1a1');
+    assert.ok(childA1, 'Child A1 should be nested under Card A');
+    const grandchild = childA1.children.find((c) => c.id === 'g1g1g1g1');
+    assert.ok(grandchild, 'Grandchild should be nested under Child A1');
   });
 
-  it('focused view: rootId specified, breadcrumbs show ancestors, root card at depth 0', () => {
+  it('focused view: rootId specified, breadcrumbs show ancestors, root card as single-element cards array', () => {
     const data = sampleTree();
     const result = renderTree(data, 'a1a1a1a1');
     assert.ok(result.breadcrumbs);
     assert.equal(result.breadcrumbs.length, 1);
     assert.equal(result.breadcrumbs[0].id, 'aaaaaaaa');
     assert.equal(result.breadcrumbs[0].title, 'Card A');
-    // Root card (a1a1a1a1) at depth 0
+    // cards array contains the single root card
+    assert.equal(result.cards.length, 1);
     assert.equal(result.cards[0].id, 'a1a1a1a1');
-    assert.equal(result.cards[0].depth, 0);
   });
 
-  it('focused view depth 2: shows 2 levels of children', () => {
+  it('focused view depth 2: shows 2 levels via nesting', () => {
     const data = sampleTree();
     const result = renderTree(data, 'aaaaaaaa', { depth: 2 });
-    // Card A at depth 0, childA1 and childA2 at depth 1, grandchild at depth 2
+    // cards has Card A as single root
+    assert.equal(result.cards.length, 1);
     assert.equal(result.cards[0].id, 'aaaaaaaa');
-    assert.equal(result.cards[0].depth, 0);
-    const deepest = result.cards.filter((c) => c.depth === 2);
-    assert.equal(deepest.length, 1);
-    assert.equal(deepest[0].id, 'g1g1g1g1');
+    // Card A has children
+    const cardA = result.cards[0];
+    assert.ok(cardA.children.length > 0, 'Card A should have children');
+    // grandchild accessible at depth 2 (Card A > Child A1 > Grandchild)
+    const childA1 = cardA.children.find((c) => c.id === 'a1a1a1a1');
+    assert.ok(childA1, 'Child A1 should be present');
+    const grandchild = childA1.children.find((c) => c.id === 'g1g1g1g1');
+    assert.ok(grandchild, 'Grandchild should be at depth 2');
   });
 
-  it('default depth (no depth arg): card + direct children (depth 1)', () => {
+  it('default depth (no depth arg): card + direct children only', () => {
     const data = sampleTree();
     const result = renderTree(data, 'aaaaaaaa');
-    // Default depth=1: Card A at depth 0, children at depth 1
-    const depths = result.cards.map((c) => c.depth);
-    assert.ok(depths.includes(0));
-    assert.ok(depths.includes(1));
-    assert.ok(!depths.includes(2));
+    // Default depth=1: Card A as root, children nested, grandchildren empty
+    assert.equal(result.cards.length, 1);
+    const cardA = result.cards[0];
+    assert.equal(cardA.id, 'aaaaaaaa');
+    assert.ok(cardA.children.length > 0, 'Should have children');
+    // Children at maxDepth=1 have empty children arrays
+    for (const child of cardA.children) {
+      assert.equal(child.children.length, 0, 'Grandchildren not included at default depth 1');
+    }
   });
 
-  it('archive filter active: excludes archived cards', () => {
+  it('archive filter active: excludes archived cards from nested tree', () => {
     const data = sampleTreeWithArchived();
     const result = renderTree(data, null, { depth: 0, archiveFilter: 'active' });
-    const ids = result.cards.map((c) => c.id);
+    const allCards = flattenCards(result.cards);
+    const ids = allCards.map((c) => c.id);
     assert.ok(!ids.includes('cccccccc')); // Card C is archived
     assert.ok(!ids.includes('a2a2a2a2')); // Child A2 is archived
     assert.ok(!ids.includes('g1g1g1g1')); // Grandchild is archived
@@ -580,29 +608,32 @@ describe('renderTree', () => {
     assert.ok(ids.includes('bbbbbbbb'));
   });
 
-  it('archive filter archived-only: shows only archived', () => {
+  it('archive filter archived-only: shows only archived cards in tree', () => {
     const data = sampleTreeWithArchived();
     const result = renderTree(data, null, { depth: 0, archiveFilter: 'archived-only' });
-    for (const card of result.cards) {
+    const allCards = flattenCards(result.cards);
+    for (const card of allCards) {
       assert.equal(card.archived, true);
     }
-    assert.ok(result.cards.length > 0);
+    assert.ok(allCards.length > 0);
   });
 
-  it('archive filter include-archived: shows all', () => {
+  it('archive filter include-archived: shows all 6 cards in tree', () => {
     const data = sampleTreeWithArchived();
     const result = renderTree(data, null, { depth: 0, archiveFilter: 'include-archived' });
+    const allCards = flattenCards(result.cards);
     // Should include all 6 cards
-    assert.equal(result.cards.length, 6);
+    assert.equal(allCards.length, 6);
   });
 
-  it('render entry has correct fields', () => {
+  it('render entry has correct fields (no depth, has children)', () => {
     const data = sampleTreeWithBody();
     const result = renderTree(data, null, { depth: 1 });
     const entry = result.cards[0]; // Card A
     assert.ok('id' in entry);
     assert.ok('title' in entry);
-    assert.ok('depth' in entry);
+    assert.ok(!('depth' in entry), 'depth field should NOT be in new output');
+    assert.ok('children' in entry, 'children array should be present');
     assert.ok('descendantCount' in entry);
     assert.ok('hasBody' in entry);
     assert.ok('bodyPreview' in entry);
@@ -649,6 +680,16 @@ describe('renderTree', () => {
     const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
     // childA1 active (1), grandchild archived (0), childA2 archived (0) = 1
     assert.equal(cardA.descendantCount, 1);
+  });
+
+  it('cards at maxDepth have empty children array', () => {
+    const data = sampleTree();
+    const result = renderTree(data, null, { depth: 1 });
+    const cardA = result.cards.find((c) => c.id === 'aaaaaaaa');
+    // childA1 has a grandchild but depth=1 so its children array should be empty
+    const childA1 = cardA.children.find((c) => c.id === 'a1a1a1a1');
+    assert.ok(childA1, 'Child A1 should exist');
+    assert.deepEqual(childA1.children, [], 'Children at maxDepth should be empty array');
   });
 });
 

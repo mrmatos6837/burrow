@@ -250,11 +250,12 @@ function makePreview(body) {
 }
 
 /**
- * Render a flat array of cards with depth info, breadcrumbs, and archive filtering.
+ * Render a nested tree of cards with pre-computed metadata, breadcrumbs, and archive filtering.
  * @param {object} data - Root data object
  * @param {string|null} rootId - Focus card ID, or null for root view
  * @param {object} [opts] - {depth, archiveFilter}
  * @returns {{breadcrumbs: Array|null, cards: Array}|null} Render result, or null if rootId not found
+ *   cards is a nested tree: [{id, title, descendantCount, hasBody, bodyPreview, created, archived, children: [...]}]
  */
 function renderTree(data, rootId, opts) {
   const { depth: depthArg, archiveFilter } = opts || {};
@@ -276,45 +277,50 @@ function renderTree(data, rootId, opts) {
     breadcrumbs = path.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
   }
 
-  const flatArray = [];
-
-  function makeEntry(card, currentDepth) {
-    return {
-      id: card.id,
-      title: card.title,
-      depth: currentDepth,
-      descendantCount: countActiveDescendants(card),
-      hasBody: !!(card.body && card.body.trim()),
-      bodyPreview: makePreview(card.body),
-      created: card.created,
-      archived: card.archived,
-    };
-  }
-
-  function walk(cards, currentDepth) {
+  function buildNested(cards, currentDepth) {
+    const result = [];
     for (const card of cards) {
       if (shouldInclude(card)) {
-        flatArray.push(makeEntry(card, currentDepth));
-        if (currentDepth < maxDepth && card.children && card.children.length) {
-          walk(card.children, currentDepth + 1);
-        }
+        const entry = {
+          id: card.id,
+          title: card.title,
+          descendantCount: countActiveDescendants(card),
+          hasBody: !!(card.body && card.body.trim()),
+          bodyPreview: makePreview(card.body),
+          created: card.created,
+          archived: card.archived,
+          children: (currentDepth < maxDepth && card.children && card.children.length)
+            ? buildNested(card.children, currentDepth + 1)
+            : [],
+        };
+        result.push(entry);
       }
     }
+    return result;
   }
 
+  let cards;
   if (rootId != null) {
     const rootCard = findById(data, rootId);
-    if (shouldInclude(rootCard)) {
-      flatArray.push(makeEntry(rootCard, 0));
-      if (maxDepth > 0 && rootCard.children && rootCard.children.length) {
-        walk(rootCard.children, 1);
-      }
-    }
+    if (!shouldInclude(rootCard)) return { breadcrumbs, cards: [] };
+    const entry = {
+      id: rootCard.id,
+      title: rootCard.title,
+      descendantCount: countActiveDescendants(rootCard),
+      hasBody: !!(rootCard.body && rootCard.body.trim()),
+      bodyPreview: makePreview(rootCard.body),
+      created: rootCard.created,
+      archived: rootCard.archived,
+      children: (maxDepth > 0 && rootCard.children && rootCard.children.length)
+        ? buildNested(rootCard.children, 1)
+        : [],
+    };
+    cards = [entry];
   } else {
-    walk(data.cards, 0);
+    cards = buildNested(data.cards, 0);
   }
 
-  return { breadcrumbs, cards: flatArray };
+  return { breadcrumbs, cards };
 }
 
 /**
