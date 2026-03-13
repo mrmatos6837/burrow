@@ -34,6 +34,8 @@ function makeCardWithChildren() {
         archived: false,
         body: 'Found the redirect logic',
         children: [],
+        descendantCount: 0,
+        hasBody: true,
       },
       {
         id: 'j2k3l4m5',
@@ -42,6 +44,8 @@ function makeCardWithChildren() {
         archived: false,
         body: '',
         children: [],
+        descendantCount: 0,
+        hasBody: false,
       },
     ],
   });
@@ -164,40 +168,47 @@ describe('renderCard', () => {
     assert.ok(result.includes('archived: yes'));
   });
 
-  it('filters archived children by default', () => {
+  it('renders only children passed in (no re-filtering by renderCard)', () => {
+    // renderCard trusts that children are pre-filtered by renderTree.
+    // Only the active child is passed in the children array.
     const card = makeCard({
       children: [
-        { id: 'c1111111', title: 'Active', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-        { id: 'c2222222', title: 'Archived', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+        { id: 'c1111111', title: 'Active', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
     const result = renderCard(card, [], { termWidth: 80 });
     assert.ok(result.includes('Active'));
+    // No archived children in the array so none shown
     assert.ok(!result.includes('Archived'));
   });
 
-  it('shows [archived] label when archived-only', () => {
+  it('shows [archived] label for archived children (pre-filtered by caller)', () => {
+    // renderCard renders all children as-is; archived ones show [archived] label
     const card = makeCard({
       children: [
-        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
-      ],
-    });
-    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'archived-only' });
-    assert.ok(result.includes('Old task'));
-    assert.ok(result.includes('[archived]'), 'Should show [archived] tag in archived-only mode');
-  });
-
-  it('shows count for cards with descendants and hides (0) for leaves', () => {
-    const card = makeCard({
-      children: [
-        { id: 'c1111111', title: 'Has children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [
-          { id: 'c3333333', title: 'Grandchild', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-        ]},
-        { id: 'c2222222', title: 'No children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
     const result = renderCard(card, [], { termWidth: 80 });
-    assert.ok(result.includes('(1)'), 'Should show (1) for card with 1 descendant');
+    assert.ok(result.includes('Old task'));
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag for archived card');
+  });
+
+  it('shows count for cards with descendants using pre-computed descendantCount', () => {
+    const card = makeCard({
+      children: [
+        {
+          id: 'c1111111', title: 'Has children', created: '2026-03-07T00:00:00.000Z',
+          archived: false, body: '', descendantCount: 1, hasBody: false,
+          children: [
+            { id: 'c3333333', title: 'Grandchild', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+          ],
+        },
+        { id: 'c2222222', title: 'No children', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+      ],
+    });
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('(1)'), 'Should show (1) for card with pre-computed descendantCount=1');
     // Leaf cards should NOT show (0)
     const lines = result.split('\n');
     const leafLine = lines.find(l => l.includes('No children'));
@@ -205,14 +216,15 @@ describe('renderCard', () => {
     assert.ok(!leafLine.includes('(0)'), 'Leaf card should NOT show (0) count');
   });
 
-  it('shows [archived] label when include-archived', () => {
+  it('shows [archived] label on archived cards when both are in children array', () => {
+    // renderCard renders all children as-is; archived ones get [archived] label
     const card = makeCard({
       children: [
-        { id: 'c1111111', title: 'Active', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+        { id: 'c1111111', title: 'Active', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
-    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'include-archived' });
+    const result = renderCard(card, [], { termWidth: 80 });
     assert.ok(result.includes('Active'));
     assert.ok(result.includes('Old task'));
     assert.ok(result.includes('[archived]'));
@@ -227,6 +239,8 @@ describe('renderCard', () => {
           created: '2026-03-07T00:00:00.000Z',
           archived: false,
           body: '',
+          descendantCount: 1,
+          hasBody: false,
           children: [
             {
               id: 'c3333333',
@@ -235,6 +249,8 @@ describe('renderCard', () => {
               archived: false,
               body: '',
               children: [],
+              descendantCount: 0,
+              hasBody: false,
             },
           ],
         },
@@ -245,6 +261,8 @@ describe('renderCard', () => {
           archived: false,
           body: '',
           children: [],
+          descendantCount: 0,
+          hasBody: false,
         },
       ],
     });
@@ -381,80 +399,68 @@ describe('renderMutation', () => {
 });
 
 describe('[archived] tag always shown on archived cards', () => {
-  it('shows [archived] tag in archived-only filter mode', () => {
+  it('shows [archived] tag on archived child card', () => {
     const card = makeCard({
       children: [
-        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
-    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'archived-only' });
-    assert.ok(result.includes('[archived]'), 'Should show [archived] tag in archived-only mode');
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag on archived card');
   });
 
-  it('shows [archived] tag in include-archived filter mode', () => {
+  it('shows [archived] tag on archived cards when mixed with active', () => {
     const card = makeCard({
       children: [
-        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [] },
+        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+        { id: 'c2222222', title: 'Old task', created: '2026-03-07T00:00:00.000Z', archived: true, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
-    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'include-archived' });
-    assert.ok(result.includes('[archived]'), 'Should show [archived] tag on archived cards in include-archived mode');
-    // Active card should NOT have [archived] tag - check the line specifically
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('[archived]'), 'Should show [archived] tag on archived card');
+    // Active card should NOT have [archived] tag
     const lines = result.split('\n');
     const activeTaskLine = lines.find(l => l.includes('Active task'));
     assert.ok(activeTaskLine, 'Active task should be in output');
     assert.ok(!activeTaskLine.includes('[archived]'), 'Active task should NOT have [archived] tag');
   });
 
-  it('does not show [archived] on non-archived cards in any mode', () => {
+  it('does not show [archived] on non-archived cards', () => {
     const card = makeCard({
       children: [
-        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+        { id: 'c1111111', title: 'Active task', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
       ],
     });
-    const result = renderCard(card, [], { termWidth: 80, archiveFilter: 'active' });
+    const result = renderCard(card, [], { termWidth: 80 });
     assert.ok(!result.includes('[archived]'), 'Non-archived cards should never show [archived] tag');
   });
 });
 
 describe('formatCardLine indicator ordering', () => {
-  it('renders count + body: Title (N) +', () => {
-    const card = makeCard({
-      children: [
-        { id: 'c1111111', title: 'Child 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-        { id: 'c2222222', title: 'Child 2', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-      ],
-    });
-    const result = renderCard(card, [], { termWidth: 120 });
-    const lines = result.split('\n');
-    const childLine = lines.find(l => l.includes('[c1111111]'));
-    assert.ok(childLine, 'Child line should exist');
-    // Child 1 has no body and no descendants - skip this one
-    // Use the parent's child list rendering: check first child
-    // Actually, we need a card where the CHILD has descendants and body
-    // Let me use a proper parent card
+  it('renders count + body: Title (N) + (using pre-computed descendantCount)', () => {
     const parent = makeCard({
       children: [
         {
           id: 'c1111111', title: 'Feature work', created: '2026-03-07T00:00:00.000Z',
           archived: false, body: 'Some details about this',
+          descendantCount: 6,
+          hasBody: true,
           children: [
-            { id: 'c3333333', title: 'Sub-task A', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c4444444', title: 'Sub-task B', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c5555555', title: 'Sub-task C', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c6666666', title: 'Sub-task D', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c7777777', title: 'Sub-task E', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c8888888', title: 'Sub-task F', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c3333333', title: 'Sub-task A', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c4444444', title: 'Sub-task B', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c5555555', title: 'Sub-task C', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c6666666', title: 'Sub-task D', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c7777777', title: 'Sub-task E', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c8888888', title: 'Sub-task F', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
           ],
         },
       ],
     });
-    const result2 = renderCard(parent, [], { termWidth: 120 });
-    const lines2 = result2.split('\n');
-    const featureLine = lines2.find(l => l.includes('Feature work'));
+    const result = renderCard(parent, [], { termWidth: 120 });
+    const lines = result.split('\n');
+    const featureLine = lines.find(l => l.includes('Feature work'));
     assert.ok(featureLine, 'Feature work line should exist');
-    assert.ok(featureLine.includes('(6)'), 'Should show (6) for 6 descendants');
+    assert.ok(featureLine.includes('(6)'), 'Should show (6) from pre-computed descendantCount');
     assert.ok(featureLine.includes(' +'), 'Should show + for body');
     // Count should appear before body marker
     const countIdx = featureLine.indexOf('(6)');
@@ -468,8 +474,10 @@ describe('formatCardLine indicator ordering', () => {
         {
           id: 'c1111111', title: 'Has child', created: '2026-03-07T00:00:00.000Z',
           archived: false, body: '',
+          descendantCount: 1,
+          hasBody: false,
           children: [
-            { id: 'c2222222', title: 'Only child', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c2222222', title: 'Only child', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
           ],
         },
       ],
@@ -480,8 +488,6 @@ describe('formatCardLine indicator ordering', () => {
     assert.ok(line, 'Line should exist');
     assert.ok(line.includes('(1)'), 'Should show (1) for 1 descendant');
     // Should NOT have ellipsis body marker on this specific line (no body)
-    // Note: ellipsis may appear in other lines, so check this line specifically
-    // The line should not have the body marker pattern " \u2026" immediately after count
     const afterCount = line.slice(line.indexOf('(1)') + 3);
     assert.ok(!afterCount.startsWith(' +'), 'Should not have + body marker when no body');
   });
@@ -492,6 +498,8 @@ describe('formatCardLine indicator ordering', () => {
         {
           id: 'c1111111', title: 'Leaf with body', created: '2026-03-07T00:00:00.000Z',
           archived: false, body: 'Some body content',
+          descendantCount: 0,
+          hasBody: true,
           children: [],
         },
       ],
@@ -510,6 +518,8 @@ describe('formatCardLine indicator ordering', () => {
         {
           id: 'c1111111', title: 'Plain leaf', created: '2026-03-07T00:00:00.000Z',
           archived: false, body: '',
+          descendantCount: 0,
+          hasBody: false,
           children: [],
         },
       ],
@@ -519,7 +529,7 @@ describe('formatCardLine indicator ordering', () => {
     const line = lines.find(l => l.includes('Plain leaf'));
     assert.ok(line, 'Line should exist');
     assert.ok(!line.includes('(0)'), 'Should NOT show (0) count');
-    // Check no body marker - the line between title and age should have no ellipsis
+    // Check no body marker
     const titleIdx = line.indexOf('Plain leaf');
     const afterTitle = line.slice(titleIdx + 'Plain leaf'.length);
     // afterTitle should be just whitespace + age
@@ -532,19 +542,21 @@ describe('formatCardLine indicator ordering', () => {
         {
           id: 'c1111111', title: 'Legacy feature', created: '2026-03-07T00:00:00.000Z',
           archived: true, body: 'Deprecated since v2',
+          descendantCount: 2,
+          hasBody: true,
           children: [
-            { id: 'c2222222', title: 'Sub 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
-            { id: 'c3333333', title: 'Sub 2', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'c2222222', title: 'Sub 1', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
+            { id: 'c3333333', title: 'Sub 2', created: '2026-03-07T00:00:00.000Z', archived: false, body: '', children: [], descendantCount: 0, hasBody: false },
           ],
         },
       ],
     });
-    const result = renderCard(parent, [], { termWidth: 120, archiveFilter: 'include-archived' });
+    const result = renderCard(parent, [], { termWidth: 120 });
     const lines = result.split('\n');
     const line = lines.find(l => l.includes('Legacy feature'));
     assert.ok(line, 'Line should exist');
-    // Verify all indicators present
-    assert.ok(line.includes('(2)'), 'Should show (2) for 2 descendants');
+    // Verify all indicators present (from pre-computed descendantCount=2)
+    assert.ok(line.includes('(2)'), 'Should show (2) from pre-computed descendantCount');
     assert.ok(line.includes(' +'), 'Should show + for body');
     assert.ok(line.includes('[archived]'), 'Should show [archived] tag');
     // Verify ordering: count before + before [archived]

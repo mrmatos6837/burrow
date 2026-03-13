@@ -1,7 +1,5 @@
 'use strict';
 
-const { countActiveDescendants } = require('./mongoose.cjs');
-
 // --- Constants ---
 
 const HR = '\u2500'.repeat(40);
@@ -100,9 +98,7 @@ function formatCardLine(card, prefix, termWidth) {
   const hasBody = card.hasBody !== undefined ? card.hasBody : !!(card.body && card.body.trim());
   const bodyMarker = hasBody ? ' +' : '';
   const age = formatAge(card.created);
-  const descCount = card.descendantCount !== undefined
-    ? card.descendantCount
-    : countActiveDescendants(card);
+  const descCount = card.descendantCount || 0;
   const countStr = descCount > 0 ? ` (${descCount})` : '';
   const archivedLabel = card.archived ? ' [archived]' : '';
 
@@ -162,9 +158,8 @@ function renderTreeLines(children, depth, indent, tw) {
  * @returns {string}
  */
 function renderCard(card, breadcrumbs, opts) {
-  const { full, termWidth, archiveFilter } = opts || {};
+  const { full, termWidth } = opts || {};
   const tw = termWidth || 80;
-  const filter = archiveFilter || 'active';
   const lines = [];
 
   // Breadcrumb header
@@ -186,27 +181,18 @@ function renderCard(card, breadcrumbs, opts) {
   lines.push(`archived: ${card.archived ? 'yes' : 'no'}`);
   lines.push(HR);
 
-  // Children section
+  // Children section — pre-filtered by renderTree, trust the data
   const children = card.children || [];
-  let filteredChildren;
-  if (filter === 'active') {
-    filteredChildren = children.filter((c) => !c.archived);
-  } else if (filter === 'archived-only') {
-    filteredChildren = children.filter((c) => c.archived);
-  } else {
-    // include-archived: show all
-    filteredChildren = children;
-  }
 
-  if (filteredChildren.length === 0) {
+  if (children.length === 0) {
     lines.push('children: (none)');
   } else {
-    const activeCount = filteredChildren.length;
-    const totalDescendants = filteredChildren.reduce(
-      (sum, c) => sum + 1 + countActiveDescendants(c), 0
+    const activeCount = children.length;
+    const totalDescendants = children.reduce(
+      (sum, c) => sum + 1 + (c.descendantCount || 0), 0
     );
     lines.push(`children: ${activeCount} cards (${totalDescendants} total)`);
-    const treeLines = renderTreeLines(filteredChildren, 0, '', tw);
+    const treeLines = renderTreeLines(children, 0, '', tw);
     for (const tl of treeLines) {
       lines.push(tl);
     }
