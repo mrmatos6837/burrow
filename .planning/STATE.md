@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-13T21:03:01.913Z"
+stopped_at: Completed 07-rendering-enhancements/07-01-PLAN.md
+last_updated: "2026-03-13T21:33:40.726Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 06-rendering-pipeline-refactor P01 | 6min | 2 tasks | 4 files |
 | Phase 06-rendering-pipeline-refactor P02 | 4min | 2 tasks | 1 files |
+| Phase 07-rendering-enhancements P01 | 18min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Archive filtering consolidated into renderTree only; renderCard no longer re-filters children
 - [Phase 06-02]: nestFlatCards deleted — CLI now passes renderTree nested output directly to renderCard, eliminating flatten-renest roundtrip
 - [Phase 06-02]: getBreadcrumbs kept for add/edit (no renderTree call there); read now uses treeResult.breadcrumbs to avoid duplicate tree walk
+- [Phase 07-01]: formatCreatedDate also needs null/undefined/invalid guard — calling new Date(isoString) directly produces NaN in YYYY-MM-DD fields; guard in formatAge alone insufficient
+- [Phase 07-01]: PERF-07: root card descendantCount derived from builtChildren.reduce() instead of redundant countActiveDescendants(rootCard); children counts already computed correctly during buildNested
+- [Phase 07-01]: Future-date clamp via Math.max(0, now - then) in formatAge renders future timestamps as 'just now'
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:03:01.904Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-rendering-enhancements/07-CONTEXT.md
+Last session: 2026-03-13T21:33:40.724Z
+Stopped at: Completed 07-rendering-enhancements/07-01-PLAN.md
+Resume file: None

@@ -16,8 +16,8 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 - [x] **REND-05**: nestFlatCards removed as dead code after renderTree refactor
 - [ ] **REND-06**: Tree alignment consistent at 3+ nesting levels (columns don't drift)
 - [ ] **REND-07**: Render width adapts to terminal size (process.stdout.columns) instead of hardcoded width
-- [ ] **REND-08**: Empty/undefined title handled gracefully in formatCardLine (no crash)
-- [ ] **REND-09**: Future dates display sensibly instead of "just now"
+- [x] **REND-08**: Empty/undefined title handled gracefully in formatCardLine (no crash)
+- [x] **REND-09**: Future dates display sensibly instead of "just now"
 - [ ] **REND-10**: Very narrow terminal width clamps to minimum instead of negative availableForTitle
 
 ### Performance — Redundant Tree Walks
@@ -31,7 +31,7 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Performance — Unnecessary Work
 
-- [ ] **PERF-07**: Pre-compute descendantCount once, pass through rendering pipeline instead of per-child loop
+- [x] **PERF-07**: Pre-compute descendantCount once, pass through rendering pipeline instead of per-child loop
 - [ ] **PERF-08**: makePreview truncates before replacing newlines (avoid processing full body string)
 - [ ] **PERF-09**: Skip migrate() call on v2 data in warren.cjs load
 - [ ] **PERF-10**: Eliminate O(n) collectAllIds on every addCard (cache or use collision-proof generation)
@@ -107,8 +107,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REND-05 | Phase 6 | Complete |
 | REND-06 | Phase 7 | Pending |
 | REND-07 | Phase 7 | Pending |
-| REND-08 | Phase 7 | Pending |
-| REND-09 | Phase 7 | Pending |
+| REND-08 | Phase 7 | Complete |
+| REND-09 | Phase 7 | Complete |
 | REND-10 | Phase 7 | Pending |
 | PERF-01 | Phase 8 | Pending |
 | PERF-02 | Phase 8 | Pending |
@@ -116,7 +116,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-04 | Phase 8 | Pending |
 | PERF-05 | Phase 8 | Pending |
 | PERF-06 | Phase 8 | Pending |
-| PERF-07 | Phase 7 | Pending |
+| PERF-07 | Phase 7 | Complete |
 | PERF-08 | Phase 8 | Pending |
 | PERF-09 | Phase 8 | Pending |
 | PERF-10 | Phase 8 | Pending |
