@@ -10,6 +10,19 @@ const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
 
 /**
+ * Resolve terminal width from --width flag or process.stdout.columns.
+ * @param {object} values - Parsed CLI values (may have values.width)
+ * @returns {number} Terminal width to use for rendering
+ */
+function resolveTermWidth(values) {
+  if (values.width !== undefined) {
+    const n = parseInt(values.width, 10);
+    if (!isNaN(n) && n > 0) return n;
+  }
+  return process.stdout.columns || 80;
+}
+
+/**
  * Handle error output: human-readable rendered error.
  * @param {string} message - Error description
  */
@@ -63,6 +76,7 @@ function main() {
           parent: { type: 'string' },
           body: { type: 'string', default: '' },
           at: { type: 'string' },
+          width: { type: 'string' },
         },
         strict: false,
       });
@@ -91,7 +105,7 @@ function main() {
       const rendered = render.renderMutation('add', result, {
         breadcrumbs,
         card: result,
-        termWidth: process.stdout.columns || 80,
+        termWidth: resolveTermWidth(values),
       });
       writeAndExit(rendered);
       break;
@@ -103,6 +117,7 @@ function main() {
         options: {
           title: { type: 'string' },
           body: { type: 'string' },
+          width: { type: 'string' },
         },
         allowPositionals: true,
         strict: false,
@@ -140,7 +155,7 @@ function main() {
         card: result,
         oldTitle,
         oldBody,
-        termWidth: process.stdout.columns || 80,
+        termWidth: resolveTermWidth(values),
       });
       writeAndExit(rendered);
       break;
@@ -149,6 +164,9 @@ function main() {
     case 'remove': {
       const { positionals } = parseArgs({
         args: subArgs,
+        options: {
+          width: { type: 'string' },
+        },
         allowPositionals: true,
         strict: false,
       });
@@ -179,6 +197,7 @@ function main() {
           to: { type: 'string' },
           parent: { type: 'string' },
           at: { type: 'string' },
+          width: { type: 'string' },
         },
         allowPositionals: true,
         strict: true,
@@ -247,6 +266,7 @@ function main() {
           full: { type: 'boolean', default: false },
           'include-archived': { type: 'boolean', default: false },
           'archived-only': { type: 'boolean', default: false },
+          width: { type: 'string' },
         },
         allowPositionals: true,
         strict: false,
@@ -275,7 +295,7 @@ function main() {
         cardToRender.title = fullCard.title;
         const rendered = render.renderCard(cardToRender, treeResult.breadcrumbs || [], {
           full: values.full,
-          termWidth: process.stdout.columns || 80,
+          termWidth: resolveTermWidth(values),
           archiveFilter,
         });
         writeAndExit(rendered);
@@ -292,7 +312,7 @@ function main() {
         };
         const rendered = render.renderCard(rootCard, [], {
           full: values.full,
-          termWidth: process.stdout.columns || 80,
+          termWidth: resolveTermWidth(values),
           archiveFilter,
         });
         writeAndExit(rendered);
@@ -307,6 +327,7 @@ function main() {
           full: { type: 'boolean', default: true },
           'include-archived': { type: 'boolean', default: false },
           'archived-only': { type: 'boolean', default: false },
+          width: { type: 'string' },
         },
         strict: false,
       });
@@ -331,7 +352,7 @@ function main() {
       };
       const rendered = render.renderCard(rootCard, [], {
         full: values.full,
-        termWidth: process.stdout.columns || 80,
+        termWidth: resolveTermWidth(values),
         archiveFilter,
       });
       writeAndExit(rendered);
@@ -341,6 +362,9 @@ function main() {
     case 'archive': {
       const { positionals } = parseArgs({
         args: subArgs,
+        options: {
+          width: { type: 'string' },
+        },
         allowPositionals: true,
         strict: false,
       });
@@ -367,6 +391,9 @@ function main() {
     case 'unarchive': {
       const { positionals } = parseArgs({
         args: subArgs,
+        options: {
+          width: { type: 'string' },
+        },
         allowPositionals: true,
         strict: false,
       });
@@ -393,6 +420,9 @@ function main() {
     case 'path': {
       const { positionals } = parseArgs({
         args: subArgs,
+        options: {
+          width: { type: 'string' },
+        },
         allowPositionals: true,
         strict: false,
       });
