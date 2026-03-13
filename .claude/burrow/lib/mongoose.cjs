@@ -303,17 +303,22 @@ function renderTree(data, rootId, opts) {
   if (rootId != null) {
     const rootCard = findById(data, rootId);
     if (!shouldInclude(rootCard)) return { breadcrumbs, cards: [] };
+    const builtChildren = (maxDepth > 0 && rootCard.children && rootCard.children.length)
+      ? buildNested(rootCard.children, 1)
+      : [];
+    // Derive descendantCount from already-built children instead of a redundant tree walk
+    const descendantCount = builtChildren.reduce(
+      (sum, child) => sum + 1 + (child.descendantCount || 0), 0
+    );
     const entry = {
       id: rootCard.id,
       title: rootCard.title,
-      descendantCount: countActiveDescendants(rootCard),
+      descendantCount,
       hasBody: !!(rootCard.body && rootCard.body.trim()),
       bodyPreview: makePreview(rootCard.body),
       created: rootCard.created,
       archived: rootCard.archived,
-      children: (maxDepth > 0 && rootCard.children && rootCard.children.length)
-        ? buildNested(rootCard.children, 1)
-        : [],
+      children: builtChildren,
     };
     cards = [entry];
   } else {

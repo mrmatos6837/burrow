@@ -693,6 +693,88 @@ describe('renderTree', () => {
   });
 });
 
+describe('renderTree descendantCount optimization (PERF-07)', () => {
+  it('root card descendantCount matches active children count via buildNested (rootId specified)', () => {
+    const data = sampleTree();
+    // Card A has: childA1 (1 active descendant: grandchild) + childA2 (0) = 3 total
+    const result = renderTree(data, 'aaaaaaaa', { depth: 0 });
+    assert.equal(result.cards.length, 1);
+    const rootCard = result.cards[0];
+    // childA1 (1) + grandchild via childA1 (1) + childA2 (1) = 3
+    assert.equal(rootCard.descendantCount, 3, 'Root card descendantCount should be 3');
+  });
+
+  it('root card descendantCount with archived children only counts active (rootId specified)', () => {
+    const data = sampleTreeWithArchived();
+    // Card A: childA1 active (1), grandchild archived (skipped), childA2 archived (skipped) = 1
+    const result = renderTree(data, 'aaaaaaaa', { depth: 0 });
+    assert.equal(result.cards.length, 1);
+    const rootCard = result.cards[0];
+    assert.equal(rootCard.descendantCount, 1, 'Root card descendantCount should exclude archived descendants');
+  });
+
+  it('root card descendantCount equals sum of (1 + child.descendantCount) for each active child', () => {
+    const data = sampleTree();
+    const result = renderTree(data, 'aaaaaaaa', { depth: 0 });
+    const rootCard = result.cards[0];
+    // Children: childA1 (descendantCount=1), childA2 (descendantCount=0)
+    // Expected: (1 + 1) + (1 + 0) = 3
+    const expectedFromChildren = rootCard.children.reduce(
+      (sum, child) => sum + 1 + (child.descendantCount || 0), 0
+    );
+    assert.equal(rootCard.descendantCount, expectedFromChildren,
+      'Root card descendantCount should equal sum of (1 + child.descendantCount) for each child');
+  });
+
+  it('descendantCount with depth limit still shows full active descendant count (not depth-limited)', () => {
+    const data = sampleTree();
+    // With depth=1: Card A shows direct children but grandchild is hidden in children array
+    // But descendantCount should still count ALL active descendants (3), not just visible ones
+    const resultDepth1 = renderTree(data, 'aaaaaaaa', { depth: 1 });
+    const resultDepthFull = renderTree(data, 'aaaaaaaa', { depth: 0 });
+    // descendantCount should be the same regardless of depth limit
+    assert.equal(resultDepth1.cards[0].descendantCount, resultDepthFull.cards[0].descendantCount,
+      'descendantCount should be same regardless of depth limit');
+    assert.equal(resultDepth1.cards[0].descendantCount, 3,
+      'descendantCount should be 3 even when depth=1 hides grandchild');
+  });
+
+  it('card with 3 active children and 1 archived child has descendantCount of 3', () => {
+    const data = {
+      version: 2,
+      cards: [
+        {
+          id: 'root0000',
+          title: 'Root',
+          created: '2026-03-01T00:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [
+            { id: 'ch000001', title: 'Active 1', created: '2026-03-01T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'ch000002', title: 'Active 2', created: '2026-03-01T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'ch000003', title: 'Active 3', created: '2026-03-01T00:00:00.000Z', archived: false, body: '', children: [] },
+            { id: 'ch000004', title: 'Archived', created: '2026-03-01T00:00:00.000Z', archived: true, body: '', children: [] },
+          ],
+        },
+      ],
+    };
+    const result = renderTree(data, 'root0000', { depth: 0 });
+    assert.equal(result.cards[0].descendantCount, 3,
+      'descendantCount should be 3 (not 4) — archived child excluded');
+  });
+
+  it('root view (no rootId): each top-level card has correct descendantCount', () => {
+    const data = sampleTree();
+    const result = renderTree(data, null, { depth: 0 });
+    const cardA = result.cards.find(c => c.id === 'aaaaaaaa');
+    const cardB = result.cards.find(c => c.id === 'bbbbbbbb');
+    const cardC = result.cards.find(c => c.id === 'cccccccc');
+    assert.equal(cardA.descendantCount, 3, 'Card A should have 3 active descendants');
+    assert.equal(cardB.descendantCount, 0, 'Card B should have 0 descendants');
+    assert.equal(cardC.descendantCount, 0, 'Card C should have 0 descendants');
+  });
+});
+
 describe('archiveCard', () => {
   it('archives card and all descendants', () => {
     const data = sampleTree();
