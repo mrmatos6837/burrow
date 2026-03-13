@@ -43,8 +43,8 @@ Full details: `milestones/v1.0-ROADMAP.md`
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — Refactor renderTree to nested output + update renderCard to consume pre-computed metadata
-- [ ] 06-02-PLAN.md — Update CLI to use nested output, delete nestFlatCards, consolidate breadcrumbs
+- [x] 06-01-PLAN.md — Refactor renderTree to nested output + update renderCard to consume pre-computed metadata
+- [x] 06-02-PLAN.md — Update CLI to use nested output, delete nestFlatCards, consolidate breadcrumbs
 
 ### Phase 7: Rendering Enhancements
 **Goal**: Tree output is visually correct at any nesting depth, adapts to terminal width, and handles all edge cases without crashing
@@ -56,7 +56,11 @@ Plans:
   3. Cards with empty or undefined titles render without throwing an error
   4. Cards created with future timestamps display a sensible age label instead of "just now"
   5. Rendering on a very narrow terminal (fewer columns than minimum) clamps to the minimum width instead of producing negative values
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Edge case guards (empty titles, future/invalid dates) and PERF-07 descendantCount optimization
+- [ ] 07-02-PLAN.md — Dynamic width with --width flag, MIN_TERM_WIDTH floor, and depth-3+ alignment verification
 
 ### Phase 8: Engine Quality & Ergonomics
 **Goal**: The tree engine eliminates redundant traversals, CLI rejects bad input clearly, storage loads safely, and the installer works correctly out of the box
@@ -79,6 +83,6 @@ Plans:
 | 3. CLI Pretty-Print Rendering | v1.0 | 3/3 | Complete | 2026-03-08 |
 | 4. Agent Interface | v1.0 | 2/2 | Complete | 2026-03-08 |
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
-| 6. Rendering Pipeline Refactor | 2/2 | Complete   | 2026-03-13 | - |
-| 7. Rendering Enhancements | v1.1 | 0/TBD | Not started | - |
+| 6. Rendering Pipeline Refactor | v1.1 | 2/2 | Complete | 2026-03-13 |
+| 7. Rendering Enhancements | v1.1 | 0/2 | Planning | - |
 | 8. Engine Quality & Ergonomics | v1.1 | 0/TBD | Not started | - |
