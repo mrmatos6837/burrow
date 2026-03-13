@@ -568,6 +568,246 @@ describe('formatCardLine indicator ordering', () => {
   });
 });
 
+describe('formatAge edge cases', () => {
+  // Access formatAge indirectly via renderCard's created field display,
+  // but we need direct access — expose via a test-only require of internal.
+  // Since formatAge is not exported, we test observable behavior via renderCard
+  // and via formatCreatedDate which calls formatAge.
+  // The plan says to test behavior; we verify via renderCard metadata line
+  // (created: contains the age string) and by exercising renderCard with
+  // pathological created values.
+
+  it('renderCard with undefined created does not show NaN', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: undefined,
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for undefined created');
+    assert.ok(!result.includes('undefined'), 'Should not render "undefined"');
+  });
+
+  it('renderCard with null created does not show NaN', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: null,
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for null created');
+  });
+
+  it('renderCard with invalid date string does not show NaN', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: 'not-a-date',
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for invalid date');
+    assert.ok(result.includes('???'), 'Should show ??? for invalid date');
+  });
+
+  it('renderCard with empty string created does not show NaN', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: '',
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for empty created');
+    assert.ok(result.includes('???'), 'Should show ??? for empty created');
+  });
+
+  it('renderCard with future date shows "just now" not negative age', () => {
+    const futureDate = new Date(Date.now() + 3600 * 1000).toISOString(); // 1 hour in future
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: futureDate,
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not have NaN for future date');
+    assert.ok(result.includes('just now'), 'Should show "just now" for future date');
+  });
+
+  it('renderCard with far future date shows "just now" not negative age', () => {
+    const farFutureDate = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(); // 1 year future
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Test card',
+      created: farFutureDate,
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(result.includes('just now'), 'Should show "just now" for far future date');
+  });
+
+  it('renderCard child with invalid created date shows ??? in tree line', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Parent',
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [
+        {
+          id: 'c1111111',
+          title: 'Child with bad date',
+          created: 'bad-date',
+          archived: false,
+          body: '',
+          children: [],
+          descendantCount: 0,
+          hasBody: false,
+        },
+      ],
+    };
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(!result.includes('NaN'), 'Tree lines should not show NaN for invalid date');
+    assert.ok(result.includes('???'), 'Tree lines should show ??? for invalid date');
+  });
+});
+
+describe('safeTitle guard in formatCardLine', () => {
+  it('formatCardLine with undefined title renders (untitled), no crash', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: undefined,
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [
+        {
+          id: 'c1111111',
+          title: undefined,
+          created: '2026-03-06T12:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [],
+          descendantCount: 0,
+          hasBody: false,
+        },
+      ],
+    };
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('(untitled)'), 'Should render (untitled) for undefined title in tree line');
+  });
+
+  it('formatCardLine with empty string title renders (untitled)', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Parent',
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [
+        {
+          id: 'c1111111',
+          title: '',
+          created: '2026-03-06T12:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [],
+          descendantCount: 0,
+          hasBody: false,
+        },
+      ],
+    };
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('(untitled)'), 'Should render (untitled) for empty string title');
+  });
+
+  it('formatCardLine with whitespace-only title renders (untitled)', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: 'Parent',
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [
+        {
+          id: 'c1111111',
+          title: '   ',
+          created: '2026-03-06T12:00:00.000Z',
+          archived: false,
+          body: '',
+          children: [],
+          descendantCount: 0,
+          hasBody: false,
+        },
+      ],
+    };
+    const result = renderCard(card, [], { termWidth: 80 });
+    assert.ok(result.includes('(untitled)'), 'Should render (untitled) for whitespace-only title');
+  });
+});
+
+describe('safeTitle guard in renderCard header', () => {
+  it('renderCard with undefined title shows (untitled) in header and breadcrumb', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: undefined,
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [{ id: 'par00000', title: 'Parent' }], {});
+    assert.ok(result.includes('(untitled)'), 'Header should show (untitled) for undefined title');
+    // Count occurrences — should appear in breadcrumb AND in title section
+    const count = (result.match(/\(untitled\)/g) || []).length;
+    assert.ok(count >= 2, `Expected at least 2 occurrences of (untitled), got ${count}`);
+  });
+
+  it('renderCard with empty string title shows (untitled) in header and breadcrumb', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: '',
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    assert.ok(result.includes('(untitled)'), 'Header should show (untitled) for empty string title');
+  });
+});
+
+describe('safeTitle guard in formatBreadcrumb', () => {
+  it('formatBreadcrumb with undefined cardTitle shows (untitled)', () => {
+    const card = {
+      id: 'a1b2c3d4',
+      title: undefined,
+      created: '2026-03-06T12:00:00.000Z',
+      archived: false,
+      body: '',
+      children: [],
+    };
+    const result = renderCard(card, [], {});
+    // renderCard passes card.title to formatBreadcrumb — with undefined, should show (untitled)
+    assert.ok(result.includes('(untitled)'), 'Breadcrumb should show (untitled) for undefined title');
+  });
+});
+
 describe('exports', () => {
   it('exports all four functions', () => {
     const mod = require('../.claude/burrow/lib/render.cjs');

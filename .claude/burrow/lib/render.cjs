@@ -22,9 +22,11 @@ const DIFF_TRUNCATE_LENGTH = 40;
  * @returns {string}
  */
 function formatAge(isoString) {
+  if (!isoString) return '???';
   const now = Date.now();
   const then = new Date(isoString).getTime();
-  const diffMs = now - then;
+  if (isNaN(then)) return '???';
+  const diffMs = Math.max(0, now - then);
   const diffSec = Math.floor(diffMs / 1000);
 
   if (diffSec < 60) return 'just now';
@@ -46,7 +48,9 @@ function formatAge(isoString) {
  * @returns {string}
  */
 function formatCreatedDate(isoString) {
+  if (!isoString) return `??? (???)`;
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) return `??? (???)`;
   const yyyy = date.getUTCFullYear();
   const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(date.getUTCDate()).padStart(2, '0');
@@ -61,11 +65,12 @@ function formatCreatedDate(isoString) {
  * @returns {string}
  */
 function formatBreadcrumb(ancestors, cardTitle, context) {
+  const safeCardTitle = (cardTitle && cardTitle.trim()) ? cardTitle : '(untitled)';
   const parts = ['burrow'];
   for (const a of ancestors) {
     parts.push(a.title);
   }
-  parts.push(cardTitle);
+  parts.push(safeCardTitle);
   let result = parts.join(BREADCRUMB_SEP);
   if (context) {
     result += ` \u00b7 ${context}`;
@@ -101,6 +106,7 @@ function formatCardLine(card, prefix, termWidth) {
   const descCount = card.descendantCount || 0;
   const countStr = descCount > 0 ? ` (${descCount})` : '';
   const archivedLabel = card.archived ? ' [archived]' : '';
+  const safeTitle = (card.title && card.title.trim()) ? card.title : '(untitled)';
 
   // Left side without title: prefix + space + id + space
   const leftFixedParts = `  ${prefix} ${id} `;
@@ -111,7 +117,7 @@ function formatCardLine(card, prefix, termWidth) {
 
   // Available space for title
   const availableForTitle = tw - leftFixedParts.length - indicators.length - 2 - rightSide.length;
-  const title = availableForTitle > 0 ? truncate(card.title, availableForTitle) : card.title;
+  const title = availableForTitle > 0 ? truncate(safeTitle, availableForTitle) : safeTitle;
 
   // Pad middle to right-align age
   const leftContent = `${leftFixedParts}${title}${indicators}`;
@@ -161,18 +167,19 @@ function renderCard(card, breadcrumbs, opts) {
   const { full, termWidth } = opts || {};
   const tw = termWidth || 80;
   const lines = [];
+  const safeTitle = (card.title && card.title.trim()) ? card.title : '(untitled)';
 
   // Breadcrumb header
   if (card.id === '(root)') {
     lines.push('burrow');
   } else {
-    lines.push(formatBreadcrumb(breadcrumbs || [], card.title));
+    lines.push(formatBreadcrumb(breadcrumbs || [], safeTitle));
   }
   lines.push('');
 
   // Title section
   lines.push(HR);
-  lines.push(card.title);
+  lines.push(safeTitle);
   lines.push(HR);
 
   // Metadata
