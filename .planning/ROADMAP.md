@@ -25,7 +25,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 **Milestone Goal:** Improve rendering pipeline quality (eliminate flatten-renest, fix alignment, dynamic width) and ship engine optimizations, input validation, and developer ergonomics.
 
 - [x] **Phase 6: Rendering Pipeline Refactor** - Rewrite renderTree to keep nested structure, eliminate redundant computations and dead code (completed 2026-03-13)
-- [ ] **Phase 7: Rendering Enhancements** - Dynamic width, alignment fixes, edge case handling — depends on Phase 6 refactor
+- [x] **Phase 7: Rendering Enhancements** - Dynamic width, alignment fixes, edge case handling — depends on Phase 6 refactor (completed 2026-03-13)
 - [ ] **Phase 8: Engine Quality & Ergonomics** - Tree walk optimizations, input validation, code quality, data integrity, API consistency, installer fixes
 
 ## Phase Details
@@ -56,7 +56,7 @@ Plans:
   3. Cards with empty or undefined titles render without throwing an error
   4. Cards created with future timestamps display a sensible age label instead of "just now"
   5. Rendering on a very narrow terminal (fewer columns than minimum) clamps to the minimum width instead of producing negative values
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Edge case guards (empty titles, future/invalid dates) and PERF-07 descendantCount optimization
@@ -84,5 +84,5 @@ Plans:
 | 4. Agent Interface | v1.0 | 2/2 | Complete | 2026-03-08 |
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
 | 6. Rendering Pipeline Refactor | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 7. Rendering Enhancements | v1.1 | 0/2 | Planning | - |
+| 7. Rendering Enhancements | 2/2 | Complete   | 2026-03-13 | - |
 | 8. Engine Quality & Ergonomics | v1.1 | 0/TBD | Not started | - |

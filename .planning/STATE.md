@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Completed 07-rendering-enhancements/07-01-PLAN.md
-last_updated: "2026-03-13T21:33:40.726Z"
+stopped_at: Completed 07-rendering-enhancements/07-02-PLAN.md
+last_updated: "2026-03-13T21:39:28.864Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-rendering-pipeline-refactor P01 | 6min | 2 tasks | 4 files |
 | Phase 06-rendering-pipeline-refactor P02 | 4min | 2 tasks | 1 files |
 | Phase 07-rendering-enhancements P01 | 18min | 2 tasks | 4 files |
+| Phase 07-rendering-enhancements P02 | 10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 07-01]: formatCreatedDate also needs null/undefined/invalid guard — calling new Date(isoString) directly produces NaN in YYYY-MM-DD fields; guard in formatAge alone insufficient
 - [Phase 07-01]: PERF-07: root card descendantCount derived from builtChildren.reduce() instead of redundant countActiveDescendants(rootCard); children counts already computed correctly during buildNested
 - [Phase 07-01]: Future-date clamp via Math.max(0, now - then) in formatAge renders future timestamps as 'just now'
+- [Phase 07-rendering-enhancements]: MIN_TERM_WIDTH=40 derived from minimum layout budget; padding formula fixed to Math.max(1, tw - leftContent.length - rightSide.length)
+- [Phase 07-rendering-enhancements]: resolveTermWidth() centralizes width resolution; move with strict: true requires width declared in parseArgs
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:33:40.724Z
-Stopped at: Completed 07-rendering-enhancements/07-01-PLAN.md
+Last session: 2026-03-13T21:39:28.862Z
+Stopped at: Completed 07-rendering-enhancements/07-02-PLAN.md
 Resume file: None
