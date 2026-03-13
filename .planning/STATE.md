@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
 stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-13T10:09:15.333Z"
+last_updated: "2026-03-13T10:13:22.307Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
