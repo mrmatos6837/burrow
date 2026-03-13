@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Roadmap created — ready to plan Phase 6
-last_updated: "2026-03-12T00:00:00.000Z"
-last_activity: 2026-03-12 - v1.1 roadmap created (Phases 6-8)
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-13T10:05:09.230Z"
+last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 06-rendering-pipeline-refactor P01 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,9 @@ Recent decisions affecting current work:
 - [03-01]: Pure render functions return strings, no stdout, no side effects
 - [03-01]: countActiveDescendants duplicated in render.cjs to keep it dependency-free
 - [Roadmap]: REND-01-05 are the critical path — Phase 7 and PERF-07 unblock after Phase 6
+- [Phase 06-01]: renderTree output changed from flat array with depth to nested tree with children arrays; depth implicit from nesting
+- [Phase 06-01]: render.cjs has zero mongoose dependency — formatCardLine uses pre-computed descendantCount only
+- [Phase 06-01]: Archive filtering consolidated into renderTree only; renderCard no longer re-filters children
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Roadmap created — Phase 6 ready to plan
+Last session: 2026-03-13T10:05:09.228Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None

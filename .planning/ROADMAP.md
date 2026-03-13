@@ -40,7 +40,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
   3. countActiveDescendants is called exactly once per card (not three times across renderTree, renderCard, formatCardLine)
   4. Archive filtering happens in one place (not duplicated between renderTree and renderCard)
   5. nestFlatCards is deleted from render.cjs and all tests pass
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 06-01-PLAN.md — Refactor renderTree to nested output + update renderCard to consume pre-computed metadata
@@ -79,6 +79,6 @@ Plans:
 | 3. CLI Pretty-Print Rendering | v1.0 | 3/3 | Complete | 2026-03-08 |
 | 4. Agent Interface | v1.0 | 2/2 | Complete | 2026-03-08 |
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
-| 6. Rendering Pipeline Refactor | v1.1 | 0/2 | Planning | - |
+| 6. Rendering Pipeline Refactor | 1/2 | In Progress|  | - |
 | 7. Rendering Enhancements | v1.1 | 0/TBD | Not started | - |
 | 8. Engine Quality & Ergonomics | v1.1 | 0/TBD | Not started | - |

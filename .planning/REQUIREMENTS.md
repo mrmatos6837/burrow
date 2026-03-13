@@ -9,10 +9,10 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Rendering Pipeline
 
-- [ ] **REND-01**: renderTree keeps nested structure instead of flattening then re-nesting
-- [ ] **REND-02**: Breadcrumb computation happens once (eliminate duplicate in renderTree + getBreadcrumbs)
-- [ ] **REND-03**: countActiveDescendants called once per card (eliminate triple-computation across renderTree/renderCard/formatCardLine)
-- [ ] **REND-04**: Archive filtering happens once (eliminate duplicate in renderTree + renderCard)
+- [x] **REND-01**: renderTree keeps nested structure instead of flattening then re-nesting
+- [x] **REND-02**: Breadcrumb computation happens once (eliminate duplicate in renderTree + getBreadcrumbs)
+- [x] **REND-03**: countActiveDescendants called once per card (eliminate triple-computation across renderTree/renderCard/formatCardLine)
+- [x] **REND-04**: Archive filtering happens once (eliminate duplicate in renderTree + renderCard)
 - [ ] **REND-05**: nestFlatCards removed as dead code after renderTree refactor
 - [ ] **REND-06**: Tree alignment consistent at 3+ nesting levels (columns don't drift)
 - [ ] **REND-07**: Render width adapts to terminal size (process.stdout.columns) instead of hardcoded width
@@ -100,10 +100,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REND-01 | Phase 6 | Pending |
-| REND-02 | Phase 6 | Pending |
-| REND-03 | Phase 6 | Pending |
-| REND-04 | Phase 6 | Pending |
+| REND-01 | Phase 6 | Complete |
+| REND-02 | Phase 6 | Complete |
+| REND-03 | Phase 6 | Complete |
+| REND-04 | Phase 6 | Complete |
 | REND-05 | Phase 6 | Pending |
 | REND-06 | Phase 7 | Pending |
 | REND-07 | Phase 7 | Pending |
