@@ -40,40 +40,6 @@ function getBreadcrumbs(data, id) {
   return pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
 }
 
-/**
- * Reconstruct a nested tree from the flat renderTree output.
- * Takes flat cards (each with a depth property) and nests deeper cards
- * as children of their parent at depth N-1.
- * @param {Array} flatCards - Flat array from renderTree
- * @param {number} [baseDepth=1] - The depth level that counts as "root" (1 for card view, 0 for root view)
- * @returns {Array} Top-level cards with nested children
- */
-function nestFlatCards(flatCards, baseDepth) {
-  if (!flatCards || flatCards.length === 0) return [];
-  const base = baseDepth !== undefined ? baseDepth : 1;
-  const stack = [];
-  const roots = [];
-
-  for (const entry of flatCards) {
-    const card = { ...entry, children: [] };
-    const d = card.depth - base; // normalize to 0-based
-
-    if (d === 0) {
-      roots.push(card);
-      stack.length = 1;
-      stack[0] = card;
-    } else {
-      const parentIdx = d - 1;
-      if (parentIdx >= 0 && stack[parentIdx]) {
-        stack[parentIdx].children.push(card);
-      }
-      stack.length = d + 1;
-      stack[d] = card;
-    }
-  }
-
-  return roots;
-}
 
 function main() {
   const command = process.argv[2];
@@ -297,44 +263,32 @@ function main() {
       const data = storage.load(cwd);
 
       if (id) {
-        const card = tree.findById(data, id);
-        if (!card) {
+        const treeResult = tree.renderTree(data, id, { depth, archiveFilter });
+        if (!treeResult || treeResult.cards.length === 0) {
           handleError(`Card not found: ${id}`);
         }
-        const breadcrumbs = getBreadcrumbs(data, id);
-
-        // For depth > 1 or depth 0, get subtree children from renderTree
-        const treeResult = tree.renderTree(data, id, { depth, archiveFilter });
-        if (treeResult && treeResult.cards.length > 1) {
-          // Reconstruct nested tree from flat renderTree output
-          const childCards = nestFlatCards(treeResult.cards.filter((c) => c.depth >= 1));
-          // Attach rendered children to card for display
-          const cardCopy = { ...card, children: childCards };
-          const rendered = render.renderCard(cardCopy, breadcrumbs, {
-            full: values.full,
-            termWidth: process.stdout.columns || 80,
-            archiveFilter,
-          });
-          writeAndExit(rendered);
-        } else {
-          const rendered = render.renderCard(card, breadcrumbs, {
-            full: values.full,
-            termWidth: process.stdout.columns || 80,
-            archiveFilter,
-          });
-          writeAndExit(rendered);
-        }
+        // treeResult.cards[0] is the root card with nested children already
+        const cardToRender = treeResult.cards[0];
+        // Merge full body from original card (renderTree only has bodyPreview)
+        const fullCard = tree.findById(data, id);
+        cardToRender.body = fullCard.body;
+        cardToRender.title = fullCard.title;
+        const rendered = render.renderCard(cardToRender, treeResult.breadcrumbs || [], {
+          full: values.full,
+          termWidth: process.stdout.columns || 80,
+          archiveFilter,
+        });
+        writeAndExit(rendered);
       } else {
         // Root view: synthesize root card with depth-limited children
         const treeResult = tree.renderTree(data, null, { depth, archiveFilter });
-        const prunedChildren = nestFlatCards(treeResult.cards, 0);
         const rootCard = {
           id: '(root)',
           title: 'burrow',
           created: data.cards[0]?.created || new Date().toISOString(),
           archived: false,
           body: '',
-          children: prunedChildren,
+          children: treeResult.cards,  // already nested
         };
         const rendered = render.renderCard(rootCard, [], {
           full: values.full,
@@ -367,14 +321,13 @@ function main() {
 
       // Dump as root card with full tree depth
       const treeResult = tree.renderTree(data, null, { depth: 0, archiveFilter });
-      const prunedChildren = nestFlatCards(treeResult.cards, 0);
       const rootCard = {
         id: '(root)',
         title: 'burrow',
         created: data.cards[0]?.created || new Date().toISOString(),
         archived: false,
         body: '',
-        children: prunedChildren,
+        children: treeResult.cards,  // already nested
       };
       const rendered = render.renderCard(rootCard, [], {
         full: values.full,
