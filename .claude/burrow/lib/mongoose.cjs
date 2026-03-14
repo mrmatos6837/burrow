@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateId, collectAllIds } = require('./core.cjs');
+const { generateId } = require('./core.cjs');
 
 // --- Helpers ---
 
@@ -112,8 +112,7 @@ function addCard(data, { title, parentId, body, position }) {
   const container = getContainer(data, parentId);
   if (!container) return null;
 
-  const existingIds = collectAllIds(data);
-  const id = generateId(existingIds);
+  const id = generateId();
 
   const card = {
     id,
@@ -153,7 +152,7 @@ function editCard(data, id, { title, body }) {
  * Delete a card and all its descendants.
  * @param {object} data - Root data object
  * @param {string} id - Card ID to delete
- * @returns {{id, title, descendantCount}|null} Deleted card info, or null if not found
+ * @returns {object|null} Full deleted card object with descendantCount added, or null if not found
  */
 function deleteCard(data, id) {
   const parentResult = findParent(data, id);
@@ -168,7 +167,7 @@ function deleteCard(data, id) {
 
   container.splice(idx, 1);
 
-  return { id: card.id, title: card.title, descendantCount };
+  return { ...card, descendantCount };
 }
 
 /**
@@ -247,17 +246,17 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
 
 
 /**
- * Create a body preview: replace newlines with spaces, truncate at 80 chars.
+ * Create a body preview: truncate at 80 chars first, then replace newlines with spaces.
+ * Truncate-first avoids processing thousands of characters in huge bodies.
  * @param {string} body
  * @returns {string}
  */
 function makePreview(body) {
   if (!body) return '';
-  const cleaned = body.replace(/\n/g, ' ');
-  if (cleaned.length > 80) {
-    return cleaned.slice(0, 80) + '...';
+  if (body.length > 80) {
+    return body.slice(0, 80).replace(/\n/g, ' ') + '...';
   }
-  return cleaned;
+  return body.replace(/\n/g, ' ');
 }
 
 /**
@@ -341,44 +340,46 @@ function renderTree(data, rootId, opts) {
 
 /**
  * Recursively set archived flag on a card and all descendants.
+ * Returns the count of descendant nodes visited (excludes the card itself).
  * @param {object} card
  * @param {boolean} value
+ * @returns {number} Count of descendants processed
  */
 function setArchivedRecursive(card, value) {
   card.archived = value;
+  let count = 0;
   if (card.children && card.children.length) {
     for (const child of card.children) {
-      setArchivedRecursive(child, value);
+      count += 1 + setArchivedRecursive(child, value);
     }
   }
+  return count;
 }
 
 /**
  * Archive a card and all its descendants.
  * @param {object} data - Root data object
  * @param {string} id - Card ID
- * @returns {{id, title, descendantCount}|null}
+ * @returns {object|null} Full card object with descendantCount, or null if not found
  */
 function archiveCard(data, id) {
   const card = findById(data, id);
   if (!card) return null;
-  const desc = countDescendants(card);
-  setArchivedRecursive(card, true);
-  return { id: card.id, title: card.title, descendantCount: desc };
+  const descendantCount = setArchivedRecursive(card, true);
+  return { ...card, descendantCount };
 }
 
 /**
  * Unarchive a card and all its descendants.
  * @param {object} data - Root data object
  * @param {string} id - Card ID
- * @returns {{id, title, descendantCount}|null}
+ * @returns {object|null} Full card object with descendantCount, or null if not found
  */
 function unarchiveCard(data, id) {
   const card = findById(data, id);
   if (!card) return null;
-  const desc = countDescendants(card);
-  setArchivedRecursive(card, false);
-  return { id: card.id, title: card.title, descendantCount: desc };
+  const descendantCount = setArchivedRecursive(card, false);
+  return { ...card, descendantCount };
 }
 
 module.exports = {
@@ -392,6 +393,7 @@ module.exports = {
   moveCard,
 
   countDescendants,
+  makePreview,
   renderTree,
   archiveCard,
   unarchiveCard,

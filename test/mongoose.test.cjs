@@ -928,3 +928,81 @@ describe('unarchiveCard', () => {
     assert.equal(result, null);
   });
 });
+
+describe('archiveCard full return shape (API-01 + PERF-03)', () => {
+  it('archiveCard returns full card shape including body, created, archived, children', () => {
+    const data = sampleTree();
+    const result = archiveCard(data, 'aaaaaaaa');
+    assert.ok(result);
+    assert.equal(result.id, 'aaaaaaaa');
+    assert.equal(result.title, 'Card A');
+    assert.equal(result.archived, true);
+    assert.ok('body' in result, 'result should have body field');
+    assert.ok('created' in result, 'result should have created field');
+    assert.ok('children' in result, 'result should have children field');
+    assert.equal(result.descendantCount, 3);
+  });
+
+  it('archiveCard descendantCount is computed during recursion (total descendants)', () => {
+    const data = sampleTree();
+    // Card A has 3 descendants: childA1, grandchild, childA2
+    const result = archiveCard(data, 'aaaaaaaa');
+    assert.equal(result.descendantCount, 3);
+  });
+
+  it('unarchiveCard returns full card shape including body, created, archived, children', () => {
+    const data = sampleTreeWithArchived();
+    const result = unarchiveCard(data, 'aaaaaaaa');
+    assert.ok(result);
+    assert.equal(result.id, 'aaaaaaaa');
+    assert.equal(result.title, 'Card A');
+    assert.equal(result.archived, false);
+    assert.ok('body' in result, 'result should have body field');
+    assert.ok('created' in result, 'result should have created field');
+    assert.ok('children' in result, 'result should have children field');
+    assert.ok('descendantCount' in result, 'result should have descendantCount field');
+  });
+
+  it('unarchiveCard descendantCount is total descendants (all nodes set to unarchived)', () => {
+    const data = sampleTreeWithArchived();
+    // Card A: childA1 (1) + grandchild (1) + childA2 (1) = 3
+    const result = unarchiveCard(data, 'aaaaaaaa');
+    assert.equal(result.descendantCount, 3);
+  });
+});
+
+describe('deleteCard full return shape (API-01)', () => {
+  it('deleteCard returns full card object with all fields', () => {
+    const data = sampleTree();
+    const result = deleteCard(data, 'aaaaaaaa');
+    assert.ok(result);
+    assert.equal(result.id, 'aaaaaaaa');
+    assert.equal(result.title, 'Card A');
+    assert.ok('body' in result, 'result should have body field');
+    assert.ok('created' in result, 'result should have created field');
+    assert.ok('archived' in result, 'result should have archived field');
+    assert.ok('children' in result, 'result should have children field');
+    assert.equal(result.descendantCount, 3);
+  });
+
+  it('deleteCard returns leaf card with all fields and descendantCount 0', () => {
+    const data = sampleTree();
+    const result = deleteCard(data, 'cccccccc');
+    assert.ok(result);
+    assert.equal(result.id, 'cccccccc');
+    assert.equal(result.title, 'Card C');
+    assert.ok('body' in result);
+    assert.ok('created' in result);
+    assert.ok('archived' in result);
+    assert.ok(Array.isArray(result.children), 'children should be array');
+    assert.equal(result.descendantCount, 0);
+  });
+
+  it('deleteCard children array in result is the removed card subtree', () => {
+    const data = sampleTree();
+    const result = deleteCard(data, 'aaaaaaaa');
+    // Card A had 2 direct children before deletion
+    assert.ok(Array.isArray(result.children));
+    assert.equal(result.children.length, 2);
+  });
+});
