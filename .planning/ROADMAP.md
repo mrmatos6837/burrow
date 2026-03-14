@@ -37,7 +37,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Make burrow installable by anyone with a single command — guided installer UX, npm package, update mechanism, and version tracking.
 
 - [x] **Phase 9: Installer Rewrite** - Guided interactive install with detection, idempotency, non-interactive mode, CLAUDE.md setup, and clean uninstall (completed 2026-03-14)
-- [ ] **Phase 10: Version Tracking & Update Command** - Version marker, outdated check, passive notification, and `/burrow:update` slash command
+- [x] **Phase 10: Version Tracking & Update Command** - Version marker, outdated check, passive notification, and `/burrow:update` slash command (completed 2026-03-14)
 - [ ] **Phase 11: npm Package** - Publish `create-burrow` to npm with files whitelist and `--help` output
 
 ## Phase Details
@@ -66,7 +66,7 @@ Plans:
   1. A version marker is embedded in the installed files and compared against the source version to determine if an update is available
   2. Running any burrow CLI command shows a one-line "update available" notice when the installed version is behind — no more than once per 24 hours
   3. Running `/burrow:update` from within Claude Code triggers a re-run of the installer in upgrade mode, updating source files and preserving data
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 10-01-PLAN.md — Version engine: VERSION file, semver comparison, 24h-cached update check, passive CLI notification
 - [ ] 10-02-PLAN.md — /burrow:update slash command, installer cache seeding after install/upgrade
@@ -94,5 +94,5 @@ Plans:
 | 7. Rendering Enhancements | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8. Engine Quality & Ergonomics | v1.1 | 4/4 | Complete | 2026-03-14 |
 | 9. Installer Rewrite | v1.2 | 2/2 | Complete | 2026-03-14 |
-| 10. Version Tracking & Update Command | v1.2 | 0/2 | Not started | - |
+| 10. Version Tracking & Update Command | 2/2 | Complete   | 2026-03-14 | - |
 | 11. npm Package | v1.2 | 0/? | Not started | - |

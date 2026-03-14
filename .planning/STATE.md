@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Packaging & Distribution
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-03-14T23:03:29.852Z"
-last_activity: "2026-03-14 — Plan 01 complete: installer engine (detect, install, upgrade, repair, sentinel)"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-14T23:24:53.588Z"
+last_activity: "2026-03-14 — Plan 10-01 complete: VERSION file, version.cjs, passive update notification"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 33
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** v1.2 Packaging & Distribution — Phase 9: Installer Rewrite
+**Current focus:** v1.2 Packaging & Distribution — Phase 10: Version Tracking & Update Command
 
 ## Current Position
 
-Phase: 9 of 11 (Installer Rewrite)
-Plan: 1 of 3 complete
+Phase: 10 of 11 (Version Tracking & Update Command)
+Plan: 1 of 1 complete
 Status: In progress
-Last activity: 2026-03-14 — Plan 01 complete: installer engine (detect, install, upgrade, repair, sentinel)
+Last activity: 2026-03-14 — Plan 10-01 complete: VERSION file, version.cjs, passive update notification
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 09-installer-rewrite P02 | 3 | 2 tasks | 2 files |
+| Phase 10-version-tracking P01 | 12 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ v1.2 decisions:
 - cards.json preservation in upgrade is unconditional (not a flag) — hardcoded guarantee
 - [Phase 09-installer-rewrite]: readline interface only created when interactive mode needed; --yes skips it to avoid hanging on stdin
 - [Phase 09-installer-rewrite]: Uninstall default confirmation is NO (destructive) while upgrade/repair default to YES
+- [Phase 10-version-tracking]: Cache-only notification in CLI — burrow-tools reads cache seeded by installer, never initiates check itself
+- [Phase 10-version-tracking]: null semver treated as 0.0.0 so missing VERSION file always shows outdated notice
+- [Phase 10-version-tracking]: Update notices go to stderr to keep stdout clean for agent-parseable output
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T23:00:12.930Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-03-14T23:24:53.586Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
