@@ -59,8 +59,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 07-01-PLAN.md — Edge case guards (empty titles, future/invalid dates) and PERF-07 descendantCount optimization
-- [ ] 07-02-PLAN.md — Dynamic width with --width flag, MIN_TERM_WIDTH floor, and depth-3+ alignment verification
+- [x] 07-01-PLAN.md — Edge case guards (empty titles, future/invalid dates) and PERF-07 descendantCount optimization
+- [x] 07-02-PLAN.md — Dynamic width with --width flag, MIN_TERM_WIDTH floor, and depth-3+ alignment verification
 
 ### Phase 8: Engine Quality & Ergonomics
 **Goal**: The tree engine eliminates redundant traversals, CLI rejects bad input clearly, storage loads safely, and the installer works correctly out of the box
@@ -72,7 +72,13 @@ Plans:
   3. Running the init script on a project automatically adds cards.json.bak to .gitignore and appends to CLAUDE.md with correct line endings
   4. deleteCard returns the full deleted card object (same shape as moveCard/editCard), and the find command reuses the tree engine instead of reimplementing recursion
   5. All 150+ tests pass with no regressions after engine refactors
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Engine tree walk refactors: consolidate counts, optimize moveCard/findParent, deleteCard full return
+- [ ] 08-02-PLAN.md — Data integrity: schema validation on load, formatAge hardening, makePreview/migrate/addCard optimizations
+- [ ] 08-03-PLAN.md — Installer: init script for .gitignore and CLAUDE.md setup
+- [ ] 08-04-PLAN.md — CLI validation, enriched CRUD returns, find rewrite, magic number constants
 
 ## Progress
 
@@ -84,5 +90,5 @@ Plans:
 | 4. Agent Interface | v1.0 | 2/2 | Complete | 2026-03-08 |
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
 | 6. Rendering Pipeline Refactor | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 7. Rendering Enhancements | 2/2 | Complete   | 2026-03-13 | - |
-| 8. Engine Quality & Ergonomics | v1.1 | 0/TBD | Not started | - |
+| 7. Rendering Enhancements | v1.1 | 2/2 | Complete | 2026-03-13 |
+| 8. Engine Quality & Ergonomics | v1.1 | 0/4 | Not started | - |
