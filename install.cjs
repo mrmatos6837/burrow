@@ -15,12 +15,56 @@ const {
   removeSentinelBlock,
 } = require('./.claude/burrow/lib/installer.cjs');
 
+const { getSourceVersion, getInstalledVersion } = require('./.claude/burrow/lib/version.cjs');
+
 // ── Output helpers ────────────────────────────────────────────────────────────
 
 function ok(msg)   { console.log(`  \u2713 ${msg}`); }
 function skip(msg) { console.log(`  \u00b7 ${msg}`); }
 function fail(msg) { console.error(`  \u2717 ${msg}`); }
 function warn(msg) { console.log(`  ! ${msg}`); }
+
+// ── Post-install breadcrumb writers ───────────────────────────────────────────
+
+/**
+ * Write .claude/burrow/.source-dir and .planning/burrow/.update-check in targetDir.
+ * These are local-only breadcrumbs (not committed to git).
+ *
+ * .source-dir — absolute path to the burrow source repo, used by /burrow:update
+ * .update-check — version cache JSON, read by burrow-tools.cjs for passive notifications
+ *
+ * Wrapped in try/catch: cache writing must never fail the install.
+ *
+ * @param {string} sourceDir - Absolute path to burrow source repo (__dirname)
+ * @param {string} targetDir - Absolute path to project where burrow was installed
+ */
+function writeBreadcrumbs(sourceDir, targetDir) {
+  try {
+    // Write .source-dir breadcrumb
+    const sourceDirFile = path.join(targetDir, '.claude', 'burrow', '.source-dir');
+    fs.writeFileSync(sourceDirFile, sourceDir + '\n', 'utf-8');
+  } catch (_) {
+    // Non-fatal — .source-dir is a convenience file
+  }
+
+  try {
+    // Write .update-check version cache
+    const cacheFile = path.join(targetDir, '.planning', 'burrow', '.update-check');
+    const cacheDir = path.dirname(cacheFile);
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true });
+    }
+    const sourceVersion = getSourceVersion(sourceDir);
+    const installedVersion = getInstalledVersion(targetDir);
+    fs.writeFileSync(
+      cacheFile,
+      JSON.stringify({ lastCheck: new Date().toISOString(), sourceVersion, installedVersion }),
+      'utf-8'
+    );
+  } catch (_) {
+    // Non-fatal — version cache is a convenience file
+  }
+}
 
 // ── readline helpers ──────────────────────────────────────────────────────────
 
@@ -215,6 +259,9 @@ async function runInstall({ sourceDir, targetDir, yes, detection }) {
   const results = performInstall(sourceDir, targetDir);
   printInstallResults(results);
 
+  // Write local-only breadcrumbs for /burrow:update and passive version notifications
+  writeBreadcrumbs(sourceDir, targetDir);
+
   if (addClaudeMd) {
     writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
     ok('CLAUDE.md (burrow block added)');
@@ -264,6 +311,9 @@ async function runUpgrade({ sourceDir, targetDir, yes, detection }) {
 
   const results = performUpgrade(sourceDir, targetDir);
   printInstallResults(results);
+
+  // Write local-only breadcrumbs for /burrow:update and passive version notifications
+  writeBreadcrumbs(sourceDir, targetDir);
 
   // Handle CLAUDE.md sentinel
   if (detection.hasSentinel) {
