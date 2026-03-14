@@ -32,9 +32,9 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 ### Performance — Unnecessary Work
 
 - [x] **PERF-07**: Pre-compute descendantCount once, pass through rendering pipeline instead of per-child loop
-- [ ] **PERF-08**: makePreview truncates before replacing newlines (avoid processing full body string)
-- [ ] **PERF-09**: Skip migrate() call on v2 data in warren.cjs load
-- [ ] **PERF-10**: Eliminate O(n) collectAllIds on every addCard (cache or use collision-proof generation)
+- [x] **PERF-08**: makePreview truncates before replacing newlines (avoid processing full body string)
+- [x] **PERF-09**: Skip migrate() call on v2 data in warren.cjs load
+- [x] **PERF-10**: Eliminate O(n) collectAllIds on every addCard (cache or use collision-proof generation)
 
 ### Input Validation
 
@@ -44,15 +44,15 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Code Quality
 
-- [ ] **QUAL-01**: formatAge validates ISO input instead of silently producing NaN
+- [x] **QUAL-01**: formatAge validates ISO input instead of silently producing NaN
 - [x] **QUAL-02**: findParent uses single traversal instead of overlapping root + nested loops
 - [ ] **QUAL-03**: renderTree validates depth parameter type
 - [ ] **QUAL-04**: Document or consolidate magic truncation numbers (200, 40, 80)
 
 ### Data Integrity
 
-- [ ] **DATA-01**: Schema validation on load — corrupted cards.json produces clear error instead of unpredictable crashes
-- [ ] **DATA-02**: Invalid ISO dates in created field handled gracefully in formatAge
+- [x] **DATA-01**: Schema validation on load — corrupted cards.json produces clear error instead of unpredictable crashes
+- [x] **DATA-02**: Invalid ISO dates in created field handled gracefully in formatAge
 
 ### API Consistency
 
@@ -117,18 +117,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-05 | Phase 8 | Pending |
 | PERF-06 | Phase 8 | Pending |
 | PERF-07 | Phase 7 | Complete |
-| PERF-08 | Phase 8 | Pending |
-| PERF-09 | Phase 8 | Pending |
-| PERF-10 | Phase 8 | Pending |
+| PERF-08 | Phase 8 | Complete |
+| PERF-09 | Phase 8 | Complete |
+| PERF-10 | Phase 8 | Complete |
 | VALID-01 | Phase 8 | Pending |
 | VALID-02 | Phase 8 | Pending |
 | VALID-03 | Phase 8 | Pending |
-| QUAL-01 | Phase 8 | Pending |
+| QUAL-01 | Phase 8 | Complete |
 | QUAL-02 | Phase 8 | Complete |
 | QUAL-03 | Phase 8 | Pending |
 | QUAL-04 | Phase 8 | Pending |
-| DATA-01 | Phase 8 | Pending |
-| DATA-02 | Phase 8 | Pending |
+| DATA-01 | Phase 8 | Complete |
+| DATA-02 | Phase 8 | Complete |
 | API-01 | Phase 8 | Complete |
 | API-02 | Phase 8 | Pending |
 | INST-01 | Phase 8 | Complete |
