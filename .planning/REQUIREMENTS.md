@@ -61,8 +61,8 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Installation
 
-- [ ] **INST-01**: Init script automatically adds cards.json.bak to .gitignore
-- [ ] **INST-02**: Init script normalizes line endings when appending to existing CLAUDE.md
+- [x] **INST-01**: Init script automatically adds cards.json.bak to .gitignore
+- [x] **INST-02**: Init script normalizes line endings when appending to existing CLAUDE.md
 
 ## v2 Requirements
 
@@ -131,8 +131,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 8 | Pending |
 | API-01 | Phase 8 | Pending |
 | API-02 | Phase 8 | Pending |
-| INST-01 | Phase 8 | Pending |
-| INST-02 | Phase 8 | Pending |
+| INST-01 | Phase 8 | Complete |
+| INST-02 | Phase 8 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 33 total (note: originally noted as 36, actual count is 33)

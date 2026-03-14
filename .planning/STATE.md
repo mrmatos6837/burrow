@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Completed 07-rendering-enhancements/07-02-PLAN.md
-last_updated: "2026-03-13T21:42:01.749Z"
+stopped_at: Completed 08-engine-quality-ergonomics/08-03-PLAN.md
+last_updated: "2026-03-14T04:45:05.218Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 8
+  completed_plans: 5
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-rendering-pipeline-refactor P02 | 4min | 2 tasks | 1 files |
 | Phase 07-rendering-enhancements P01 | 18min | 2 tasks | 4 files |
 | Phase 07-rendering-enhancements P02 | 10min | 2 tasks | 3 files |
+| Phase 08-engine-quality-ergonomics P03 | 12min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 07-01]: Future-date clamp via Math.max(0, now - then) in formatAge renders future timestamps as 'just now'
 - [Phase 07-rendering-enhancements]: MIN_TERM_WIDTH=40 derived from minimum layout budget; padding formula fixed to Math.max(1, tw - leftContent.length - rightSide.length)
 - [Phase 07-rendering-enhancements]: resolveTermWidth() centralizes width resolution; move with strict: true requires width declared in parseArgs
+- [Phase 08-03]: BURROW_SECTION_LF constant holds LF content; toCRLF() converts on demand — avoids storing two copies
+- [Phase 08-03]: Idempotent init: check-then-write, never overwrite; includes('## Burrow') for CLAUDE.md, line-by-line trim for .gitignore
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:39:28.862Z
-Stopped at: Completed 07-rendering-enhancements/07-02-PLAN.md
+Last session: 2026-03-14T04:45:05.216Z
+Stopped at: Completed 08-engine-quality-ergonomics/08-03-PLAN.md
 Resume file: None
