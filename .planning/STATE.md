@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Completed 08-engine-quality-ergonomics/08-02-PLAN.md
-last_updated: "2026-03-14T04:47:07.556Z"
+stopped_at: Completed 08-engine-quality-ergonomics/08-04-PLAN.md
+last_updated: "2026-03-14T04:55:47.155Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08-engine-quality-ergonomics P03 | 12min | 1 tasks | 3 files |
 | Phase 08-engine-quality-ergonomics P01 | 20min | 2 tasks | 2 files |
 | Phase 08-engine-quality-ergonomics P02 | 20min | 2 tasks | 6 files |
+| Phase 08-engine-quality-ergonomics P04 | 25min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 08-engine-quality-ergonomics]: validateSchema() spot-checks first card id only — O(1) not O(n) — schema validation should never walk the tree
 - [Phase 08-engine-quality-ergonomics]: generateId() takes no parameters — crypto.randomUUID() collision-free at any reasonable card count without tree walk
 - [Phase 08-engine-quality-ergonomics]: PERF-09: load() skips migrate() for v2 data; version check moved from migrate() into load() caller
+- [Phase 08-04]: addCard/editCard/moveCard enriched returns: mutations return {card, breadcrumbs, ...} so CLI has zero post-mutation tree walks — callers that used bare return value require update
+- [Phase 08-04]: searchCards encapsulates recursive search in mongoose.cjs — ancestor accumulation approach kept (O(n) walk) over per-match getPath calls which would be O(n*m)
+- [Phase 08-04]: strict:true on all parseArgs calls — unknown flags produce cross-mark errors across all CLI commands
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:47:07.555Z
-Stopped at: Completed 08-engine-quality-ergonomics/08-02-PLAN.md
+Last session: 2026-03-14T04:55:47.153Z
+Stopped at: Completed 08-engine-quality-ergonomics/08-04-PLAN.md
 Resume file: None

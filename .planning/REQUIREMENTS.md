@@ -25,9 +25,9 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 - [x] **PERF-01**: moveCard combines cycle check, parent lookup, and container access into single traversal
 - [x] **PERF-02**: Consolidate countDescendants and countActiveDescendants into single parameterized function
 - [x] **PERF-03**: archiveCard/unarchiveCard counts descendants during recursive set instead of separate walk
-- [ ] **PERF-04**: CRUD operations return path info — eliminate post-mutation getBreadcrumbs tree walk
-- [ ] **PERF-05**: moveCard returns parent info — eliminate redundant findById for parent title
-- [ ] **PERF-06**: editCard captures old values internally — eliminate double findById in edit command
+- [x] **PERF-04**: CRUD operations return path info — eliminate post-mutation getBreadcrumbs tree walk
+- [x] **PERF-05**: moveCard returns parent info — eliminate redundant findById for parent title
+- [x] **PERF-06**: editCard captures old values internally — eliminate double findById in edit command
 
 ### Performance — Unnecessary Work
 
@@ -38,16 +38,16 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Input Validation
 
-- [ ] **VALID-01**: --depth with non-numeric input rejected with error instead of becoming NaN
-- [ ] **VALID-02**: Negative --at values rejected with error instead of silent splice-from-end
-- [ ] **VALID-03**: Unknown CLI flags rejected with error instead of silently ignored (strict: true or manual check)
+- [x] **VALID-01**: --depth with non-numeric input rejected with error instead of becoming NaN
+- [x] **VALID-02**: Negative --at values rejected with error instead of silent splice-from-end
+- [x] **VALID-03**: Unknown CLI flags rejected with error instead of silently ignored (strict: true or manual check)
 
 ### Code Quality
 
 - [x] **QUAL-01**: formatAge validates ISO input instead of silently producing NaN
 - [x] **QUAL-02**: findParent uses single traversal instead of overlapping root + nested loops
-- [ ] **QUAL-03**: renderTree validates depth parameter type
-- [ ] **QUAL-04**: Document or consolidate magic truncation numbers (200, 40, 80)
+- [x] **QUAL-03**: renderTree validates depth parameter type
+- [x] **QUAL-04**: Document or consolidate magic truncation numbers (200, 40, 80)
 
 ### Data Integrity
 
@@ -57,7 +57,7 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 ### API Consistency
 
 - [x] **API-01**: deleteCard returns full card (same shape as moveCard/editCard) instead of minimal object
-- [ ] **API-02**: find command reuses tree engine instead of reimplementing recursion with O(n) path copies
+- [x] **API-02**: find command reuses tree engine instead of reimplementing recursion with O(n) path copies
 
 ### Installation
 
@@ -113,24 +113,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-01 | Phase 8 | Complete |
 | PERF-02 | Phase 8 | Complete |
 | PERF-03 | Phase 8 | Complete |
-| PERF-04 | Phase 8 | Pending |
-| PERF-05 | Phase 8 | Pending |
-| PERF-06 | Phase 8 | Pending |
+| PERF-04 | Phase 8 | Complete |
+| PERF-05 | Phase 8 | Complete |
+| PERF-06 | Phase 8 | Complete |
 | PERF-07 | Phase 7 | Complete |
 | PERF-08 | Phase 8 | Complete |
 | PERF-09 | Phase 8 | Complete |
 | PERF-10 | Phase 8 | Complete |
-| VALID-01 | Phase 8 | Pending |
-| VALID-02 | Phase 8 | Pending |
-| VALID-03 | Phase 8 | Pending |
+| VALID-01 | Phase 8 | Complete |
+| VALID-02 | Phase 8 | Complete |
+| VALID-03 | Phase 8 | Complete |
 | QUAL-01 | Phase 8 | Complete |
 | QUAL-02 | Phase 8 | Complete |
-| QUAL-03 | Phase 8 | Pending |
-| QUAL-04 | Phase 8 | Pending |
+| QUAL-03 | Phase 8 | Complete |
+| QUAL-04 | Phase 8 | Complete |
 | DATA-01 | Phase 8 | Complete |
 | DATA-02 | Phase 8 | Complete |
 | API-01 | Phase 8 | Complete |
-| API-02 | Phase 8 | Pending |
+| API-02 | Phase 8 | Complete |
 | INST-01 | Phase 8 | Complete |
 | INST-02 | Phase 8 | Complete |
 

@@ -26,7 +26,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 6: Rendering Pipeline Refactor** - Rewrite renderTree to keep nested structure, eliminate redundant computations and dead code (completed 2026-03-13)
 - [x] **Phase 7: Rendering Enhancements** - Dynamic width, alignment fixes, edge case handling — depends on Phase 6 refactor (completed 2026-03-13)
-- [ ] **Phase 8: Engine Quality & Ergonomics** - Tree walk optimizations, input validation, code quality, data integrity, API consistency, installer fixes
+- [x] **Phase 8: Engine Quality & Ergonomics** - Tree walk optimizations, input validation, code quality, data integrity, API consistency, installer fixes (completed 2026-03-14)
 
 ## Phase Details
 
@@ -72,7 +72,7 @@ Plans:
   3. Running the init script on a project automatically adds cards.json.bak to .gitignore and appends to CLAUDE.md with correct line endings
   4. deleteCard returns the full deleted card object (same shape as moveCard/editCard), and the find command reuses the tree engine instead of reimplementing recursion
   5. All 150+ tests pass with no regressions after engine refactors
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 08-01-PLAN.md — Engine tree walk refactors: consolidate counts, optimize moveCard/findParent, deleteCard full return
@@ -91,4 +91,4 @@ Plans:
 | 5. v1 Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-09 |
 | 6. Rendering Pipeline Refactor | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7. Rendering Enhancements | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 8. Engine Quality & Ergonomics | 3/4 | In Progress|  | - |
+| 8. Engine Quality & Ergonomics | 4/4 | Complete   | 2026-03-14 | - |
