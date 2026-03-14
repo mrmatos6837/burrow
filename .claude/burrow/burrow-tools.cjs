@@ -90,7 +90,7 @@ function main() {
           at: { type: 'string' },
           width: { type: 'string' },
         },
-        strict: false,
+        strict: true,
       });
 
       if (!values.title) {
@@ -98,6 +98,10 @@ function main() {
       }
 
       const position = values.at !== undefined ? parseInt(values.at, 10) : undefined;
+      if (values.at !== undefined) {
+        if (isNaN(position)) handleError('--at must be a number');
+        if (position < 0) handleError('--at must be non-negative');
+      }
 
       const data = storage.load(cwd);
       const result = tree.addCard(data, {
@@ -132,7 +136,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -180,7 +184,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -224,6 +228,10 @@ function main() {
       const rawParent = values.to !== undefined ? values.to : values.parent;
 
       const position = values.at !== undefined ? parseInt(values.at, 10) : undefined;
+      if (values.at !== undefined) {
+        if (isNaN(position)) handleError('--at must be a number');
+        if (position < 0) handleError('--at must be non-negative');
+      }
 
       const data = storage.load(cwd);
 
@@ -281,7 +289,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0] || null;
@@ -291,6 +299,9 @@ function main() {
           ? 'include-archived'
           : 'active';
       const depth = values.depth !== undefined ? parseInt(values.depth, 10) : 1;
+      if (values.depth !== undefined && isNaN(depth)) {
+        handleError('--depth must be a number');
+      }
 
       const data = storage.load(cwd);
 
@@ -341,7 +352,7 @@ function main() {
           'archived-only': { type: 'boolean', default: false },
           width: { type: 'string' },
         },
-        strict: false,
+        strict: true,
       });
 
       const archiveFilter = values['archived-only']
@@ -378,7 +389,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -407,7 +418,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -436,7 +447,7 @@ function main() {
           width: { type: 'string' },
         },
         allowPositionals: true,
-        strict: false,
+        strict: true,
       });
 
       const id = positionals[0];
@@ -459,38 +470,23 @@ function main() {
     }
 
     case 'find': {
-      const query = subArgs.join(' ').trim().toLowerCase();
+      const { positionals: findPositionals } = parseArgs({
+        args: subArgs,
+        options: {},
+        allowPositionals: true,
+        strict: true,
+      });
+
+      const query = findPositionals.join(' ').trim();
       if (!query) {
         handleError('Search query is required. Usage: find <query>');
       }
 
       const data = storage.load(cwd);
-
-      // Recursive fuzzy search across all cards
-      function searchCards(cards, ancestors) {
-        let results = [];
-        for (const card of cards) {
-          if (card.archived) continue;
-          const titleLower = (card.title || '').toLowerCase();
-          const crumbs = [...ancestors, { id: card.id, title: card.title }];
-          if (titleLower.includes(query)) {
-            results.push({
-              id: card.id,
-              title: card.title,
-              path: crumbs.map((c) => c.title).join(' › '),
-            });
-          }
-          if (card.children && card.children.length) {
-            results = results.concat(searchCards(card.children, crumbs));
-          }
-        }
-        return results;
-      }
-
-      const matches = searchCards(data.cards, []);
+      const matches = tree.searchCards(data, query);
 
       if (matches.length === 0) {
-        writeAndExit(`No cards matching "${subArgs.join(' ')}"`);
+        writeAndExit(`No cards matching "${query}"`);
       } else {
         const lines = matches.map((m) => `  ${m.id}  ${m.path}`);
         writeAndExit(`Found ${matches.length} match${matches.length === 1 ? '' : 'es'}:\n${lines.join('\n')}`);

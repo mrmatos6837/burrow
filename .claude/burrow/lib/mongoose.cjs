@@ -100,6 +100,16 @@ function countDescendants(card, opts) {
   return count;
 }
 
+// --- Constants ---
+
+/**
+ * Maximum length for body preview snippets in renderTree output.
+ * Bodies longer than this are sliced before newline replacement to avoid
+ * processing thousands of characters unnecessarily.
+ * @type {number}
+ */
+const PREVIEW_TRUNCATE_LENGTH = 80;
+
 // --- Public API ---
 
 /**
@@ -246,15 +256,15 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
 
 
 /**
- * Create a body preview: truncate at 80 chars first, then replace newlines with spaces.
+ * Create a body preview: truncate at PREVIEW_TRUNCATE_LENGTH chars first, then replace newlines with spaces.
  * Truncate-first avoids processing thousands of characters in huge bodies.
  * @param {string} body
  * @returns {string}
  */
 function makePreview(body) {
   if (!body) return '';
-  if (body.length > 80) {
-    return body.slice(0, 80).replace(/\n/g, ' ') + '...';
+  if (body.length > PREVIEW_TRUNCATE_LENGTH) {
+    return body.slice(0, PREVIEW_TRUNCATE_LENGTH).replace(/\n/g, ' ') + '...';
   }
   return body.replace(/\n/g, ' ');
 }
@@ -269,6 +279,9 @@ function makePreview(body) {
  */
 function renderTree(data, rootId, opts) {
   const { depth: depthArg, archiveFilter } = opts || {};
+  if (depthArg !== undefined && typeof depthArg !== 'number') {
+    throw new Error('renderTree: depth must be a number');
+  }
   const maxDepth = depthArg === 0 ? Infinity : (depthArg !== undefined ? depthArg : 1);
   const filter = archiveFilter || 'active';
 
@@ -382,6 +395,38 @@ function unarchiveCard(data, id) {
   return { ...card, descendantCount };
 }
 
+/**
+ * Search all active cards for a query string (case-insensitive title match).
+ * Returns matches with path breadcrumbs for display.
+ * @param {object} data - Root data object
+ * @param {string} query - Lowercase search query
+ * @returns {Array<{id: string, title: string, path: string}>} Matching cards with path
+ */
+function searchCards(data, query) {
+  const lowerQuery = query.toLowerCase();
+  const results = [];
+
+  function walk(cards, ancestors) {
+    for (const card of cards) {
+      if (card.archived) continue;
+      const crumbs = [...ancestors, { id: card.id, title: card.title }];
+      if ((card.title || '').toLowerCase().includes(lowerQuery)) {
+        results.push({
+          id: card.id,
+          title: card.title,
+          path: crumbs.map((c) => c.title).join(' › '),
+        });
+      }
+      if (card.children && card.children.length) {
+        walk(card.children, crumbs);
+      }
+    }
+  }
+
+  walk(data.cards, []);
+  return results;
+}
+
 module.exports = {
   findById,
   findParent,
@@ -394,7 +439,9 @@ module.exports = {
 
   countDescendants,
   makePreview,
+  PREVIEW_TRUNCATE_LENGTH,
   renderTree,
+  searchCards,
   archiveCard,
   unarchiveCard,
 };
