@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Packaging & Distribution
-status: planning
-stopped_at: "Completed 09-01-PLAN.md"
-last_updated: "2026-03-14T22:55:09Z"
-last_activity: 2026-03-14 — Phase 9 Plan 01 complete (installer engine)
+status: executing
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-14T23:00:12.932Z"
+last_activity: "2026-03-14 — Plan 01 complete: installer engine (detect, install, upgrade, repair, sentinel)"
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 1
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
   percent: 33
 ---
 
@@ -48,6 +48,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 8 | 4 | ~77 min | ~19 min |
 
 *Updated after each plan completion*
+| Phase 09-installer-rewrite P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ v1.2 decisions:
 - Engine/CLI separation: pure-function engine module (Plan 01) with no readline; CLI wired on top in Plan 02
 - performRepair takes an explicit missingFiles parameter from detect() output to remain pure/testable
 - cards.json preservation in upgrade is unconditional (not a flag) — hardcoded guarantee
+- [Phase 09-installer-rewrite]: readline interface only created when interactive mode needed; --yes skips it to avoid hanging on stdin
+- [Phase 09-installer-rewrite]: Uninstall default confirmation is NO (destructive) while upgrade/repair default to YES
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T22:55:09Z
-Stopped at: Completed 09-01-PLAN.md
-Resume file: .planning/phases/09-installer-rewrite/09-02-PLAN.md
+Last session: 2026-03-14T23:00:12.930Z
+Stopped at: Completed 09-02-PLAN.md
+Resume file: None

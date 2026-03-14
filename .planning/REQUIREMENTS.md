@@ -9,11 +9,11 @@ Requirements for Packaging & Distribution milestone. Each maps to roadmap phases
 
 ### Installer
 
-- [ ] **INST-01**: User can run guided interactive install with readline prompts (install path, options)
+- [x] **INST-01**: User can run guided interactive install with readline prompts (install path, options)
 - [x] **INST-02**: Installer detects existing burrow installation and runs upgrade vs fresh install
-- [ ] **INST-03**: User can run non-interactive install with `--yes` flag (all defaults)
+- [x] **INST-03**: User can run non-interactive install with `--yes` flag (all defaults)
 - [x] **INST-04**: Installer explains what CLAUDE.md instructions do and prompts user to opt in; if accepted, appends block wrapped in sentinel markers (`<!-- burrow:start/end -->`)
-- [ ] **INST-05**: Uninstall removes all burrow files and only the sentinel-marked CLAUDE.md section, without modifying any other content
+- [x] **INST-05**: Uninstall removes all burrow files and only the sentinel-marked CLAUDE.md section, without modifying any other content
 
 ### npm Package
 
@@ -55,11 +55,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INST-01 | Phase 9 | Pending |
+| INST-01 | Phase 9 | Complete |
 | INST-02 | Phase 9 | Complete |
-| INST-03 | Phase 9 | Pending |
+| INST-03 | Phase 9 | Complete |
 | INST-04 | Phase 9 | Complete |
-| INST-05 | Phase 9 | Pending |
+| INST-05 | Phase 9 | Complete |
 | UPD-01 | Phase 9 | Complete |
 | UPD-02 | Phase 10 | Pending |
 | UPD-03 | Phase 10 | Pending |
