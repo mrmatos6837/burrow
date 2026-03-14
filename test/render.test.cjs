@@ -304,6 +304,46 @@ describe('formatAge via renderCard', () => {
   });
 });
 
+describe('formatAge direct hardening (QUAL-01)', () => {
+  // formatAge is not exported; test via renderCard which calls formatCreatedDate(card.created)
+  // which in turn calls formatAge. A numeric created value should show ??? not NaN.
+
+  it('numeric created (non-string) does not produce NaN in output', () => {
+    const card = makeCard({ created: 12345 });
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for numeric created');
+    assert.ok(result.includes('???'), 'Should show ??? for numeric created');
+  });
+
+  it('random string created does not produce NaN in output', () => {
+    const card = makeCard({ created: 'not-a-date' });
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for random string');
+    assert.ok(result.includes('???'), 'Should show ??? for invalid string');
+  });
+
+  it('empty string created shows ??? in output', () => {
+    const card = makeCard({ created: '' });
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for empty string');
+    assert.ok(result.includes('???'), 'Should show ??? for empty string');
+  });
+
+  it('undefined created shows ??? in output', () => {
+    const card = makeCard({ created: undefined });
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for undefined');
+    assert.ok(result.includes('???'), 'Should show ??? for undefined');
+  });
+
+  it('null created shows ??? in output', () => {
+    const card = makeCard({ created: null });
+    const result = renderCard(card, [], {});
+    assert.ok(!result.includes('NaN'), 'Should not render NaN for null');
+    assert.ok(result.includes('???'), 'Should show ??? for null');
+  });
+});
+
 describe('renderMutation', () => {
   it('renders add with checkmark and card detail', () => {
     const card = makeCard();
