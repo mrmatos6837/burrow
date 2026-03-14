@@ -53,7 +53,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
   4. Installer explains what CLAUDE.md instructions are for and prompts the user; if they opt in, CLAUDE.md contains the burrow block with sentinel markers — if they decline, CLAUDE.md is untouched
   5. Re-running the installer on an existing install replaces source files but leaves `cards.json` untouched
   6. Running uninstall removes `.claude/burrow/`, `.claude/commands/burrow/`, and if sentinel markers exist in CLAUDE.md, removes only that block — no other content is modified
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 09-01-PLAN.md — Installer engine: detection, sentinel CLAUDE.md, file operations (TDD)
 - [ ] 09-02-PLAN.md — Interactive CLI: readline prompts, --yes, --uninstall, integration tests
@@ -90,6 +90,6 @@ Plans:
 | 6. Rendering Pipeline Refactor | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7. Rendering Enhancements | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8. Engine Quality & Ergonomics | v1.1 | 4/4 | Complete | 2026-03-14 |
-| 9. Installer Rewrite | v1.2 | 0/2 | Not started | - |
+| 9. Installer Rewrite | 1/2 | In Progress|  | - |
 | 10. Version Tracking & Update Command | v1.2 | 0/? | Not started | - |
 | 11. npm Package | v1.2 | 0/? | Not started | - |
