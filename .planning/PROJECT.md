@@ -44,7 +44,16 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 <!-- Current scope. Building toward these. -->
 
-(No active milestone — use `/gsd:new-milestone` to start next)
+## Current Milestone: v1.2 Packaging & Distribution
+
+**Goal:** Make burrow installable by anyone with a single command — guided installer UX, npm package, update mechanism, and proper version tracking.
+
+**Target features:**
+- Guided interactive installer (rewrite install.cjs with readline prompts, detection, idempotency)
+- npm package (`create-burrow`) for `npx create-burrow` distribution
+- Update mechanism (re-run installer in update mode, preserve user data)
+- Version tracking and startup check (passive notification when outdated)
+- Package/installed file separation (clear boundary between distributed and generated files)
 
 ### Out of Scope
 
@@ -175,4 +184,4 @@ install.cjs                # Copies source, commands, and data into target proje
 | searchCards in engine | Recursive search lives in mongoose.cjs with ancestor accumulation — O(n) walk | ✓ Good — CLI find is a thin wrapper, search logic centralized |
 
 ---
-*Last updated: 2026-03-14 after v1.1 milestone*
+*Last updated: 2026-03-14 after v1.2 milestone start*

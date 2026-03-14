@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: between_milestones
-stopped_at: v1.1 milestone completed
+milestone: v1.2
+milestone_name: Packaging & Distribution
+status: defining_requirements
+stopped_at: null
 last_updated: "2026-03-14"
-last_activity: 2026-03-14 — v1.1 milestone archived
+last_activity: 2026-03-14 — Milestone v1.2 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,12 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Packaging & Distribution
 
 ## Current Position
 
-Between milestones. v1.1 shipped 2026-03-14.
-Next step: `/gsd:new-milestone` to start next milestone.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-14 — Milestone v1.2 started
 
 ## Performance Metrics
 
@@ -65,5 +67,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-14
-Stopped at: v1.1 milestone completed
+Stopped at: Defining v1.2 requirements
 Resume file: None
