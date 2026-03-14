@@ -417,7 +417,12 @@ describe('performRepair()', () => {
   });
 
   it('returns results object', () => {
+    // Partially seed so detect returns repair mode with a missing list
+    const p1 = path.join(tmpDir, CORE_PATHS[0]);
+    fs.mkdirSync(path.dirname(p1), { recursive: true });
+    fs.writeFileSync(p1, 'placeholder');
     const { missing } = detect(tmpDir);
+    assert.ok(Array.isArray(missing), 'detect should return missing array in repair mode');
     const results = performRepair(srcDir, tmpDir, missing);
     assert.ok(typeof results === 'object');
   });
