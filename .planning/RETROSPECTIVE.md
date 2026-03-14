@@ -47,6 +47,50 @@
 
 ---
 
+## Milestone: v1.1 — Rendering & Ergonomics
+
+**Shipped:** 2026-03-14
+**Phases:** 3 | **Plans:** 8 | **Tests:** 240
+
+### What Was Built
+- Rendering pipeline rewrite — renderTree returns nested structure, eliminating flatten-renest roundtrip
+- Dynamic terminal width via resolveTermWidth() with MIN_TERM_WIDTH=40 floor
+- Engine optimizations — moveCard 4→2 walks, parameterized countDescendants, inline archive counting
+- Schema validation on load — corrupted cards.json caught with human-readable errors
+- CLI hardening — strict flag parsing, NaN/negative guards, enriched CRUD returns
+- Project bootstrapping — `burrow init` command with .gitignore and CLAUDE.md setup
+
+### What Worked
+- **Tight requirements mapping**: 33 requirements across 7 categories, all mapped 1:1 to phases — zero scope drift
+- **TDD throughout**: Failing tests written first for every plan — caught several edge cases that manual testing would have missed
+- **Pre-computed metadata pattern**: Computing descendantCount/hasBody once in renderTree and passing down eliminated redundant tree walks everywhere
+- **Enriched CRUD returns**: Single architectural decision (mutations return context) eliminated ~6 post-mutation findById/getBreadcrumbs calls
+- **Audit before completion**: Milestone audit passed first time — clean separation of phases prevented integration issues
+
+### What Was Inefficient
+- **Nyquist validation gaps**: 2 of 3 phases missing VALIDATION.md — validation step needs to be more integrated into plan execution rather than a retroactive step
+- **STATE.md drift**: STATE.md showed 0% progress and "Ready to plan" even after all 8 plans were executed — frontmatter tracking lagged behind actual work
+
+### Patterns Established
+- **resolveTermWidth()** — centralized width resolution for all rendering commands
+- **Enriched CRUD returns** — {card, breadcrumbs, ...} pattern eliminates post-mutation walks
+- **O(1) schema validation** — spot-check first card ID, don't walk the tree
+- **searchCards in engine** — search logic centralized in mongoose.cjs, CLI is thin wrapper
+- **Idempotent init** — check-then-write with line-ending detection
+
+### Key Lessons
+1. Pre-computed metadata pays off enormously — compute once during tree traversal, pass to all consumers
+2. Enriched returns > post-mutation queries — if a mutation has the context, return it instead of making callers re-walk
+3. STATE.md needs automatic progress tracking — manual updates drift fast
+4. Nyquist validation should run during execution, not after
+
+### Cost Observations
+- Model mix: Opus for execution, Sonnet for agents, Haiku for research
+- Sessions: ~4-5 across 2 days
+- Notable: Wave-based parallelization in Phase 8 (4 plans, 2 waves) kept execution efficient despite plan dependencies
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -54,14 +98,18 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 | 5 | 10 | First milestone — established GSD + Burrow workflow |
+| v1.1 | 3 | 8 | Rendering rewrite + engine optimization — enriched returns pattern |
 
 ### Cumulative Quality
 
 | Milestone | Tests | LOC (source) | LOC (tests) | Zero-Dep |
 |-----------|-------|-------------|-------------|----------|
 | v1.0 | 150 | 1,415 | 2,065 | Yes |
+| v1.1 | 240 | 1,559 | 3,236 | Yes |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Schema simplicity pays compound interest
 2. Audit before shipping — catches real bugs
+3. Pre-computed metadata > redundant tree walks (v1.1: rendering + engine)
+4. Enriched returns > post-mutation queries (v1.1: CRUD pattern)

@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Refactor renderTree to return nested cards with pre-computed metadata** - `a40335c` (feat)
 2. **Task 2: Update renderCard and formatCardLine to consume pre-computed metadata** - `ba7dd92` (feat)
 
-**Plan metadata:** (pending final commit)
+**Plan metadata:** `eef4e25` (docs: complete rendering pipeline refactor plan 01)
 
 _Note: Both tasks used TDD: failing tests written first, then implementation to pass._
 

@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.1 Rendering & Ergonomics (Shipped: 2026-03-14)
+
+**Delivered:** Rendering pipeline rewrite, engine optimizations, CLI hardening, and project bootstrapping — 33 requirements across rendering, performance, validation, and data integrity.
+
+**Stats:** 3 phases, 8 plans | 1,559 LOC | 240 tests | 33 requirements | 34 commits | 2 days
+
+**Key accomplishments:**
+1. Rendering pipeline rewrite — renderTree operates on nested structure directly, eliminating flatten-renest roundtrip
+2. Dynamic terminal width — render output adapts to terminal size with MIN_TERM_WIDTH floor
+3. Engine optimization — consolidated tree walks (moveCard 4→2, parameterized countDescendants, inline archive counting)
+4. Data integrity — schema validation on load with human-readable errors, formatAge type guards
+5. CLI hardening — strict flag parsing, input validation, enriched CRUD returns eliminating post-mutation walks
+6. Project bootstrapping — `burrow init` for automatic .gitignore and CLAUDE.md setup
+
+**Archives:** `milestones/v1.1-ROADMAP.md`, `milestones/v1.1-REQUIREMENTS.md`, `milestones/v1.1-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-09)
 
 **Delivered:** Infinitely nestable card tool for AI agents — recursive tree engine, pretty-print rendering, and natural language interface.

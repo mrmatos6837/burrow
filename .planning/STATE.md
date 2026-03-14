@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Rendering & Ergonomics
-status: planning
-stopped_at: Completed 08-engine-quality-ergonomics/08-04-PLAN.md
-last_updated: "2026-03-14T04:59:45.342Z"
-last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
+milestone: none
+milestone_name: none
+status: between_milestones
+stopped_at: v1.1 milestone completed
+last_updated: "2026-03-14"
+last_activity: 2026-03-14 — v1.1 milestone archived
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,88 +18,52 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-12)
+See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** v1.1 Rendering & Ergonomics — Phase 6: Rendering Pipeline Refactor
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 6 of 8 (Rendering Pipeline Refactor)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
-
-Progress: [░░░░░░░░░░] 0%
+Between milestones. v1.1 shipped 2026-03-14.
+Next step: `/gsd:new-milestone` to start next milestone.
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 0 (v1.1)
-- Average duration: —
-- Total execution time: —
+**v1.1 Velocity:**
+- Total plans completed: 8
+- Total execution time: ~115min
 
-**By Phase:**
+**By Plan:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-*Updated after each plan completion*
-| Phase 06-rendering-pipeline-refactor P01 | 6min | 2 tasks | 4 files |
-| Phase 06-rendering-pipeline-refactor P02 | 4min | 2 tasks | 1 files |
-| Phase 07-rendering-enhancements P01 | 18min | 2 tasks | 4 files |
-| Phase 07-rendering-enhancements P02 | 10min | 2 tasks | 3 files |
-| Phase 08-engine-quality-ergonomics P03 | 12min | 1 tasks | 3 files |
-| Phase 08-engine-quality-ergonomics P01 | 20min | 2 tasks | 2 files |
-| Phase 08-engine-quality-ergonomics P02 | 20min | 2 tasks | 6 files |
-| Phase 08-engine-quality-ergonomics P04 | 25min | 2 tasks | 4 files |
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| Phase 06-rendering-pipeline-refactor | P01 | 6min | 2 | 4 |
+| Phase 06-rendering-pipeline-refactor | P02 | 4min | 2 | 1 |
+| Phase 07-rendering-enhancements | P01 | 18min | 2 | 4 |
+| Phase 07-rendering-enhancements | P02 | 10min | 2 | 3 |
+| Phase 08-engine-quality-ergonomics | P01 | 20min | 2 | 2 |
+| Phase 08-engine-quality-ergonomics | P02 | 20min | 2 | 6 |
+| Phase 08-engine-quality-ergonomics | P03 | 12min | 1 | 3 |
+| Phase 08-engine-quality-ergonomics | P04 | 25min | 2 | 4 |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [03-03]: nestFlatCards stack-based approach for flat-to-nested tree reconstruction
-- [03-01]: Pure render functions return strings, no stdout, no side effects
-- [03-01]: countActiveDescendants duplicated in render.cjs to keep it dependency-free
-- [Roadmap]: REND-01-05 are the critical path — Phase 7 and PERF-07 unblock after Phase 6
-- [Phase 06-01]: renderTree output changed from flat array with depth to nested tree with children arrays; depth implicit from nesting
-- [Phase 06-01]: render.cjs has zero mongoose dependency — formatCardLine uses pre-computed descendantCount only
-- [Phase 06-01]: Archive filtering consolidated into renderTree only; renderCard no longer re-filters children
-- [Phase 06-02]: nestFlatCards deleted — CLI now passes renderTree nested output directly to renderCard, eliminating flatten-renest roundtrip
-- [Phase 06-02]: getBreadcrumbs kept for add/edit (no renderTree call there); read now uses treeResult.breadcrumbs to avoid duplicate tree walk
-- [Phase 07-01]: formatCreatedDate also needs null/undefined/invalid guard — calling new Date(isoString) directly produces NaN in YYYY-MM-DD fields; guard in formatAge alone insufficient
-- [Phase 07-01]: PERF-07: root card descendantCount derived from builtChildren.reduce() instead of redundant countActiveDescendants(rootCard); children counts already computed correctly during buildNested
-- [Phase 07-01]: Future-date clamp via Math.max(0, now - then) in formatAge renders future timestamps as 'just now'
-- [Phase 07-rendering-enhancements]: MIN_TERM_WIDTH=40 derived from minimum layout budget; padding formula fixed to Math.max(1, tw - leftContent.length - rightSide.length)
-- [Phase 07-rendering-enhancements]: resolveTermWidth() centralizes width resolution; move with strict: true requires width declared in parseArgs
-- [Phase 08-03]: BURROW_SECTION_LF constant holds LF content; toCRLF() converts on demand — avoids storing two copies
-- [Phase 08-03]: Idempotent init: check-then-write, never overwrite; includes('## Burrow') for CLAUDE.md, line-by-line trim for .gitignore
-- [Phase 08-engine-quality-ergonomics]: countActiveDescendants removed; countDescendants(card, { activeOnly: true }) is unified counting API
-- [Phase 08-engine-quality-ergonomics]: archiveCard/unarchiveCard and deleteCard return full card shape { ...card, descendantCount } for API consistency
-- [Phase 08-engine-quality-ergonomics]: makePreview truncate-first (slice before replace) to avoid processing huge strings; makePreview exported
-- [Phase 08-engine-quality-ergonomics]: validateSchema() spot-checks first card id only — O(1) not O(n) — schema validation should never walk the tree
-- [Phase 08-engine-quality-ergonomics]: generateId() takes no parameters — crypto.randomUUID() collision-free at any reasonable card count without tree walk
-- [Phase 08-engine-quality-ergonomics]: PERF-09: load() skips migrate() for v2 data; version check moved from migrate() into load() caller
-- [Phase 08-04]: addCard/editCard/moveCard enriched returns: mutations return {card, breadcrumbs, ...} so CLI has zero post-mutation tree walks — callers that used bare return value require update
-- [Phase 08-04]: searchCards encapsulates recursive search in mongoose.cjs — ancestor accumulation approach kept (O(n) walk) over per-match getPath calls which would be O(n*m)
-- [Phase 08-04]: strict:true on all parseArgs calls — unknown flags produce cross-mark errors across all CLI commands
+All v1.1 decisions archived in PROJECT.md Key Decisions table and milestones/v1.1-ROADMAP.md.
 
 ### Pending Todos
 
 See burrow cards for tracked work:
-- `burrow get 0155be04` — v1.1 milestone cards
 - `burrow get d6e53b29` — Backlog (future work)
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:55:47.153Z
-Stopped at: Completed 08-engine-quality-ergonomics/08-04-PLAN.md
+Last session: 2026-03-14
+Stopped at: v1.1 milestone completed
 Resume file: None

@@ -219,7 +219,7 @@
       "id": "90eb1ae1",
       "title": "v1 Remaining Work",
       "created": "2026-03-08T10:35:07.431Z",
-      "archived": false,
+      "archived": true,
       "body": "Phases 3 and 4. Prove the value — make it work, not bulletproof.",
       "children": [
         {
@@ -289,6 +289,14 @@
       ]
     },
     {
+      "id": "34e903a1",
+      "title": "--help flag design",
+      "created": "2026-03-13T22:29:15.235Z",
+      "archived": false,
+      "body": "When the user runs 'npx create-burrow --help', print this:\n\nThere's a hole in the ground next to your project.\nNot a real one — a metaphysical one.\n\n  npx create-burrow [path]    dig one here (default: .)\n  npx create-burrow --yes     dig without asking questions\n  npx create-burrow --uninstall   fill it back in (your cards survive)\n  npx create-burrow --help    you are here\n\nFirst time? Just run: npx create-burrow\n\nThe branding writes itself. The help text IS the onboarding — it tells you what burrow is (a hole), what it does (you throw thoughts in), and how to use it (three commands). No man page, no --verbose, no walls of flags. A poem that happens to be documentation.",
+      "children": []
+    },
+    {
       "id": "30059067",
       "title": "Branding",
       "created": "2026-03-08T10:38:08.550Z",
@@ -327,6 +335,23 @@
           "archived": false,
           "body": "",
           "children": [
+            {
+              "id": "1a763ccd",
+              "title": "Data Pipeline",
+              "created": "2026-03-08T15:41:39.543Z",
+              "archived": false,
+              "body": "",
+              "children": [
+                {
+                  "id": "df36b887",
+                  "title": "ETL Jobs",
+                  "created": "2026-03-08T15:41:45.558Z",
+                  "archived": false,
+                  "body": "",
+                  "children": []
+                }
+              ]
+            },
             {
               "id": "8698f27b",
               "title": "Auth API",
@@ -384,23 +409,6 @@
                       "children": []
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "id": "1a763ccd",
-              "title": "Data Pipeline",
-              "created": "2026-03-08T15:41:39.543Z",
-              "archived": false,
-              "body": "",
-              "children": [
-                {
-                  "id": "df36b887",
-                  "title": "ETL Jobs",
-                  "created": "2026-03-08T15:41:45.558Z",
-                  "archived": false,
-                  "body": "",
-                  "children": []
                 }
               ]
             }
@@ -514,65 +522,7 @@
           "created": "2026-03-10T15:08:43.916Z",
           "archived": false,
           "body": "",
-          "children": [
-            {
-              "id": "8a01bb38",
-              "title": "Improve tree alignment at deep nesting levels",
-              "created": "2026-03-08T16:18:42.784Z",
-              "archived": false,
-              "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
-              "children": []
-            },
-            {
-              "id": "b1db65c2",
-              "title": "Dynamic render width based on terminal size",
-              "created": "2026-03-09T21:01:33.938Z",
-              "archived": false,
-              "body": "Title truncation happens too aggressively — the render width is hardcoded. Should detect terminal width (process.stdout.columns) and adapt layout dynamically. Wider terminals get full titles, narrow terminals still truncate gracefully. Eliminates unnecessary … truncation on modern wide screens.",
-              "children": []
-            },
-            {
-              "id": "4fb8cfc8",
-              "title": "Eliminate flatten-then-renest pipeline",
-              "created": "2026-03-12T19:55:41.843Z",
-              "archived": false,
-              "body": "renderTree flattens the already-nested cards.json structure, then nestFlatCards re-nests it for renderCard. Refactor renderTree to keep nested structure intact while doing depth limiting, archive filtering, and computing descendantCount/hasBody/bodyPreview. Eliminates nestFlatCards and fixes all downstream duplication.",
-              "children": [
-                {
-                  "id": "53baf4d8",
-                  "title": "Deduplicate breadcrumb computation",
-                  "created": "2026-03-12T20:00:02.451Z",
-                  "archived": false,
-                  "body": "renderTree computes breadcrumbs (mongoose.cjs:273-277), then getBreadcrumbs in burrow-tools.cjs does the same via getPath. The read command calls both — renderTree's breadcrumbs get thrown away.",
-                  "children": []
-                },
-                {
-                  "id": "e091892f",
-                  "title": "Deduplicate countActiveDescendants",
-                  "created": "2026-03-12T20:00:02.495Z",
-                  "archived": false,
-                  "body": "renderTree calls it per card (mongoose.cjs:286), renderCard calls it again for totals (render.cjs:206), formatCardLine has a fallback that calls it a third time (render.cjs:104-105). Same subtrees walked multiple times.",
-                  "children": []
-                },
-                {
-                  "id": "5c64621c",
-                  "title": "Deduplicate archive filtering",
-                  "created": "2026-03-12T20:00:02.540Z",
-                  "archived": false,
-                  "body": "renderTree filters by archive status (mongoose.cjs:265-269), then renderCard filters the same children again (render.cjs:192-199).",
-                  "children": []
-                },
-                {
-                  "id": "de0ebebc",
-                  "title": "Remove nestFlatCards",
-                  "created": "2026-03-12T20:00:02.589Z",
-                  "archived": false,
-                  "body": "Once renderTree returns nested structure, nestFlatCards in burrow-tools.cjs becomes dead code. Delete it.",
-                  "children": []
-                }
-              ]
-            }
-          ]
+          "children": []
         },
         {
           "id": "a55b651e",
@@ -587,14 +537,6 @@
               "created": "2026-03-09T13:46:40.957Z",
               "archived": false,
               "body": "Support operating on multiple cards in a single command. E.g. archive multiple IDs, move multiple cards to a parent, bulk edit. Reduces round-trips for multi-card operations the agent currently does one at a time.",
-              "children": []
-            },
-            {
-              "id": "3afc0a09",
-              "title": "--minimal flag for machine-parseable compact output",
-              "created": "2026-03-08T16:16:39.676Z",
-              "archived": false,
-              "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.",
               "children": []
             }
           ]
@@ -663,14 +605,6 @@
               "archived": false,
               "body": "npm package for standalone installation. Zero deps = no build step needed. Core engine (mongoose, warren, render, core) needs zero changes — just packaging plumbing. Key tasks: (1) Create package.json with bin entry pointing to burrow-tools.cjs, (2) Update init.cjs to resolve paths from installed package location instead of symlinks, (3) Update CLAUDE.md snippet to use 'burrow' or 'npx burrow' instead of 'node .claude/burrow/burrow-tools.cjs', (4) Bundle slash command .md files and workflow so init can copy them from the package. Design decision: support both global install (npm i -g) and npx. Estimated effort: a few hours.",
               "children": []
-            },
-            {
-              "id": "3dad744a",
-              "title": "Init script: add cards.json.bak to .gitignore",
-              "created": "2026-03-09T21:52:15.247Z",
-              "archived": false,
-              "body": "The installation script (init.cjs) should automatically add cards.json.bak to .gitignore. Backup files from write operations shouldn't be tracked in git.",
-              "children": []
             }
           ]
         },
@@ -698,8 +632,595 @@
           "archived": false,
           "body": "Build a benchmark suite to measure burrow's performance against alternative agent storage solutions (flat markdown files, SQLite, etc.). Compare on read/write speed, token cost, state drift frequency, and developer ergonomics. Provides concrete data for the value proposition.",
           "children": []
+        },
+        {
+          "id": "3afc0a09",
+          "title": "--minimal flag for machine-parseable compact output",
+          "created": "2026-03-08T16:16:39.676Z",
+          "archived": false,
+          "body": "A bare-minimum output mode (e.g. --minimal or --quiet) that strips formatting and returns just the essential value — like an ID after add, a title after get, or a path after move. Designed for piping into other commands or scripting. Inspired by the node -e inline parsing pattern used during UAT testing.\n\nReevaluate whether we actually need this output before building it. Define concrete use cases first.",
+          "children": []
         }
       ]
+    },
+    {
+      "id": "96b432c7",
+      "title": "Milestones",
+      "created": "2026-03-12T20:06:47.608Z",
+      "archived": false,
+      "body": "",
+      "children": [
+        {
+          "id": "0155be04",
+          "title": "v1.1",
+          "created": "2026-03-12T20:06:50.881Z",
+          "archived": false,
+          "body": "",
+          "children": [
+            {
+              "id": "4fb8cfc8",
+              "title": "Eliminate flatten-then-renest pipeline",
+              "created": "2026-03-12T19:55:41.843Z",
+              "archived": false,
+              "body": "renderTree flattens the already-nested cards.json structure, then nestFlatCards re-nests it for renderCard. Refactor renderTree to keep nested structure intact while doing depth limiting, archive filtering, and computing descendantCount/hasBody/bodyPreview. Eliminates nestFlatCards and fixes all downstream duplication.",
+              "children": [
+                {
+                  "id": "53baf4d8",
+                  "title": "Deduplicate breadcrumb computation",
+                  "created": "2026-03-12T20:00:02.451Z",
+                  "archived": false,
+                  "body": "renderTree computes breadcrumbs (mongoose.cjs:273-277), then getBreadcrumbs in burrow-tools.cjs does the same via getPath. The read command calls both — renderTree's breadcrumbs get thrown away.",
+                  "children": []
+                },
+                {
+                  "id": "e091892f",
+                  "title": "Deduplicate countActiveDescendants",
+                  "created": "2026-03-12T20:00:02.495Z",
+                  "archived": false,
+                  "body": "renderTree calls it per card (mongoose.cjs:286), renderCard calls it again for totals (render.cjs:206), formatCardLine has a fallback that calls it a third time (render.cjs:104-105). Same subtrees walked multiple times.",
+                  "children": []
+                },
+                {
+                  "id": "5c64621c",
+                  "title": "Deduplicate archive filtering",
+                  "created": "2026-03-12T20:00:02.540Z",
+                  "archived": false,
+                  "body": "renderTree filters by archive status (mongoose.cjs:265-269), then renderCard filters the same children again (render.cjs:192-199).",
+                  "children": []
+                },
+                {
+                  "id": "de0ebebc",
+                  "title": "Remove nestFlatCards",
+                  "created": "2026-03-12T20:00:02.589Z",
+                  "archived": false,
+                  "body": "Once renderTree returns nested structure, nestFlatCards in burrow-tools.cjs becomes dead code. Delete it.",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "8a01bb38",
+              "title": "Improve tree alignment at deep nesting levels",
+              "created": "2026-03-08T16:18:42.784Z",
+              "archived": false,
+              "body": "At deep nesting (3+ levels), the box-drawing lines and count columns can drift out of alignment. Investigate consistent column alignment across all depth levels — possibly compute max width per column across the entire visible tree before rendering.",
+              "children": []
+            },
+            {
+              "id": "b1db65c2",
+              "title": "Dynamic render width based on terminal size",
+              "created": "2026-03-09T21:01:33.938Z",
+              "archived": false,
+              "body": "Title truncation happens too aggressively — the render width is hardcoded. Should detect terminal width (process.stdout.columns) and adapt layout dynamically. Wider terminals get full titles, narrow terminals still truncate gracefully. Eliminates unnecessary … truncation on modern wide screens.",
+              "children": []
+            },
+            {
+              "id": "3dad744a",
+              "title": "Init script: add cards.json.bak to .gitignore",
+              "created": "2026-03-09T21:52:15.247Z",
+              "archived": false,
+              "body": "The installation script (init.cjs) should automatically add cards.json.bak to .gitignore. Backup files from write operations shouldn't be tracked in git.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2f0389b7",
+      "title": "v1.2 Packaging & Distribution",
+      "created": "2026-03-13T21:40:40.114Z",
+      "archived": false,
+      "body": "## Vision\n\nSingle-command install: npx create-burrow. A developer runs it from their project root, walks through a 30-second guided setup, and burrow is installed. Same command handles updates — replaces source, never touches data. Between updates, a passive version check notifies users when a new version is available.\n\n## Strategy: npx create-burrow\n\nPackage name 'create-burrow' is confirmed available on npm (verified 2026-03-13). Follows the npm create-* convention — enables both 'npx create-burrow' and 'npm create burrow'. See research: [9c25d92f] Recommended approach, [52c54fa6] Package naming.\n\nClaude Code plugin distribution deferred to backlog — see [6dccf86e] in Backlog.\n\n## Key Decisions\n\n1. PER-PROJECT INSTALL. Data (cards.json) is per-project — committed to git, shared with team. Source and commands travel with the repo. See research: [91bc3d60] Recommendation.\n\n2. THE INSTALLER IS THE UPDATER. One code path handles fresh install and update. Distinguishes REPLACEABLE files (source, commands, VERSION) from SACRED files (cards.json, CLAUDE.md — created once, never overwritten). See research: [2b8db0b8] Recommended Update Approach, [55c8fe2f] Separation of concerns.\n\n3. GUIDED INSTALLER UX. Interactive prompts via Node readline (zero deps). 4 prompts max: CLAUDE.md integration, seed example cards, confirm paths, auto-detection of existing install for upgrade. --yes flag for non-interactive. ~200-300 lines. See research: [e1e8f6f1] Installer flow, [59e40f7d] Implementation skeleton.\n\n4. VERSION TRACKING. Plain-text .claude/burrow/VERSION file. Written on every install/update. See research: [ead4d5d6] Version marker strategy, [c010da74] Version Tracking.\n\n5. PASSIVE VERSION CHECK. On CLI startup, background-check npm registry (cached 24h), print one-line stderr notice if update available. Non-blocking, ~30 lines. See research: [eb314b12] Startup Version Check.\n\n6. FILE MANIFEST WITH SHA256 HASHES. On install/update, write a manifest of all installed files with their hashes. On update, detect user-modified files and warn before overwriting. GSD battle-tested pattern. See research: [26a2784d] Idempotency, [dcfdde31] Patterns worth copying.\n\n7. --uninstall FLAG. Clean removal of all burrow files (source, commands, VERSION, manifest) without touching sacred files (cards.json, CLAUDE.md). Respectful exit path. See research: [dcfdde31] point 8.\n\n8. .gitignore ENTRY FOR cards.json.bak. Installer adds backup file to .gitignore automatically. See research: [ca4effb0] Generated at install time.\n\n9. COMMONJS package.json MARKER. Write {\"type\":\"commonjs\"} to .claude/package.json to prevent ESM projects from breaking require(). See research: [dcfdde31] point 10.\n\n10. /burrow:update SLASH COMMAND. Agent-driven update workflow: check version, show what changed, confirm, run npx create-burrow@latest. Companion to the passive version check. See research: [2b8db0b8] Strategy, [b12ea67a] GSD update pattern.\n\n11. SEED EXAMPLE CARDS. Installer prompts to create a small demo tree showing burrow's structure. Helps first-timers understand what they're working with. See research: [e1e8f6f1] Installer questions.\n\n12. --help FLAG. Because even a hole in the ground should introduce itself.\n\n## What The User Experiences\n\nINSTALL:\n  npx create-burrow\n  -> Guided prompts (CLAUDE.md? seed cards? confirm?)\n  -> Copies source, commands, creates cards.json, updates CLAUDE.md\n  -> Done (v1.2.0). Say /burrow to get started.\n\nUPDATE NOTIFICATION (passive, on any burrow CLI call):\n  burrow v1.3.0 available (current: v1.2.0) — run npx create-burrow\n\nUPDATE (via npx or /burrow:update):\n  npx create-burrow\n  -> Detects existing v1.2.0, updates to v1.3.0\n  -> Warns if user modified any source files\n  -> Replaces source and commands, leaves data untouched\n  -> Done (v1.3.0).\n\nUNINSTALL:\n  npx create-burrow --uninstall\n  -> Removes source, commands, VERSION, manifest\n  -> Leaves cards.json and CLAUDE.md untouched\n  -> Gone. Your cards are still there if you change your mind.\n\n## Scope\n\nIN: npm package (create-burrow), guided installer, update mechanism, /burrow:update command, passive version check, version tracking, file manifest, --uninstall, --help, --yes, .gitignore entry, CommonJS marker, seed cards option, per-project install, GitHub releases.\nOUT: Plugin distribution (backlog [6dccf86e]), global install, Homebrew, curl|bash, multi-runtime, local patch backup/reapply.",
+      "children": [
+        {
+          "id": "bf82ebbc",
+          "title": "Distribution mechanism research",
+          "created": "2026-03-13T21:40:46.895Z",
+          "archived": false,
+          "body": "What's the best way to distribute burrow? Options to evaluate: npm package (npx installer), brew tap, curl|bash one-liner, GitHub releases binary, git clone. Consider: ease of install, ease of update, no-signup friction, cross-platform (macOS/Linux). Goal: single copy-paste command that starts the installer.",
+          "children": [
+            {
+              "id": "0559a7b3",
+              "title": "Option 1: npm package with npx installer",
+              "created": "2026-03-13T21:47:49.260Z",
+              "archived": false,
+              "body": "Pattern: publish to npm, users run 'npx burrow-install' or 'npx create-burrow' to scaffold files into their project.\n\nPROS:\n- One-command install, universally familiar to JS/Node devs\n- npx handles download + execute with zero pre-install — user needs only Node.js (which Claude Code users already have)\n- Built-in versioning via npm registry; updates via 'npx burrow-install@latest'\n- Zero-dep constraint is a perfect fit — no install step, no build, just publish the .cjs files\n- Cross-platform: works everywhere Node runs (macOS, Linux, Windows)\n- Package name reserves the brand on npm\n\nCONS:\n- Requires an npm account to publish (one-time, low friction)\n- npm registry is a third-party dependency for distribution (outages, policy changes)\n- 'npx' command can be slow on first run (downloads package each time unless cached)\n- Name squatting risk — good names may be taken (burrow, create-burrow)\n- Users must trust the npm supply chain\n\nFIT FOR BURROW:\nExcellent. The 'npx scaffolder' pattern (like create-next-app, create-vite) is the exact model for a tool that copies files into a project. Zero runtime deps means the package is tiny. The bin field points to the installer script, npx runs it, files get copied. Updates just mean re-running npx with @latest. This is the strongest standalone option.\n\nVERDICT: Strong candidate. Natural fit for the use case.",
+              "children": []
+            },
+            {
+              "id": "f1a8d544",
+              "title": "Option 2: Homebrew tap",
+              "created": "2026-03-13T21:48:04.101Z",
+              "archived": false,
+              "body": "Pattern: create a homebrew tap repo (e.g. homebrew-burrow), users run 'brew install user/burrow/burrow'.\n\nPROS:\n- Familiar to macOS developers; 'brew install' is muscle memory\n- Automatic updates via 'brew upgrade'\n- Works on Linux too (Homebrew on Linux, ARM64 support since late 2025)\n- No npm account needed — just a GitHub repo for the tap\n\nCONS:\n- Homebrew is not universally installed (Linux users often don't have it)\n- Requires maintaining a separate tap repository with formula definitions\n- Formula authoring for Node.js tools is awkward — Homebrew prefers standalone binaries, not scripts that copy files into projects\n- Doesn't fit the 'scaffold files into a project' pattern well — brew installs to a global prefix, not into the current directory\n- Post-install step still needed: user runs the installed binary which then copies files into their project (two-step process)\n- No Windows support (irrelevant for current scope but limits future)\n- More complex maintenance: formula versioning, bottle building, CI for tap\n\nFIT FOR BURROW:\nPoor. Homebrew is designed for installing standalone CLI tools and libraries into a global prefix. Burrow's core action is 'copy files into this project' — that's a post-install script at best, making the brew install feel like an unnecessary wrapper. The maintenance overhead of a tap doesn't justify the marginal UX improvement over npx.\n\nVERDICT: Not recommended as primary channel. Could be added later as a secondary option for discoverability.",
+              "children": []
+            },
+            {
+              "id": "4967c2df",
+              "title": "Option 3: curl|bash one-liner",
+              "created": "2026-03-13T21:48:19.402Z",
+              "archived": false,
+              "body": "Pattern: host install.sh on GitHub/website, users run 'curl -fsSL https://burrow.dev/install | bash'.\n\nPROS:\n- Single copy-paste command, zero prerequisites beyond curl and bash (universal on macOS/Linux)\n- No package manager needed — works on any unix system\n- Full control over install logic — can prompt, detect OS, place files anywhere\n- Fast: no registry lookup, no package download overhead\n- Common pattern in devtools (rustup, nvm, homebrew itself)\n\nCONS:\n- Security stigma: 'curl | bash' is widely criticized as unsafe (server can detect piping and serve different content; partial downloads execute incomplete scripts)\n- Requires hosting the script somewhere reliable (GitHub raw, custom domain)\n- No built-in versioning or update mechanism — must build that into the script\n- Users who care about security will want to inspect the script first (friction)\n- Script must handle its own error cases, platform detection, and idempotency\n- No dependency resolution — script must be self-contained\n\nFIT FOR BURROW:\nDecent but not ideal. The pattern works mechanically — a bash script can clone/download the repo and run the Node installer. But burrow already requires Node.js (Claude Code users have it), so bypassing npm to use raw bash adds complexity without benefit. The security perception issue also matters for a tool that modifies project files and CLAUDE.md.\n\nVERDICT: Viable as a secondary/fallback option. Not recommended as primary due to security perception and maintenance overhead vs npx.",
+              "children": []
+            },
+            {
+              "id": "3d798162",
+              "title": "Option 4: GitHub releases (tarball)",
+              "created": "2026-03-13T21:48:30.624Z",
+              "archived": false,
+              "body": "Pattern: publish tagged releases on GitHub with a tarball. Users download, extract, and run the installer.\n\nPROS:\n- No third-party registry dependency — GitHub is the single source of truth\n- Users can inspect exactly what they're downloading (tagged source)\n- Works with any toolchain — just download and extract\n- GitHub Actions can automate release creation\n- Free, no account needed to download (only to publish)\n\nCONS:\n- Multi-step process: download tarball, extract, cd into directory, run installer (high friction)\n- No single-command install without wrapping in a curl|bash script (which defeats the purpose)\n- No built-in update mechanism — users must check for new releases manually\n- Cross-platform extraction differences (tar flags vary)\n- Discoverability is poor — users must know the GitHub URL\n\nFIT FOR BURROW:\nWeak as a primary channel. GitHub releases are great for archival and for users who want to pin exact versions, but the multi-step download-extract-run flow is too much friction for a tool targeting developers who want a single command. However, GitHub releases should exist regardless as the canonical source artifact.\n\nVERDICT: Not recommended as primary. Use as a supplementary artifact alongside whatever primary channel is chosen. Every release should have a GitHub release tag.",
+              "children": []
+            },
+            {
+              "id": "485e34fa",
+              "title": "Option 5: git clone + run installer",
+              "created": "2026-03-13T21:48:42.089Z",
+              "archived": false,
+              "body": "Pattern: users clone the burrow repo, then run 'node install.cjs <target-path>'. This is the current mechanism.\n\nPROS:\n- Dead simple to implement — already done\n- Full source is visible; maximum transparency\n- Works offline once cloned\n- No publish step, no registry, no accounts\n- Users get the complete repo including tests and docs\n\nCONS:\n- Two-step process: clone, then run installer (not single-command)\n- Requires git (universal for devs, but still a dependency)\n- No update mechanism — user must 'git pull' and re-run installer manually\n- Clones the entire repo history (heavier than needed)\n- User must remember the repo URL and installer command\n- Doesn't scale: not discoverable, no versioning story, no install analytics\n- Feels like an alpha/internal distribution method\n\nFIT FOR BURROW:\nThis is the current state. It works for the developer (you) and for early testing. It does not work as a distribution mechanism for external users. The two-step process and lack of updates make it unsuitable as a long-term solution.\n\nVERDICT: Fine for development and early adopters. Must be replaced by a proper distribution channel before any public launch.",
+              "children": []
+            },
+            {
+              "id": "067b5f31",
+              "title": "Option 6: Claude Code plugin system",
+              "created": "2026-03-13T21:49:03.589Z",
+              "archived": false,
+              "body": "Pattern: package burrow as a Claude Code plugin. Users install via '/plugin install burrow' from within Claude Code. This option was not in the original list but emerged during research.\n\nHOW IT WORKS:\nClaude Code (v1.0.33+) has a native plugin system. A plugin is a directory with .claude-plugin/plugin.json (manifest) plus optional commands/, skills/, agents/, hooks/, .mcp.json. Plugins are distributed through plugin marketplaces (GitHub repos that serve as registries). Users install with '/plugin install burrow@marketplace-name'. Anthropic runs an official marketplace, and custom marketplaces can be added.\n\nPROS:\n- Zero friction for the target audience — Claude Code users install without leaving their session\n- Native integration: slash commands, skills, agents, and hooks are first-class\n- Automatic namespacing prevents conflicts (/burrow:read, /burrow:add)\n- Plugin marketplace provides discoverability among exactly the right audience\n- No npm account, no brew formula, no external toolchain\n- Versioned releases with update support\n- Can include settings.json for default agent behavior\n- Official Anthropic marketplace submission is available\n\nCONS:\n- Only works for Claude Code users (but that IS the target audience)\n- Plugin system is relatively new (v1.0.33, ~early 2026) — API may evolve\n- Burrow's data file (.planning/burrow/cards.json) and CLAUDE.md integration may need a hook or post-install script — plugins primarily distribute commands/skills/agents, not project-scaffolding logic\n- Unclear whether plugins can run arbitrary Node scripts as part of install (the scaffolding step)\n- Plugin commands are namespaced (/burrow:read vs /burrow) — minor UX change\n- Locks distribution to the Claude Code ecosystem (no standalone use)\n\nKEY QUESTION:\nCan a plugin handle burrow's init step (creating .planning/burrow/cards.json, appending to CLAUDE.md)? This likely requires a hook or a skill that runs the init script. The plugin itself provides the commands and source code; a post-install hook or first-run skill handles project scaffolding.\n\nFIT FOR BURROW:\nPotentially excellent. Burrow is built specifically for Claude Code agents. Distributing through Claude Code's own plugin system means zero ecosystem mismatch. The commands/ and skills/ directories map directly to burrow's existing slash commands and workflow. The main gap is the scaffolding step (creating data files and CLAUDE.md), which may need creative handling via hooks or a setup skill.\n\nVERDICT: Strongest long-term option. Investigate whether the plugin system supports the init/scaffolding step. If yes, this should be the primary distribution channel. npm/npx serves as fallback for non-plugin-aware environments.",
+              "children": []
+            },
+            {
+              "id": "49a64048",
+              "title": "RECOMMENDATION: Plugin-first, npm-second strategy",
+              "created": "2026-03-13T21:49:24.702Z",
+              "archived": false,
+              "body": "SUMMARY OF OPTIONS:\n1. npm/npx installer — Strong. Natural fit for file-scaffolding tools. Single command. Built-in versioning.\n2. Homebrew tap — Weak. Wrong model (global install vs project scaffolding). High maintenance overhead.\n3. curl|bash — Decent. Universal but has security stigma. Adds bash complexity when Node is already available.\n4. GitHub releases — Weak standalone. Good as supplementary artifact for every release.\n5. git clone — Current state. Fine for dev, not for distribution.\n6. Claude Code plugin — Strongest long-term. Native to the target audience. Zero ecosystem mismatch.\n\nRECOMMENDATION: Two-tier strategy.\n\nPRIMARY: Claude Code plugin system\n- Burrow exists exclusively for Claude Code users. The plugin system is the native distribution channel for exactly this audience.\n- Package burrow as a plugin: commands/ for slash commands, skills/ for the burrow workflow, hooks/ for post-install scaffolding.\n- Submit to the official Anthropic marketplace for discoverability.\n- Users install with '/plugin install burrow' — zero friction, stays inside Claude Code.\n- Investigate the init/scaffolding gap: can a hook or first-run skill create .planning/burrow/cards.json and append to CLAUDE.md?\n\nSECONDARY: npm package (npx)\n- Fallback for users who want to install outside Claude Code's plugin system, or for environments where the plugin system isn't available.\n- 'npx create-burrow' or 'npx @burrow/init' runs the existing install.cjs logic.\n- Also serves as the underlying package the plugin could depend on for the init step.\n- Publish after the plugin path is validated.\n\nALWAYS DO:\n- GitHub releases on every version tag (canonical source artifact, changelog, transparency).\n- Keep 'git clone + run installer' working as the developer/contributor path.\n\nSKIP:\n- Homebrew tap (wrong model, high maintenance, low payoff for this audience).\n- curl|bash as primary (unnecessary when npm and plugins both work better).\n\nNEXT STEPS:\n1. Prototype burrow as a Claude Code plugin (restructure repo to match plugin layout).\n2. Test whether hooks or a setup skill can handle the scaffolding step (cards.json, CLAUDE.md).\n3. If plugin scaffolding works: submit to Anthropic marketplace, document install as '/plugin install burrow'.\n4. In parallel: create package.json with bin field for npx fallback path.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "0c6a5c42",
+          "title": "Install scope: local vs global",
+          "created": "2026-03-13T21:40:53.985Z",
+          "archived": false,
+          "body": "Should burrow install per-project (.claude/burrow/) or globally (~/.claude/burrow/)? Or offer both? Tradeoffs: per-project means each repo has its own tree and commands travel with the repo. Global means one burrow across all projects, no per-repo setup. GSD is per-project. What does the user actually want? Should the installer prompt for this choice?",
+          "children": [
+            {
+              "id": "7b263b7b",
+              "title": "Option A: Per-Project Install (current)",
+              "created": "2026-03-13T21:47:51.097Z",
+              "archived": false,
+              "body": "Source in .claude/burrow/, commands in .claude/commands/burrow/, data in .planning/burrow/cards.json, CLAUDE.md block in project root. Everything travels with the repo via git. PROS: (1) Multiple devs on same repo get burrow automatically — zero setup after clone. (2) Cards.json is designed to be committed, so per-project data is natural. (3) Each project has its own card tree — no cross-project bleed. (4) Version-lockable: the burrow version is pinned to whatever the repo has. (5) Works with CI/CD — cards.json readable in pipelines. CONS: (1) Every project needs its own install — N projects = N installs. (2) Updating burrow means updating every project individually. (3) Source code duplicated across repos clutters diffs on updates. (4) New projects need manual setup before burrow works.",
+              "children": []
+            },
+            {
+              "id": "934869d5",
+              "title": "Option B: Global Install",
+              "created": "2026-03-13T21:48:03.580Z",
+              "archived": false,
+              "body": "Source in ~/.claude/burrow/ (or ~/.claude/skills/burrow/), commands in ~/.claude/commands/burrow/, CLAUDE.md instructions in ~/.claude/CLAUDE.md. Data location is the hard question — see sub-options. PROS: (1) Install once, works everywhere. (2) Updates are single-point — update ~/.claude/burrow/ and all projects get it. (3) No source code in project repos. CONS: (1) cards.json can't live globally if it's meant to be per-project and committed to git. (2) ~/.claude/CLAUDE.md is user-level — every project sees burrow instructions even if that project doesn't use burrow. (3) Global commands/skills can't reference project-relative paths for data without a resolution mechanism. (4) Doesn't travel with the repo — teammates must install separately. (5) No version pinning per project.",
+              "children": []
+            },
+            {
+              "id": "c623b354",
+              "title": "Option C: Hybrid (global source, per-project data)",
+              "created": "2026-03-13T21:48:13.556Z",
+              "archived": false,
+              "body": "Source + commands installed globally (~/.claude/burrow/, ~/.claude/commands/burrow/). Data stays per-project (.planning/burrow/cards.json). CLAUDE.md block still per-project (tells agent where data lives). The CLI resolves data path from cwd, not from its own location. PROS: (1) Single source install, per-project data. (2) Updates are easy — update global source, all projects benefit. (3) cards.json still commits to git, travels with repo. (4) No source duplication across repos. CONS: (1) Two-step setup: global install once + per-project init for data/CLAUDE.md. (2) Global CLAUDE.md tells agent about burrow commands, but project CLAUDE.md still needed for data path. (3) Version mismatch risk — global source may be newer than what a project's cards.json expects. (4) Teammates still need the global install — only the data travels with the repo.",
+              "children": []
+            },
+            {
+              "id": "52a034a5",
+              "title": "Option D: Plugin distribution",
+              "created": "2026-03-13T21:48:23.160Z",
+              "archived": false,
+              "body": "Package burrow as a Claude Code plugin (the new standard). Structure: .claude-plugin/plugin.json + skills/ + agents/ + hooks/. Installed via /plugin install from a marketplace or --plugin-dir for local dev. Skills are namespaced (e.g. /burrow:read, /burrow:add). Plugin can ship a settings.json. PROS: (1) Native Claude Code distribution — discoverable via marketplace. (2) Namespaced commands avoid collisions. (3) Plugin system handles install/update/versioning. (4) Can be enabled per-project or globally. (5) Future-proof — this is where Claude Code is heading. CONS: (1) Skills replace slash commands — /burrow:read instead of /burrow read. Different UX. (2) Plugin skills can't easily write to project .planning/ without the user granting permissions. (3) Still need per-project data init (cards.json). (4) Plugin system is newer — less battle-tested. (5) Requires adapting from commands/ to skills/ format.",
+              "children": []
+            },
+            {
+              "id": "d4f3df2f",
+              "title": "Claude Code command resolution (research)",
+              "created": "2026-03-13T21:48:31.888Z",
+              "archived": false,
+              "body": "Claude Code resolves commands/skills from multiple locations with priority: enterprise > personal (~/.claude/) > project (.claude/). Both .claude/commands/ and .claude/skills/ work — commands are being merged into skills. Key findings: (1) ~/.claude/commands/ IS checked — global commands work. (2) ~/.claude/skills/ IS checked — global skills work. (3) ~/.claude/CLAUDE.md IS loaded for all projects as user-level instructions. (4) Plugin skills are namespaced (plugin-name:skill-name) and can't conflict with project skills. (5) .claude/rules/ supports symlinks for sharing across projects. (6) Skills support ${CLAUDE_SKILL_DIR} variable for referencing bundled files. This means global install IS viable for source+commands, and per-project CLAUDE.md + data is independently viable.",
+              "children": []
+            },
+            {
+              "id": "2f9333f3",
+              "title": "GSD installer analysis",
+              "created": "2026-03-13T21:48:40.953Z",
+              "archived": false,
+              "body": "GSD installs per-project: source in .claude/get-shit-done/, commands in .claude/commands/gsd/, agents in .claude/agents/. On this machine, ~/.claude/get-shit-done is a symlink to the frederico project's .claude/get-shit-done/ — a manual workaround for reuse, not an official feature. GSD has no global install option. Reason: GSD is tightly coupled to per-project state (.planning/ directory with STATE.md, ROADMAP.md, phases/). Global install would decouple source from state, adding complexity. Burrow has the same coupling — cards.json is per-project. The symlink pattern is telling: even GSD's creator wanted global-like reuse but settled for per-project with a manual link.",
+              "children": []
+            },
+            {
+              "id": "91bc3d60",
+              "title": "Recommendation",
+              "created": "2026-03-13T21:48:53.073Z",
+              "archived": false,
+              "body": "Ship per-project as default, but build toward plugin distribution. Short-term (v1.2): Keep per-project install. The installer copies source to .claude/burrow/, commands to .claude/commands/burrow/, inits .planning/burrow/cards.json, appends CLAUDE.md block. This is proven, simple, and cards.json commits naturally. Medium-term (v1.3+): Package as a Claude Code plugin. The plugin system is where Claude Code is heading — it handles install, update, namespacing, and marketplace discovery natively. The plugin ships skills (replacing commands), and a per-project init skill that creates cards.json + CLAUDE.md block. The source lives in the plugin, data stays per-project. Do NOT pursue pure global install. The data-is-per-project constraint means global source only saves the install step but adds version mismatch risk and breaks the 'clone and go' story. The hybrid approach adds complexity without enough payoff over plugin distribution. Plugin distribution gives you the best of both: centralized source (the plugin) + per-project data (cards.json) + native update mechanism + marketplace discoverability.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "0da4078b",
+          "title": "Guided installer UX",
+          "created": "2026-03-13T21:40:59.930Z",
+          "archived": false,
+          "body": "Model after GSD installer: interactive prompts that walk the user through setup options. Questions to ask: install scope (local/global), whether to add CLAUDE.md instructions, whether to seed example cards. Should be idempotent — safe to re-run. Should detect existing installation and offer upgrade path.",
+          "children": [
+            {
+              "id": "3c84df0d",
+              "title": "Node readline patterns for interactive prompts",
+              "created": "2026-03-13T21:47:49.752Z",
+              "archived": false,
+              "body": "Use readline.createInterface({ input: process.stdin, output: process.stdout }). Key patterns from GSD installer reference:\n\n**Basic Y/n prompt:**\nrl.question('Choice [1]: ', (answer) => { rl.close(); const choice = answer.trim() || '1'; ... });\n\n**Colored output (ANSI escape codes):**\nconst cyan = '\\x1b[36m'; const green = '\\x1b[32m'; const yellow = '\\x1b[33m'; const dim = '\\x1b[2m'; const reset = '\\x1b[0m';\n\n**Numbered menu selection:**\nPrint options as numbered list, rl.question for choice, parseInt/switch on answer. Default value in brackets like [1].\n\n**Non-interactive fallback:**\nCheck process.stdin.isTTY before prompting. If false, use sensible defaults and log a message.\n\n**Cancel handling:**\nTrack answered=false. On rl 'close' event, if not answered, print 'Installation cancelled' and exit.\n\n**Chaining prompts:**\nGSD uses callbacks: promptRuntime((runtimes) => { promptLocation(runtimes); }). For burrow, could also use async/await with a promisified question helper:\nfunction ask(rl, q) { return new Promise(r => rl.question(q, r)); }\n\n**Key constraint:** One readline interface per prompt cycle — create, question, close. Or keep one open and chain questions sequentially.",
+              "children": []
+            },
+            {
+              "id": "e1e8f6f1",
+              "title": "Installer questions and flow design",
+              "created": "2026-03-13T21:48:03.309Z",
+              "archived": false,
+              "body": "Proposed interactive flow with 4 prompts, each with sensible defaults:\n\n**1. Detect existing installation first (no prompt needed)**\nCheck for .claude/burrow/burrow-tools.cjs at target. If found, switch to upgrade flow. If not, fresh install flow.\n\n**2. CLAUDE.md integration (Y/n, default Y)**\n'Append Burrow instructions to CLAUDE.md? [Y/n]'\nSkip if CLAUDE.md already contains 'Burrow — Agent Memory' marker. If no CLAUDE.md exists, ask 'Create CLAUDE.md with Burrow instructions? [Y/n]'.\n\n**3. Seed example cards (y/N, default N)**\n'Seed example cards to get started? [y/N]'\nCreates a small demo tree (e.g. 'Getting Started' with 2-3 child cards showing structure). Helps first-time users see what burrow looks like with data. Default N because most users want a clean slate.\n\n**4. Confirm before writing**\n'Install to <path>? [Y/n]'\nShow a summary of what will be written: files to create, files to skip, files to update. Let user bail out before any disk writes.\n\n**Flow order:** detect -> confirm paths -> CLAUDE.md -> seed -> install\n\n**Non-interactive mode:** If not TTY or --yes flag, use all defaults (install, append CLAUDE.md, no seed cards).",
+              "children": []
+            },
+            {
+              "id": "071b05ec",
+              "title": "Idempotency: detect, upgrade, or skip",
+              "created": "2026-03-13T21:49:24.260Z",
+              "archived": false,
+              "body": "Three installation states to detect and handle:\n\n**1. Fresh install (nothing exists)**\nNo .claude/burrow/ at target. Full install: copy source, commands, create cards.json, set up CLAUDE.md.\n\n**2. Existing install, same version**\nCompare VERSION or hash of burrow-tools.cjs. If identical, report 'Burrow is already up to date' and skip. Offer to re-run CLAUDE.md setup or seed cards if user wants.\n\n**3. Existing install, different version (upgrade)**\nSource files differ. Offer upgrade: 'Existing Burrow installation found (installed: <date/version>). Upgrade? [Y/n]'\n- ALWAYS preserve cards.json (never overwrite user data)\n- Replace .claude/burrow/ source files (lib/, burrow-tools.cjs)\n- Replace .claude/commands/burrow/ and burrow.md (updated commands)\n- Check CLAUDE.md for outdated snippet (diff the marker section)\n- Show what will change: 'Will update: source (N files), commands (M files). Will preserve: cards.json'\n\n**Detection method:**\n- Primary: check existence of .claude/burrow/burrow-tools.cjs\n- Version: read a VERSION file or compare file content hashes\n- Data: check .planning/burrow/cards.json existence and whether it has content\n\n**Safety:** Never delete or overwrite cards.json. If it exists, always skip. If user wants to reset data, that's a separate explicit action.",
+              "children": []
+            },
+            {
+              "id": "2ba3759c",
+              "title": "GSD installer reference analysis",
+              "created": "2026-03-13T21:49:38.623Z",
+              "archived": false,
+              "body": "Studied the GSD installer at ~/.npm/_npx/.../get-shit-done-cc/bin/install.js. Key patterns worth reusing:\n\n**What GSD does well:**\n- ASCII art banner with version number — immediate brand recognition\n- Numbered menu prompts with defaults in brackets: 'Choice [1]: '\n- Color coding: cyan for choices, green for success checkmarks, yellow for warnings, dim for paths\n- Non-TTY fallback: detects process.stdin.isTTY, defaults to safe choice\n- Cancel handling: tracks 'answered' boolean, prints 'Installation cancelled' on premature rl.close()\n- Per-step checkmarks: green checkmark + description for each installed component\n- Clean error reporting: yellow warning symbol + message for skipped items\n- Callback-chained prompts: promptRuntime -> promptLocation -> install\n- Path display: replaces homedir with ~ for readability\n\n**What GSD does that burrow doesn't need:**\n- Multi-runtime support (Claude, OpenCode, Gemini, Codex) — burrow is Claude Code only\n- Agent configuration and settings.json — burrow has no agents\n- Statusline configuration — not applicable\n- Path prefix rewriting in markdown files — burrow commands use relative paths\n\n**Patterns to adopt:**\n- Banner with version\n- Numbered menu for choices\n- Green checkmark / dot skip / red X fail feedback per step\n- Non-TTY detection and defaults\n- Cancel handling on Ctrl+C\n- Summary at end with next-steps hint ('Say /burrow to get started')\n\n**GSD installer is ~2400 lines.** Burrow's should be ~200-300 lines — much simpler scope.",
+              "children": []
+            },
+            {
+              "id": "c0818991",
+              "title": "Progress feedback and terminal output",
+              "created": "2026-03-13T21:49:50.837Z",
+              "archived": false,
+              "body": "Adopt the existing install.cjs pattern (already good) and enhance:\n\n**Step indicators (already in current installer):**\n- ok(msg): green checkmark + message for completed steps\n- skip(msg): dim dot + '(already done)' for skipped steps  \n- fail(msg): red X + message, exits on failure\n\n**Enhancements:**\n- Add a banner at top: 'Burrow Installer v<version>' in cyan\n- Show install plan before executing: list what will be created/updated/skipped\n- Number each step: '[1/4] Copying source files...'\n- End with summary box showing what was done and next steps\n\n**Color scheme (ANSI, matches GSD convention):**\n- cyan (\\x1b[36m): headings, paths, choices\n- green (\\x1b[32m): success checkmarks\n- yellow (\\x1b[33m): warnings, skipped items\n- dim (\\x1b[2m): secondary info, paths\n- red (\\x1b[31m): errors only\n- reset (\\x1b[0m): clear formatting\n\n**Completion message template:**\n'Done! Say /burrow to get started.'\nOr if upgrading: 'Updated! Your cards are untouched.'",
+              "children": []
+            },
+            {
+              "id": "35269e6e",
+              "title": "Edge cases and error handling",
+              "created": "2026-03-13T21:50:06.454Z",
+              "archived": false,
+              "body": "Edge cases to handle gracefully:\n\n**No CLAUDE.md exists:**\nCurrent installer already handles this — creates one. In guided mode, ask: 'No CLAUDE.md found. Create one with Burrow instructions? [Y/n]'\n\n**No .claude/ directory:**\nCreate it. This is normal for projects that haven't used Claude Code features yet. fs.mkdirSync with recursive:true handles this.\n\n**Running from wrong directory:**\nCurrent installer takes a target path argument. For guided mode, default to process.cwd() if no arg given. Validate the target looks like a project root (has .git/, package.json, or at minimum is a directory that exists).\n\n**Permission errors:**\nWrap fs operations in try/catch. Report which file failed and why. Don't leave a half-installed state — if a critical step fails, report clearly but don't try to roll back (too complex, not worth it).\n\n**cards.json exists but is corrupt:**\nDon't touch it. Report: 'Existing cards.json found but could not be parsed. Skipping data file creation. Fix manually or delete to reset.'\n\n**Disk full / read-only filesystem:**\nCatch ENOSPC and EROFS errors with clear messages.\n\n**Ctrl+C during install:**\nUse the answered-boolean pattern from GSD. If user cancels during a prompt, exit cleanly. If user cancels during file operations, partial install is fine — installer is idempotent on re-run.\n\n**Existing CLAUDE.md with modified Burrow section:**\nCheck for the marker string 'Burrow — Agent Memory'. If found, skip. Don't try to diff or update the section — too fragile. If the snippet needs updating across versions, that's a manual task or a future feature.",
+              "children": []
+            },
+            {
+              "id": "59e40f7d",
+              "title": "Recommended implementation skeleton",
+              "created": "2026-03-13T21:50:20.204Z",
+              "archived": false,
+              "body": "Proposed structure for the guided installer (install.cjs rewrite):\n\n```\n// Sections:\n// 1. Constants: colors, paths, CLAUDE.md snippet, version\n// 2. Helpers: ok/skip/fail, ensureDir, copyDirSync, ask(rl, question)\n// 3. Detection: detectExisting(targetDir) -> { installed, version, hasData }\n// 4. Prompts: promptConfirmInstall, promptClaudeMd, promptSeedCards\n// 5. Install logic: installFresh(targetDir, options), installUpgrade(targetDir, options)\n// 6. Main: parseArgs, detect, prompt or use defaults, execute\n\n// Key helper for async readline:\nfunction ask(rl, question) {\n  return new Promise(resolve => rl.question(question, resolve));\n}\n\n// Main flow (async):\nasync function main() {\n  const target = process.argv[2] || process.cwd();\n  const nonInteractive = !process.stdin.isTTY || process.argv.includes('--yes');\n  \n  printBanner();\n  const existing = detectExisting(target);\n  \n  if (nonInteractive) {\n    // Use all defaults\n    if (existing.installed) upgrade(target);\n    else freshInstall(target, { claudeMd: true, seed: false });\n    return;\n  }\n  \n  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });\n  // ... prompt chain ...\n  rl.close();\n}\n```\n\n**Estimated size:** 200-300 lines. Reuse existing copyDirSync and file operations from current install.cjs. Add readline prompts and detection logic on top.\n\n**CLI interface:**\n- node install.cjs [target-path] — interactive guided install\n- node install.cjs [target-path] --yes — non-interactive, all defaults\n- npx burrow [target-path] — future npm package entry point",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "4288014f",
+          "title": "Update mechanism",
+          "created": "2026-03-13T21:41:07.087Z",
+          "archived": false,
+          "body": "How do users update burrow after initial install? Options: npx burrow@latest, burrow --update, manual re-run of installer. Needs to preserve cards.json data across updates. Should only replace source code and commands, never touch user data. Version check on startup? Update notification?",
+          "children": [
+            {
+              "id": "2b8db0b8",
+              "title": "Strategy: Recommended Update Approach",
+              "created": "2026-03-13T21:47:33.549Z",
+              "archived": false,
+              "body": "Recommended: hybrid approach combining GSD patterns with burrow's simpler needs.\n\nPRIMARY: 'npx burrow@latest' re-runs installer with update awareness. The npm package entry point detects existing installation and runs in update mode (replace source, skip data). This is the single-command update path.\n\nSECONDARY: '/burrow:update' slash command (like GSD's /gsd:update). Agent-driven workflow that checks version, shows changelog, confirms, runs npx. Better UX for users already in a Claude Code session.\n\nTERTIARY: Version check on CLI startup with notification (like brew). On every burrow-tools.cjs invocation, compare installed VERSION against a cached latest-version check. Print one-line notice if outdated. Cache the check result for 24h to avoid network on every call. This is passive — doesn't update, just notifies.\n\nWhy NOT --force/--update flag on installer: adds complexity to the installer. The installer should always be idempotent — detect existing install, act accordingly. No flags needed if the installer is smart about it.",
+              "children": []
+            },
+            {
+              "id": "6f980ecb",
+              "title": "What Gets Updated vs Preserved",
+              "created": "2026-03-13T21:47:43.837Z",
+              "archived": false,
+              "body": "REPLACED on update (source code):\n- .claude/burrow/burrow-tools.cjs\n- .claude/burrow/lib/*.cjs (mongoose, warren, core, render)\n- .claude/burrow/workflows/burrow.md\n\nREPLACED on update (commands):\n- .claude/commands/burrow.md\n- .claude/commands/burrow/*.md (add, edit, read, dump, etc.)\n\nNEVER TOUCHED:\n- .planning/burrow/cards.json (user data)\n- .planning/burrow/cards.json.bak (backup)\n- CLAUDE.md burrow section (already appended, idempotent check)\n\nMERGE STRATEGY: The installer wipes .claude/burrow/ and .claude/commands/burrow/ entirely, then copies fresh files from the package. This is the GSD pattern — clean replacement, not file-by-file patching. Safe because these directories contain ONLY burrow source code, zero user data. Data lives in .planning/burrow/ which is a completely separate directory tree.\n\nThe directory separation (.claude/burrow/ for code vs .planning/burrow/ for data) makes updates trivial — rm -rf the code dir, copy new code. Data is untouched by design.",
+              "children": []
+            },
+            {
+              "id": "c010da74",
+              "title": "Version Tracking",
+              "created": "2026-03-13T21:47:55.690Z",
+              "archived": false,
+              "body": "Store version in a plain-text VERSION file at .claude/burrow/VERSION (same pattern as GSD's .claude/get-shit-done/VERSION). Contains just the semver string, e.g. '1.0.0'.\n\nWhy a separate file, not embedded in code:\n- Easy to read from bash scripts (cat .claude/burrow/VERSION)\n- Easy to read from Node (fs.readFileSync)\n- No parsing needed — just a string\n- Gets replaced on update along with other source files\n- GSD does exactly this and it works well\n\nWhy NOT in cards.json:\n- cards.json is user data, VERSION is source metadata\n- Mixing them means the installer has to read+modify cards.json during updates\n- Violates the 'never touch cards.json' rule\n\nWhy NOT in package.json:\n- .claude/package.json is shared (just {type:commonjs}), not burrow-specific\n- No package.json inside .claude/burrow/ currently\n\nVersion comparison: Simple semver compare using string split on dots, compare each numeric segment. No npm semver library needed — just a 10-line function. GSD checks npm registry for latest: 'npm view burrow version'. Burrow can do the same if published to npm.",
+              "children": []
+            },
+            {
+              "id": "5b702044",
+              "title": "Atomic Update Procedure",
+              "created": "2026-03-13T21:48:07.196Z",
+              "archived": false,
+              "body": "The update procedure (executed by the installer in update mode):\n\n1. Verify .planning/burrow/cards.json exists (sanity check — don't update a broken install)\n2. Create temp directory: .claude/burrow.update-tmp/\n3. Copy all new source files into temp dir\n4. Verify temp dir contents are valid (burrow-tools.cjs exists, lib/ has expected files)\n5. Delete old source: rm -rf .claude/burrow/\n6. Rename temp to final: mv .claude/burrow.update-tmp/ .claude/burrow/\n7. Delete old commands: rm -rf .claude/commands/burrow/ and rm .claude/commands/burrow.md\n8. Copy new commands into place\n9. Print success message with old version -> new version\n\nRollback on failure: If step 5-6 fails, the temp dir still has the new files and old dir may be partially deleted. The installer should catch errors and print recovery instructions. In practice, fs.renameSync is atomic on the same filesystem, so step 6 is the safe swap.\n\nNote: steps 5-6 could also be done as rename-old-then-rename-new for safer rollback: mv .claude/burrow/ .claude/burrow.old/ then mv .claude/burrow.update-tmp/ .claude/burrow/ then rm -rf .claude/burrow.old/. If the second rename fails, restore from .old/.",
+              "children": []
+            },
+            {
+              "id": "bea7298b",
+              "title": "GSD Update Pattern Analysis",
+              "created": "2026-03-13T21:48:20.968Z",
+              "archived": false,
+              "body": "GSD's /gsd:update workflow (workflows/update.md) is a mature reference:\n\nVERSION DETECTION: Reads .claude/get-shit-done/VERSION file. Checks both local (./) and global (~/) installs. Validates file exists AND contains valid semver AND marker files exist (integrity check).\n\nLATEST CHECK: 'npm view get-shit-done-cc version' against npm registry. Caches nothing — checks live every time /gsd:update is invoked.\n\nCOMPARISON: If installed == latest, exit. If installed > latest (dev version), exit. Only proceeds if installed < latest.\n\nCHANGELOG: Fetches raw CHANGELOG.md from GitHub, extracts entries between installed and latest versions. Shows user what changed before confirming.\n\nCLEAN INSTALL: Runs 'npx -y get-shit-done-cc@latest --local|--global'. The npx installer wipes commands/gsd/, get-shit-done/, and gsd-* agent files, then copies fresh from the npm package. User data (planning files, CLAUDE.md) is preserved.\n\nLOCAL PATCHES: GSD detects if user modified any GSD files, backs them up to gsd-local-patches/, and offers /gsd:reapply-patches after update.\n\nCACHE CLEARING: Clears gsd-update-check.json from all runtime dirs after update.\n\nKEY TAKEAWAY: GSD treats updates as 'clean reinstall of source dirs'. The installer IS the updater — same code path, just detects existing install. Burrow should do the same.",
+              "children": []
+            },
+            {
+              "id": "cb30b169",
+              "title": "Migration Support",
+              "created": "2026-03-13T21:48:32.587Z",
+              "archived": false,
+              "body": "Burrow already has a migration system in warren.cjs (the storage layer). The load() function calls migrate() which transforms v1 data to v2 format. This pattern scales:\n\nEXISTING PATTERN:\n- cards.json has a 'version' field (currently 2)\n- On load, if version < current, migrate() runs transformations\n- Migrations are idempotent (safe to run multiple times)\n- Migrations mutate in place and bump the version number\n\nEXTENDING FOR FUTURE VERSIONS:\n- Add v2->v3 migration when schema changes (e.g. adding a 'tags' field to cards)\n- Chain migrations: v1->v2->v3 so any version can upgrade to latest\n- Each migration is a small function: migrateV2ToV3(data)\n- The migrate() function becomes a waterfall: if version < 2, run v1->v2; if version < 3, run v2->v3; etc.\n\nFILE LAYOUT CHANGES: If a future version moves files (e.g. cards.json location changes), the installer handles that during update — not the migration system. Migration = data schema changes. Installer = file layout changes.\n\nBACKWARD COMPATIBILITY: New code should always be able to read old data (via migration). Old code reading new data is NOT guaranteed — but that's fine because updates replace all code atomically.\n\nNO DOWNGRADE SUPPORT: Like GSD, don't support downgrading. If someone needs to go back, they restore from git.",
+              "children": []
+            },
+            {
+              "id": "23a745bb",
+              "title": "Distribution-Agnostic Update",
+              "created": "2026-03-13T21:48:47.121Z",
+              "archived": false,
+              "body": "The update mechanism must work regardless of how burrow was originally installed (npm, curl, git clone). Key insight: the UPDATE doesn't need to match the INSTALL method.\n\nNPM INSTALL -> NPM UPDATE: User ran 'npx burrow' to install. Update via 'npx burrow@latest' or '/burrow:update' which runs npx internally. Most common path.\n\nCURL INSTALL -> NPM UPDATE: User ran 'curl ... | bash' to install. The curl script downloaded files. Update can still use npx if npm is available, or re-curl the latest release.\n\nGIT CLONE -> GIT PULL: Dev/contributor workflow. Just git pull. No installer needed. The installer is for end users who copy files into their project.\n\nUNIVERSAL FALLBACK: If npm isn't available and curl isn't available, the /burrow:update slash command can tell the agent to: (1) fetch the latest release tarball URL from GitHub API, (2) download it, (3) extract and copy files. All doable with Node built-ins (https module + tar extraction). But this is v2+ complexity — start with npm-only.\n\nVERSION FILE IS THE ANCHOR: Regardless of install method, .claude/burrow/VERSION tells the updater what's installed. The updater then checks the registry/GitHub for what's latest.",
+              "children": []
+            },
+            {
+              "id": "eb314b12",
+              "title": "Startup Version Check (Passive Notification)",
+              "created": "2026-03-13T21:48:59.967Z",
+              "archived": false,
+              "body": "Optional passive notification on every CLI invocation. Low-friction way to tell users an update is available without blocking.\n\nMECHANISM:\n1. On CLI startup, check .claude/burrow/cache/update-check.json\n2. If file missing or older than 24h, spawn background check (non-blocking):\n   - 'npm view burrow version' or HTTPS GET to registry\n   - Write result + timestamp to cache file\n   - Do NOT block CLI execution — fire and forget\n3. If cache exists and latest > installed, print one line to stderr:\n   'burrow v1.2.0 available (current: v1.0.0) — run /burrow:update'\n4. Normal CLI output continues to stdout unaffected\n\nWHY STDERR: The notification goes to stderr so it doesn't pollute stdout output that agents/scripts might parse. Agents reading CLI output see clean data. Humans see the notice.\n\nIMPLEMENTATION: Use child_process.spawn with detached:true, stdio:'ignore' for the background check. The check process writes the cache file and exits. Next CLI invocation reads the cached result.\n\nCOMPLEXITY: ~30 lines of code. Worth doing in v1.2 alongside the update command. GSD does this via a SessionStart hook (gsd-check-update.js) — burrow can do it inline since it's simpler.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "5504f7cd",
+          "title": "npm package structure",
+          "created": "2026-03-13T21:41:13.999Z",
+          "archived": false,
+          "body": "If we go the npm route: what's the package name? (burrow, @burrow/cli, claude-burrow?) What goes in the package? Just the installer, or the full source? Does npx run the installer or the CLI itself? How do we handle the zero-dependency constraint — do we publish as-is or bundle? What about package.json, bin field, engines field?",
+          "children": [
+            {
+              "id": "52c54fa6",
+              "title": "Package naming: availability & recommendations",
+              "created": "2026-03-13T21:47:45.758Z",
+              "archived": false,
+              "body": "TAKEN: 'burrow' (v0.0.0, squatted since 2016 by Vaughan Rouesnel, no real content). AVAILABLE: 'claude-burrow', 'burrow-ai', 'burrow-cards', 'burrow-install', '@burrow/cli', 'create-burrow'. RECOMMENDATION: 'create-burrow' is the strongest choice. It follows the npm create-* convention (like create-vite, create-next-app), enabling 'npm create burrow' or 'npx create-burrow' — both feel native and self-explanatory. 'burrow-install' is the fallback if the installer-only framing is preferred. Scoped '@burrow/cli' requires creating an npm org. Avoid 'claude-burrow' — ties branding to one agent platform.",
+              "children": []
+            },
+            {
+              "id": "ca5fc565",
+              "title": "What goes in the package",
+              "created": "2026-03-13T21:47:53.000Z",
+              "archived": false,
+              "body": "The package is a delivery vehicle, not a runtime dependency. It should contain: (1) install.cjs — the installer script, set as the bin entry, (2) .claude/burrow/ — full source (lib/core.cjs, lib/mongoose.cjs, lib/warren.cjs, lib/render.cjs, burrow-tools.cjs, workflows/), (3) .claude/commands/ — burrow.md and burrow/*.md slash commands, (4) CLAUDE.md snippet template. The installer copies these into the target project. The package itself is never added to package.json dependencies. After npx runs, the package is discarded from cache — only the copied files remain.",
+              "children": []
+            },
+            {
+              "id": "1eef6d8c",
+              "title": "package.json structure",
+              "created": "2026-03-13T21:48:00.843Z",
+              "archived": false,
+              "body": "Key fields: { \"name\": \"create-burrow\", \"version\": \"1.2.0\", \"description\": \"Infinitely nestable card system for AI coding agents\", \"bin\": { \"create-burrow\": \"./install.cjs\" }, \"files\": [\"install.cjs\", \".claude/\"], \"engines\": { \"node\": \">=18\" }, \"keywords\": [\"claude\", \"ai\", \"agent\", \"cards\", \"memory\"], \"license\": \"MIT\" }. Notes: (1) Omit 'type' field — CommonJS is the default when absent. (2) 'bin' maps the command name to the entry script. The script MUST have #\\!/usr/bin/env node shebang. (3) 'files' whitelist controls what gets published — everything else is excluded. (4) 'engines' declares minimum Node version. (5) No 'dependencies' field needed — empty by default. (6) No 'main' field needed since this isn't a library.",
+              "children": []
+            },
+            {
+              "id": "da333599",
+              "title": "npx behavior & user experience",
+              "created": "2026-03-13T21:48:10.422Z",
+              "archived": false,
+              "body": "Resolution order: local node_modules/.bin -> global install -> npx cache -> npm registry. If not found locally, npx downloads to ~/.npm/_npx/, runs the bin entry, then the cached version persists (not deleted immediately as commonly stated — npm exec caches in _npx). PROMPT BEHAVIOR: npx prompts 'Need to install create-burrow@x.y.z, ok? (y)' before first download. Suppress with 'npx -y create-burrow' or 'npx --yes create-burrow'. The --yes flag MUST come before the package name. USER FLOWS: (1) 'npm create burrow' — transforms to 'npx create-burrow', prompts, runs installer. (2) 'npx create-burrow' — same thing directly. (3) 'npx -y create-burrow' — zero-prompt, ideal for docs. (4) 'npx create-burrow@latest' — forces fresh download, skips cache. For README, recommend: npx create-burrow (simple, follows convention, one prompt is acceptable for install).",
+              "children": []
+            },
+            {
+              "id": "08a6f775",
+              "title": "Publishing workflow & versioning",
+              "created": "2026-03-13T21:48:20.794Z",
+              "archived": false,
+              "body": "ACCOUNT SETUP: (1) Create free npm account at npmjs.com. (2) Run 'npm login' to authenticate CLI. (3) Enable 2FA (npm requires it for new publishes). FIRST PUBLISH: 'npm publish' from the package root. Unscoped packages are public by default. If using scoped (@burrow/cli), need 'npm publish --access public'. VERSIONING: Use semver. Start at 1.2.0 to match the v1.2 milestone. Bump with 'npm version patch/minor/major' which updates package.json and creates a git tag. Then 'npm publish'. ONGOING: 'npm version patch && npm publish' for bugfixes. 'npm version minor && npm publish' for new features. PRE-RELEASE: 'npm version 1.2.0-beta.1' for testing before stable. BEST PRACTICES: (1) Always test with 'npm pack' before publishing — shows exactly what will be uploaded. (2) Use .npmignore or 'files' whitelist to control contents. (3) 'npm pack --dry-run' to preview without creating tarball. (4) 'npm whoami' to verify auth before publish.",
+              "children": []
+            },
+            {
+              "id": "7da6e597",
+              "title": "Zero-dependency validation",
+              "created": "2026-03-13T21:48:28.911Z",
+              "archived": false,
+              "body": "CONFIRMED: Publishing a zero-dependency package is completely straightforward and common. No issues or gotchas. When package.json has no 'dependencies' field (or an empty object), npm simply publishes without installing anything at download time. npx downloads only the package tarball itself — no dependency resolution tree, no node_modules. This is actually ideal: faster npx cold-start, no supply chain risk from transitive dependencies, smaller download, no version conflicts. The only 'dependency' is Node.js itself, which is declared via the 'engines' field as a peer requirement. Many popular npx tools are zero-dep (e.g. create-* initializers that just scaffold files). Burrow's Node-built-ins-only constraint maps perfectly to npm's packaging model.",
+              "children": []
+            },
+            {
+              "id": "9c25d92f",
+              "title": "Recommended approach: create-burrow",
+              "created": "2026-03-13T21:48:40.082Z",
+              "archived": false,
+              "body": "RECOMMENDATION: Publish as 'create-burrow' on npm. This unlocks: 'npm create burrow' and 'npx create-burrow' — both native-feeling, zero-config install commands. INSTALL.CJS CHANGES NEEDED: (1) Add #\\!/usr/bin/env node shebang (already present). (2) Change path resolution to use __dirname relative to the package structure instead of assuming burrow repo layout. Currently BURROW_SOURCE points to path.join(__dirname, '.claude', 'burrow') — in the npm package, the .claude dir ships inside the package, so this still works if the package root mirrors the repo structure. (3) Default target to process.cwd() if no argument provided (user runs npx from their project root). (4) Add --help flag. PACKAGE LAYOUT: create-burrow/ -> package.json, install.cjs, .claude/burrow/**, .claude/commands/**. The 'files' field in package.json whitelists these. Everything else (test/, .planning/, .git/) stays out.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "529ebc80",
+          "title": "GSD installer reference",
+          "created": "2026-03-13T21:41:18.726Z",
+          "archived": false,
+          "body": "Study the GSD installer as a reference implementation. What does it do well? Interactive prompts, idempotent re-runs, CLAUDE.md integration, file placement. What would we do differently? Capture the patterns worth reusing and the gaps to avoid.",
+          "children": [
+            {
+              "id": "9c5d64c5",
+              "title": "GSD installer location & structure",
+              "created": "2026-03-13T21:50:19.201Z",
+              "archived": false,
+              "body": "Single file: bin/install.js (~2090 lines, 85KB). The npm package name is 'get-shit-done-cc'. package.json bin field points directly to the installer: \"bin\": {\"get-shit-done-cc\": \"bin/install.js\"}. So 'npx get-shit-done-cc' runs the installer. Zero runtime dependencies (dependencies: {}), devDependencies only has esbuild for building hooks. The installer imports only Node built-ins: fs, path, os, readline, crypto. The npm package ships: bin/ (installer), commands/, get-shit-done/ (core), agents/, hooks/dist/ (pre-bundled), scripts/. All source lives in the package; the installer copies it to the target location.",
+              "children": []
+            },
+            {
+              "id": "59c05099",
+              "title": "Interactive prompts: readline-based, 2-step flow",
+              "created": "2026-03-13T21:50:27.870Z",
+              "archived": false,
+              "body": "Uses Node built-in 'readline' module for prompts. No third-party prompt library. Two interactive prompts in sequence: (1) Runtime selection — which AI tool to install for (Claude Code, OpenCode, Gemini, Codex, or All), (2) Location — global (~/.claude) or local (./.claude). Each prompt shows numbered options with ANSI-colored text, a default in brackets (e.g. 'Choice [1]:'), and accepts a single number. Non-interactive terminals (no TTY) auto-default to Claude Code global. A third conditional prompt asks about statusline replacement if an existing one is detected. All prompts use callback pattern (not async/await). Cancellation via Ctrl+C closes readline and exits gracefully.",
+              "children": []
+            },
+            {
+              "id": "815bb6ff",
+              "title": "File placement: multi-runtime, global/local",
+              "created": "2026-03-13T21:50:35.900Z",
+              "archived": false,
+              "body": "Global installs go to ~/.claude/ (or ~/.config/opencode/, ~/.gemini/, ~/.codex/). Local installs go to ./.claude/ in the current project. Directory structure inside target: commands/gsd/ (slash commands), get-shit-done/ (core workflows, references, templates, bin), agents/gsd-*.md (sub-agent definitions), hooks/ (bundled JS hooks), settings.json (hooks config, statusline), package.json ({'type':'commonjs'} marker), gsd-file-manifest.json (SHA256 hashes of all installed files). The installer creates directories recursively with fs.mkdirSync({recursive:true}). For OpenCode/Gemini/Codex, paths and frontmatter are transformed at copy time — the canonical source is Claude Code format.",
+              "children": []
+            },
+            {
+              "id": "5cd058a4",
+              "title": "CLAUDE.md integration: none from installer",
+              "created": "2026-03-13T21:50:43.011Z",
+              "archived": false,
+              "body": "GSD does NOT touch CLAUDE.md during installation. No creation, no appending, no detection. The installer only handles file copying, settings.json hooks, and statusline configuration. CLAUDE.md content is managed entirely through GSD workflows (e.g. /gsd:new-project creates project structure). This is a notable gap or design choice — it means the agent only discovers GSD through the commands/ and settings.json hooks, not through CLAUDE.md instructions. For burrow, we should consider adding a CLAUDE.md block during install since burrow relies on CLAUDE.md instructions to tell the agent to load cards.json on startup.",
+              "children": []
+            },
+            {
+              "id": "26a2784d",
+              "title": "Idempotency: clean wipe + manifest detection",
+              "created": "2026-03-13T21:50:51.821Z",
+              "archived": false,
+              "body": "GSD handles re-runs with a clean-install strategy: (1) Before overwriting, it scans for user-modified files by comparing SHA256 hashes against the stored manifest (gsd-file-manifest.json). (2) Modified files are backed up to gsd-local-patches/ with metadata (backup-meta.json records from_version and file list). (3) Entire destination directories are wiped (fs.rmSync recursive) then rebuilt from source. (4) After install, a new manifest is written with fresh hashes. (5) Orphaned files from older versions are explicitly cleaned up (e.g. renamed hooks). (6) Settings.json hooks are added idempotently — checks 'hasGsdUpdateHook' before adding, never duplicates. The re-run command /gsd:reapply-patches helps users merge their local modifications back. This is battle-tested and handles version upgrades gracefully.",
+              "children": []
+            },
+            {
+              "id": "b12ea67a",
+              "title": "Update mechanism: npx@latest + workflow-driven",
+              "created": "2026-03-13T21:51:00.998Z",
+              "archived": false,
+              "body": "Updates work through a two-layer system: (1) A SessionStart hook (gsd-check-update.js) runs on every Claude Code session start, checks npm for latest version, caches result. The statusline shows an update indicator. (2) The /gsd:update slash command triggers the update workflow (workflows/update.md). The workflow: detects local vs global install by checking VERSION files, runs 'npm view get-shit-done-cc version', compares versions, fetches changelog from GitHub, shows diff to user, asks for confirmation via AskUserQuestion, then runs 'npx -y get-shit-done-cc@latest --global|--local', clears cache, reports local patches. Key design: the update re-runs the same installer from npm. The --uninstall flag provides clean removal. No self-update binary — always goes through npx.",
+              "children": []
+            },
+            {
+              "id": "da44a45a",
+              "title": "Error handling: verify-and-report, no rollback",
+              "created": "2026-03-13T21:51:10.336Z",
+              "archived": false,
+              "body": "Error handling is verify-after-write, not try-catch-rollback. Pattern: (1) Each major install step (commands, core, agents, hooks, VERSION) calls verifyInstalled() or verifyFileInstalled() after writing. These check directory exists and is non-empty. (2) Failures are collected into a 'failures' array. (3) If any failures, the installer prints 'Installation incomplete\\!' with the list and exits with code 1. (4) No rollback mechanism — partial installs stay on disk. This is acceptable because re-running the installer is cheap (clean wipe + reinstall). (5) JSON parse errors in settings/config are caught silently with try/catch, preserving user data. (6) The JSONC parser handles comments and trailing commas in config files. For burrow: simpler scope means we can follow the same pattern. Rollback is unnecessary when re-install is trivial.",
+              "children": []
+            },
+            {
+              "id": "dcfdde31",
+              "title": "Patterns worth copying",
+              "created": "2026-03-13T21:51:21.275Z",
+              "archived": false,
+              "body": "1. **Single-file installer** — one install.js, no build step needed to distribute. Burrow can do the same.\n2. **readline for prompts** — no dependency needed for simple numbered-choice prompts. The pattern of showing options with ANSI colors, accepting a number, defaulting with [1] is clean and proven.\n3. **Non-TTY fallback** — auto-defaults when not interactive (CI, piped input). Critical for npx usage.\n4. **File manifest with SHA256 hashes** — enables detecting user modifications on re-install. Cheap insurance against losing customizations.\n5. **Local patch backup** — backs up user-modified files before wiping. Smart compromise between clean install and preserving work.\n6. **ASCII art banner with version** — immediately recognizable, establishes brand identity during install.\n7. **Verification after each step** — confirms files actually landed before declaring success.\n8. **Clean uninstall path** — --uninstall flag removes only GSD files, preserves everything else. Shows respect for user's directory.\n9. **CLI flags for non-interactive mode** — --global, --local, --claude skip prompts entirely. Good for scripting and docs.\n10. **package.json CommonJS marker** — prevents 'require is not defined' in ESM projects. Burrow should do this too.",
+              "children": []
+            },
+            {
+              "id": "c032ee9a",
+              "title": "Patterns to avoid or simplify",
+              "created": "2026-03-13T21:51:34.005Z",
+              "archived": false,
+              "body": "1. **Multi-runtime complexity** — ~60% of GSD's installer code handles OpenCode/Gemini/Codex conversions (frontmatter, tool names, TOML, skills). Burrow targets Claude Code only (for now). Skip entirely.\n2. **2090-line single file** — GSD's installer grew organically and is hard to navigate. Burrow should split into focused modules if it grows past ~300 lines.\n3. **No CLAUDE.md integration** — GSD punts this to workflows. Burrow NEEDS CLAUDE.md integration because the agent must know to read cards.json on startup. The installer should append/create a CLAUDE.md block.\n4. **Callback-chain prompts** — GSD uses callbacks (promptRuntime -> promptLocation -> installAllRuntimes -> handleStatusline). With fewer prompts, burrow can use a simpler sequential await pattern with readline promises.\n5. **Orphaned file cleanup by name** — GSD hardcodes filenames of removed files across versions. This accumulates tech debt. Burrow should use the manifest as the sole source of truth for cleanup.\n6. **No data migration** — GSD wipes and replaces all code files but has no concept of migrating user data across versions. Burrow must NEVER touch cards.json during updates — this should be an explicit safeguard with a loud warning if cards.json is in the install path.\n7. **Attribution/Co-Authored-By processing** — complex feature for multi-runtime compat. Not relevant to burrow.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "ee4d591c",
+          "title": "What ships in the package vs what gets installed",
+          "created": "2026-03-13T21:41:25.571Z",
+          "archived": false,
+          "body": "The npm package (or whatever we distribute) contains the installer + source. The installer copies files into the target project or global location. Need to be clear about the boundary: what's in the package, what gets copied where, what gets generated at install time (e.g. empty cards.json, CLAUDE.md block). The package itself should never be a runtime dependency.",
+          "children": [
+            {
+              "id": "8dfccac9",
+              "title": "Package contents (what ships in the tarball)",
+              "created": "2026-03-13T21:47:31.965Z",
+              "archived": false,
+              "body": "The distributed package contains: (1) install.cjs — the installer entry point, run via npx. (2) .claude/burrow/ source files: burrow-tools.cjs, lib/core.cjs, lib/mongoose.cjs, lib/warren.cjs, lib/render.cjs. (3) .claude/burrow/workflows/burrow.md — agent workflow instructions (ships AND installs, it's runtime behavior). (4) .claude/commands/burrow.md + .claude/commands/burrow/*.md — all slash command files. (5) package.json — with bin entry pointing to install.cjs, name, version, engines. (6) README.md, LICENSE. Tests, .planning/, field-reports/, docs — excluded via .npmignore or files field.",
+              "children": []
+            },
+            {
+              "id": "6e34bd1c",
+              "title": "Installed files (what gets copied to the target project)",
+              "created": "2026-03-13T21:47:39.436Z",
+              "archived": false,
+              "body": "The installer copies these into the target project directory:\n\nSOURCE FILES (copied verbatim):\n- .claude/burrow/burrow-tools.cjs\n- .claude/burrow/lib/core.cjs\n- .claude/burrow/lib/mongoose.cjs\n- .claude/burrow/lib/warren.cjs\n- .claude/burrow/lib/render.cjs\n- .claude/burrow/workflows/burrow.md\n\nSLASH COMMANDS (copied verbatim):\n- .claude/commands/burrow.md (top-level /burrow command)\n- .claude/commands/burrow/add.md, read.md, edit.md, move.md, remove.md, archive.md, unarchive.md, dump.md, help.md\n\nAll copied files are read-only from the user's perspective — they should not edit them. Updates replace them wholesale.",
+              "children": []
+            },
+            {
+              "id": "ca4effb0",
+              "title": "Generated at install time (not in package)",
+              "created": "2026-03-13T21:47:50.338Z",
+              "archived": false,
+              "body": "These files are created fresh by the installer, never copied from the package:\n\n- .planning/burrow/cards.json — empty v2 schema: {\"version\": 2, \"cards\": []}. Only created if it doesn't already exist (idempotent). This is USER DATA — never overwritten on update.\n- CLAUDE.md — the 'Burrow — Agent Memory' section is appended (or file created). Checked by searching for the sentinel string. Also user-owned — installer appends but never removes.\n- .gitignore entry for cards.json.bak — should be added by installer (currently a known TODO, card 3dad744a). Backup files are write artifacts, not versionable.\n\nKey principle: generated files belong to the user. The installer creates them once, then hands off ownership. Updates must never touch cards.json or remove the CLAUDE.md section.",
+              "children": []
+            },
+            {
+              "id": "9f9b204d",
+              "title": "What must NOT be installed",
+              "created": "2026-03-13T21:47:58.735Z",
+              "archived": false,
+              "body": "These exist in the repo but must never reach the target project:\n\n- test/ directory (warren.test.cjs, cli.test.cjs, mongoose.test.cjs, render.test.cjs) — development only\n- install.cjs itself — it's the delivery vehicle, not the product\n- package.json — belongs to the npm package, not the installed product\n- README.md, LICENSE — package metadata, not runtime files\n- .planning/ — burrow's own project data, not the user's\n- field-reports/, docs, .claude/commands that aren't burrow commands\n- Any dotfiles (.npmignore, .gitignore from the burrow repo)\n- cards.json.bak — write artifact, never distributed\n\nThe .npmignore or package.json 'files' field enforces what enters the tarball. The installer's copyDirSync controls what reaches the target. Both gates matter — belt and suspenders.",
+              "children": []
+            },
+            {
+              "id": "ead4d5d6",
+              "title": "Version marker strategy",
+              "created": "2026-03-13T21:48:08.216Z",
+              "archived": false,
+              "body": "A version marker should be installed so the update mechanism can detect what's present. Recommended approach:\n\nFILE: .claude/burrow/VERSION (plain text, single line, e.g. '1.2.0')\n\nWhy a separate file, not package.json:\n- package.json doesn't get installed (it's package metadata)\n- Embedding version in burrow-tools.cjs mixes concerns\n- A standalone VERSION file is trivially readable by both the installer (fs.readFileSync) and the agent (cat)\n- Easy to compare: read local VERSION, compare to package version from npm registry\n\nThe installer writes this file on every install/update. The update mechanism reads it to decide whether to proceed. The agent can read it for --version output.\n\nAlternative considered: JSON file with version + install date. Overkill for now — a plain semver string is sufficient. Can evolve later if needed.",
+              "children": []
+            },
+            {
+              "id": "55c8fe2f",
+              "title": "Separation of concerns: package vs product",
+              "created": "2026-03-13T21:48:18.876Z",
+              "archived": false,
+              "body": "The boundary is crisp along two axes:\n\nPACKAGE (ephemeral delivery vehicle):\n- Lives in npm registry or GitHub release\n- Contains installer + source + commands + metadata\n- Run via npx — downloaded, executed, discarded\n- Never a runtime dependency — no node_modules entry in target project\n- User never sees or interacts with package contents directly\n\nPRODUCT (persistent, lives in the project):\n- .claude/burrow/ — source code (replaceable on update)\n- .claude/commands/burrow* — slash commands (replaceable on update)\n- .planning/burrow/cards.json — user data (NEVER replaced)\n- CLAUDE.md section — user config (append-only)\n- .claude/burrow/VERSION — version stamp (replaced on update)\n\nUPDATE RULE: files split into two categories:\n1. REPLACEABLE: source, commands, VERSION, workflow. Overwritten on every update.\n2. SACRED: cards.json, CLAUDE.md section. Created once, never touched again.\n\nThe installer must know which category each file belongs to. Current install.cjs skips existing files — this needs to change for updates. Replaceable files should always be overwritten; sacred files should always be preserved.",
+              "children": []
+            },
+            {
+              "id": "41c7c4e4",
+              "title": "Current installer gaps to fix",
+              "created": "2026-03-13T21:48:29.661Z",
+              "archived": false,
+              "body": "The existing install.cjs has issues that need addressing for proper packaging:\n\n1. SKIP-IF-EXISTS BUG: copyDirSync skips if burrow-tools.cjs exists. This blocks updates — replaceable files should always be overwritten. Fix: always copy source and commands; only skip cards.json and CLAUDE.md section.\n\n2. NO EXCLUSION FILTER: copyDirSync copies everything recursively. If tests or other dev files end up in .claude/burrow/, they get copied. Fix: either (a) use a whitelist of files to copy, or (b) ensure the package tarball only contains installable files so blind copy is safe.\n\n3. NO VERSION STAMP: doesn't write a VERSION file. Can't detect installed version.\n\n4. NO .gitignore ENTRY: doesn't add cards.json.bak to .gitignore (known TODO, card 3dad744a).\n\n5. PATH ASSUMPTIONS: hardcoded to read from __dirname/.claude/burrow/ — assumes running from the burrow repo root. For npm packaging, paths must resolve relative to the package installation, not a git clone.\n\n6. NO PERMISSIONS: doesn't set file permissions. burrow-tools.cjs should arguably be executable (chmod +x) for direct invocation, though 'node burrow-tools.cjs' works without it.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6dccf86e",
+      "title": "Claude Code plugin distribution",
+      "created": "2026-03-13T22:19:22.188Z",
+      "archived": false,
+      "body": "Package burrow as a native Claude Code plugin for marketplace distribution. Users would install via /plugin install from within Claude Code — zero friction, native slash commands, marketplace discoverability (75+ plugins already listed).\n\nORIGIN: v1.2 research agents discovered this during distribution mechanism evaluation. See cards under [2f0389b7] v1.2 Packaging & Distribution:\n- [067b5f31] Option 6: Claude Code plugin system — full pros/cons analysis\n- [52a034a5] Option D: Plugin distribution — scope/install tradeoffs\n- [49a64048] RECOMMENDATION card — plugin-first was the original recommendation before we chose npx\n\nKEY QUESTIONS TO RESOLVE:\n- Can a plugin handle scaffolding? (creating .planning/burrow/cards.json, appending to CLAUDE.md)\n- What is the .claude-plugin/plugin.json manifest format?\n- Do we need to convert commands/ to skills/ format?\n- How do plugins handle per-project data initialization?\n- What's the Anthropic marketplace submission process?\n\nWHY DEFERRED: npx create-burrow is concrete, works today, zero dependency on plugin API stability. Plugin system is newer — worth waiting for it to mature before committing. But this is the endgame for distribution — same audience, native integration, marketplace discovery.",
+      "children": []
     }
   ]
 }

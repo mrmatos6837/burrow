@@ -33,21 +33,18 @@ One recursive data structure — cards containing cards — navigated by an agen
 - ✓ Archive system: cascade archive/unarchive, hidden from active views by default — v1.0
 - ✓ Per-project scope (`.planning/burrow/`) — v1.0
 - ✓ Agent memory: persistent instructions stored as cards, read on session start — v1.0
+- ✓ Nested rendering pipeline — renderTree operates on live tree structure, no flatten-renest — v1.1
+- ✓ Dynamic terminal width — render adapts to terminal size with MIN_TERM_WIDTH floor — v1.1
+- ✓ Engine optimizations — consolidated tree walks, parameterized counting, inline archive counting — v1.1
+- ✓ Data integrity — schema validation on load, formatAge guards, enriched CRUD returns — v1.1
+- ✓ CLI hardening — strict flag parsing, input validation, searchCards engine function — v1.1
+- ✓ Project bootstrapping — `burrow init` for .gitignore and CLAUDE.md setup — v1.1
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-## Current Milestone: v1.1 Rendering & Ergonomics
-
-**Goal:** Improve rendering pipeline quality (eliminate flatten-renest, fix alignment, dynamic width) and add developer ergonomics (--minimal flag, installer improvements).
-
-**Target features:**
-- Refactor renderTree to keep nested structure, eliminate redundant computations
-- Consistent tree alignment at deep nesting levels
-- Dynamic render width based on terminal size
-- Init script adds cards.json.bak to .gitignore
-- --minimal flag for machine-parseable compact output
+(No active milestone — use `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -65,6 +62,8 @@ One recursive data structure — cards containing cards — navigated by an agen
 ## Context
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
+
+**Current state (v1.1):** 1,559 LOC JavaScript, 240 tests, 8 phases shipped across 2 milestones. Rendering pipeline fully rewritten, engine optimized, CLI hardened with strict parsing and input validation.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -168,6 +167,12 @@ install.cjs                # Copies source, commands, and data into target proje
 | Standalone addon, not GSD core modification | Survives `/gsd:update`, installable in any project independently | ✓ Good — install.cjs copies into target project |
 | Per-project scope only | Keeps contexts isolated, simpler data model | ✓ Good — `.planning/burrow/` per project |
 | Rename notes → body | Generic free-form content field. Can store descriptions, instructions, rationale. Parent body can describe schema of children. | ✓ Good — self-documenting tree structures |
+| Nested renderTree output | Eliminate flatten-renest roundtrip; renderTree returns nested tree with pre-computed metadata | ✓ Good — simpler data flow, render.cjs has zero mongoose dependency |
+| resolveTermWidth() centralized | Single function resolves --width flag or process.stdout.columns with MIN_TERM_WIDTH floor | ✓ Good — consistent width handling across all commands |
+| Enriched CRUD returns | Mutations return {card, breadcrumbs, ...} so CLI has zero post-mutation tree walks | ✓ Good — eliminated all redundant findById/getBreadcrumbs calls |
+| Schema validation on load | validateSchema() spot-checks first card id — O(1) not O(n) | ✓ Good — catches corruption early with clear error messages |
+| crypto.randomUUID() for IDs | No parameters, no tree walk — collision-free at any reasonable scale | ✓ Good — eliminated O(n) collectAllIds on every addCard |
+| searchCards in engine | Recursive search lives in mongoose.cjs with ancestor accumulation — O(n) walk | ✓ Good — CLI find is a thin wrapper, search logic centralized |
 
 ---
-*Last updated: 2026-03-12 after v1.1 milestone start*
+*Last updated: 2026-03-14 after v1.1 milestone*
