@@ -3,124 +3,428 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const readline = require('node:readline');
 
-// ── Paths ──────────────────────────────────────────────────────────
-const BURROW_SOURCE = path.join(__dirname, '.claude', 'burrow');
-const COMMANDS_DIR = path.join(__dirname, '.claude', 'commands');
-const COMMAND_FILE = path.join(COMMANDS_DIR, 'burrow.md');
-const COMMAND_DIR = path.join(COMMANDS_DIR, 'burrow');
+const {
+  CLAUDE_MD_SNIPPET,
+  detect,
+  performInstall,
+  performUpgrade,
+  performRepair,
+  writeSentinelBlock,
+  removeSentinelBlock,
+} = require('./.claude/burrow/lib/installer.cjs');
 
-// ── CLAUDE.md snippet ──────────────────────────────────────────────
-const CLAUDE_MD_SNIPPET = `
-## Burrow — Agent Memory
+// ── Output helpers ────────────────────────────────────────────────────────────
 
-Burrow is your persistent memory. On every session start, silently read \`.planning/burrow/cards.json\` using the Read tool to load project context, tasks, and notes.
+function ok(msg)   { console.log(`  \u2713 ${msg}`); }
+function skip(msg) { console.log(`  \u00b7 ${msg}`); }
+function fail(msg) { console.error(`  \u2717 ${msg}`); }
+function warn(msg) { console.log(`  ! ${msg}`); }
 
-**When the user says "remember", "don't forget", "always do X", or any instruction meant to persist across sessions:**
-- Store it as a Burrow card: \`node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"\`
-- Organize under relevant parent cards (create parents if needed)
-- Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth
+// ── readline helpers ──────────────────────────────────────────────────────────
 
-**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
+let rl = null;
 
-All mutations go through the CLI — NEVER edit cards.json directly.
-`.trimStart();
-
-// ── Helpers ────────────────────────────────────────────────────────
-function ok(msg) { console.log(`  \u2713 ${msg}`); }
-function skip(msg) { console.log(`  \u00b7 ${msg} (already done)`); }
-function fail(msg) { console.error(`  \u2717 ${msg}`); process.exit(1); }
-
-function ensureDir(dir) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+function createInterface() {
+  rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 }
 
-function copyDirSync(src, dest) {
-  ensureDir(dest);
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirSync(srcPath, destPath);
+function closeInterface() {
+  if (rl) { rl.close(); rl = null; }
+}
+
+/**
+ * Prompt the user and return their answer (resolves to defaultAnswer on empty input).
+ */
+function ask(question, defaultAnswer = '') {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      const trimmed = answer.trim();
+      resolve(trimmed === '' ? defaultAnswer : trimmed);
+    });
+  });
+}
+
+// ── Argument parsing ──────────────────────────────────────────────────────────
+
+function parseArgs(argv) {
+  const args = argv.slice(2);
+  const flags = { yes: false, uninstall: false, help: false };
+  let positional = null;
+
+  for (const arg of args) {
+    if (arg === '--yes' || arg === '-y') {
+      flags.yes = true;
+    } else if (arg === '--uninstall') {
+      flags.uninstall = true;
+    } else if (arg === '--help' || arg === '-h') {
+      flags.help = true;
+    } else if (!arg.startsWith('-')) {
+      positional = arg;
+    }
+  }
+
+  return { flags, positional };
+}
+
+// ── Usage ─────────────────────────────────────────────────────────────────────
+
+function printUsage() {
+  console.log(`
+Usage: node install.cjs [target-dir] [options]
+
+  Installs (or manages) Burrow in the target project directory.
+
+Arguments:
+  target-dir        Path to the target project root (default: current directory)
+
+Options:
+  --yes, -y         Non-interactive mode. Accept all defaults, skip prompts.
+  --uninstall       Remove all Burrow files from the target project.
+  --help, -h        Print this help message and exit.
+
+Modes (auto-detected):
+  fresh install     No Burrow files found — installs everything fresh.
+  upgrade           All Burrow files present — replaces source files, preserves data.
+  repair            Some Burrow files missing — restores only missing files.
+  uninstall         Removes .claude/burrow/, .claude/commands/burrow*, .planning/burrow/, and the CLAUDE.md sentinel block.
+
+Examples:
+  node install.cjs                   Interactive install in current directory
+  node install.cjs /path/to/project  Interactive install in specified directory
+  node install.cjs --yes             Non-interactive install with all defaults
+  node install.cjs --uninstall       Interactive uninstall (requires confirmation)
+  node install.cjs --uninstall --yes Non-interactive uninstall
+`);
+}
+
+// ── Checklist output helpers ──────────────────────────────────────────────────
+
+function printInstallResults(results) {
+  const statusMap = {
+    copied:    (k) => ok(`${k}`),
+    replaced:  (k) => ok(`${k} (replaced)`),
+    preserved: (k) => skip(`${k} (preserved)`),
+    created:   (k) => ok(`${k} (created)`),
+    updated:   (k) => ok(`${k} (updated)`),
+    unchanged: (k) => skip(`${k} (unchanged)`),
+    'copied-dir': (k) => ok(`${k}`),
+    'source-missing': (k) => fail(`${k} (source missing)`),
+  };
+
+  const labelMap = {
+    burrowDir:  '.claude/burrow/',
+    commandFile: '.claude/commands/burrow.md',
+    commandDir: '.claude/commands/burrow/',
+    cardsJson:  '.planning/burrow/cards.json',
+    gitignore:  '.gitignore',
+  };
+
+  for (const [key, status] of Object.entries(results)) {
+    const label = labelMap[key] || key;
+    const printer = statusMap[status];
+    if (printer) {
+      printer(label);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      ok(`${label} (${status})`);
     }
   }
 }
 
-// ── Install ───────────────────────────────────────────────────────
+// ── Post-install message ──────────────────────────────────────────────────────
 
-function install(projectDir) {
-  console.log('\n── Burrow Install ──\n');
+function printGettingStarted() {
+  console.log(`
+── Getting Started ──────────────────────────────────────────────────────
 
-  // Verify we're running from the burrow repo
-  if (!fs.existsSync(path.join(BURROW_SOURCE, 'burrow-tools.cjs'))) {
-    fail('Cannot find burrow-tools.cjs. Run this from the burrow repo.');
+  Burrow is now installed. Here are a few ways to get started:
+
+  1. In your Claude session, type /burrow to open the card manager.
+
+  2. Add a card from the command line:
+       node .claude/burrow/burrow-tools.cjs add --title "My first card" \\
+         --body "A note about my project"
+
+  3. List all cards:
+       node .claude/burrow/burrow-tools.cjs list
+
+  4. CLAUDE.md has been updated with Burrow agent instructions so Claude
+     will automatically load your cards on every session start.
+
+─────────────────────────────────────────────────────────────────────────
+`);
+}
+
+// ── Uninstall helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Remove a directory recursively, silently skipping if it doesn't exist.
+ */
+function removeDir(dir) {
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    return true;
   }
+  return false;
+}
 
-  const targetBurrow = path.join(projectDir, '.claude', 'burrow');
-  const targetCommandFile = path.join(projectDir, '.claude', 'commands', 'burrow.md');
-  const targetCommandDir = path.join(projectDir, '.claude', 'commands', 'burrow');
-
-  // Step 1: Copy source
-  if (fs.existsSync(path.join(targetBurrow, 'burrow-tools.cjs'))) {
-    skip('.claude/burrow');
-  } else {
-    copyDirSync(BURROW_SOURCE, targetBurrow);
-    ok('Copied .claude/burrow');
+/**
+ * Remove a file, silently skipping if it doesn't exist.
+ */
+function removeFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    fs.rmSync(filePath);
+    return true;
   }
+  return false;
+}
 
-  // Step 2: Copy commands
-  ensureDir(path.join(projectDir, '.claude', 'commands'));
-
-  if (fs.existsSync(targetCommandFile)) {
-    skip('.claude/commands/burrow.md');
-  } else {
-    fs.copyFileSync(COMMAND_FILE, targetCommandFile);
-    ok('Copied .claude/commands/burrow.md');
-  }
-
-  if (fs.existsSync(targetCommandDir)) {
-    skip('.claude/commands/burrow/');
-  } else {
-    copyDirSync(COMMAND_DIR, targetCommandDir);
-    ok('Copied .claude/commands/burrow/');
-  }
-
-  // Step 3: Create data file
-  const dataDir = path.join(projectDir, '.planning', 'burrow');
-  const dataFile = path.join(dataDir, 'cards.json');
-  ensureDir(dataDir);
-  if (fs.existsSync(dataFile)) {
-    skip('cards.json');
-  } else {
-    fs.writeFileSync(dataFile, JSON.stringify({ version: 2, cards: [] }) + '\n');
-    ok('Created .planning/burrow/cards.json');
-  }
-
-  // Step 4: CLAUDE.md
-  const claudeMd = path.join(projectDir, 'CLAUDE.md');
-  if (fs.existsSync(claudeMd)) {
-    const content = fs.readFileSync(claudeMd, 'utf-8');
-    if (content.includes('Burrow \u2014 Agent Memory')) {
-      skip('CLAUDE.md already has Burrow section');
-    } else {
-      fs.writeFileSync(claudeMd, content.trimEnd() + '\n\n' + CLAUDE_MD_SNIPPET);
-      ok('Appended Burrow section to CLAUDE.md');
+/**
+ * Remove a directory if it exists and is empty.
+ */
+function removeIfEmpty(dir) {
+  if (!fs.existsSync(dir)) return false;
+  try {
+    const entries = fs.readdirSync(dir);
+    if (entries.length === 0) {
+      fs.rmdirSync(dir);
+      return true;
     }
-  } else {
-    fs.writeFileSync(claudeMd, CLAUDE_MD_SNIPPET);
-    ok('Created CLAUDE.md with Burrow section');
+  } catch (_) {
+    // ignore
+  }
+  return false;
+}
+
+// ── Install flow ──────────────────────────────────────────────────────────────
+
+async function runInstall({ sourceDir, targetDir, yes, detection }) {
+  const claudeMdPath = path.join(targetDir, 'CLAUDE.md');
+
+  // Ask for Claude.md opt-in
+  let addClaudeMd = true;
+  if (!yes) {
+    const claudeAnswer = await ask(
+      '  Add Burrow instructions to CLAUDE.md? [Y/n] ',
+      'y'
+    );
+    addClaudeMd = claudeAnswer.toLowerCase() !== 'n';
   }
 
-  console.log('\n  Done. Say /burrow to get started.\n');
+  const results = performInstall(sourceDir, targetDir);
+  printInstallResults(results);
+
+  if (addClaudeMd) {
+    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    ok('CLAUDE.md (burrow block added)');
+  } else {
+    skip('CLAUDE.md (skipped)');
+  }
+
+  printGettingStarted();
 }
 
-// ── CLI ────────────────────────────────────────────────────────────
+// ── Upgrade flow ──────────────────────────────────────────────────────────────
 
-const target = process.argv[2];
-if (!target) {
-  fail('Usage: node .claude/burrow/bin/init.cjs <target-project-path>');
+async function runUpgrade({ sourceDir, targetDir, yes, detection }) {
+  const claudeMdPath = path.join(targetDir, 'CLAUDE.md');
+  const { version } = detection;
+
+  console.log('\n  Detected existing Burrow installation.');
+
+  // Read our own version for the "old -> new" display
+  const sourceVersionFile = path.join(sourceDir, '.claude', 'burrow', 'VERSION');
+  const sourcePkgFile = path.join(sourceDir, '.claude', 'burrow', 'package.json');
+  let newVersion = null;
+  if (fs.existsSync(sourceVersionFile)) {
+    newVersion = fs.readFileSync(sourceVersionFile, 'utf-8').trim();
+  } else if (fs.existsSync(sourcePkgFile)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(sourcePkgFile, 'utf-8'));
+      newVersion = pkg.version || null;
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  if (version || newVersion) {
+    const fromStr = version || '(unknown)';
+    const toStr   = newVersion || '(unknown)';
+    console.log(`  Upgrading Burrow: v${fromStr} -> v${toStr}`);
+  }
+
+  if (!yes) {
+    const answer = await ask('  Proceed with upgrade? [Y/n] ', 'y');
+    if (answer.toLowerCase() === 'n') {
+      console.log('\n  Upgrade cancelled.\n');
+      return;
+    }
+  }
+
+  const results = performUpgrade(sourceDir, targetDir);
+  printInstallResults(results);
+
+  // Handle CLAUDE.md sentinel
+  if (detection.hasSentinel) {
+    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    ok('CLAUDE.md (sentinel block updated)');
+  } else if (detection.hasLegacyClaude) {
+    // Wrap legacy ## Burrow section in sentinels
+    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    warn('CLAUDE.md had legacy Burrow section — replaced with sentinel block');
+  }
+  // else: no action (user opted out previously)
+
+  console.log('\n  Upgrade complete.\n');
 }
 
-install(path.resolve(target));
+// ── Repair flow ───────────────────────────────────────────────────────────────
+
+async function runRepair({ sourceDir, targetDir, yes, detection }) {
+  const { missing } = detection;
+
+  console.log(`\n  Detected partial Burrow installation, ${missing.length} file(s) missing:`);
+  for (const f of missing) {
+    console.log(`    - ${f}`);
+  }
+
+  if (!yes) {
+    const answer = await ask('  Proceed with repair? [Y/n] ', 'y');
+    if (answer.toLowerCase() === 'n') {
+      console.log('\n  Repair cancelled.\n');
+      return;
+    }
+  }
+
+  const results = performRepair(sourceDir, targetDir, missing);
+  printInstallResults(results);
+
+  console.log('\n  Repair complete.\n');
+}
+
+// ── Uninstall flow ────────────────────────────────────────────────────────────
+
+async function runUninstall({ targetDir, yes }) {
+  const burrowDir    = path.join(targetDir, '.claude', 'burrow');
+  const commandFile  = path.join(targetDir, '.claude', 'commands', 'burrow.md');
+  const commandDir   = path.join(targetDir, '.claude', 'commands', 'burrow');
+  const dataDir      = path.join(targetDir, '.planning', 'burrow');
+  const claudeMdPath = path.join(targetDir, 'CLAUDE.md');
+  const claudeDir    = path.join(targetDir, '.claude');
+  const commandsDir  = path.join(targetDir, '.claude', 'commands');
+  const planningDir  = path.join(targetDir, '.planning');
+
+  console.log('\n  The following will be removed:');
+  if (fs.existsSync(burrowDir))   console.log(`    - .claude/burrow/`);
+  if (fs.existsSync(commandFile)) console.log(`    - .claude/commands/burrow.md`);
+  if (fs.existsSync(commandDir))  console.log(`    - .claude/commands/burrow/`);
+  if (fs.existsSync(dataDir))     console.log(`    - .planning/burrow/`);
+  if (fs.existsSync(claudeMdPath)) {
+    const content = fs.readFileSync(claudeMdPath, 'utf-8');
+    if (content.includes('<!-- burrow:start -->')) {
+      console.log(`    - CLAUDE.md sentinel block`);
+    }
+  }
+  console.log('');
+
+  if (!yes) {
+    const answer = await ask('  Proceed with uninstall? [y/N] ', 'n');
+    if (answer.toLowerCase() !== 'y') {
+      console.log('\n  Uninstall cancelled.\n');
+      return;
+    }
+  }
+
+  // Remove files/dirs
+  if (removeDir(burrowDir))   ok('.claude/burrow/ removed');
+  else                        skip('.claude/burrow/ (not found)');
+
+  if (removeFile(commandFile)) ok('.claude/commands/burrow.md removed');
+  else                         skip('.claude/commands/burrow.md (not found)');
+
+  if (removeDir(commandDir))  ok('.claude/commands/burrow/ removed');
+  else                        skip('.claude/commands/burrow/ (not found)');
+
+  if (removeDir(dataDir))     ok('.planning/burrow/ removed');
+  else                        skip('.planning/burrow/ (not found)');
+
+  // Remove sentinel block from CLAUDE.md
+  if (fs.existsSync(claudeMdPath)) {
+    const before = fs.readFileSync(claudeMdPath, 'utf-8');
+    if (before.includes('<!-- burrow:start -->')) {
+      removeSentinelBlock(claudeMdPath);
+      ok('CLAUDE.md sentinel block removed');
+    }
+  }
+
+  // Clean up empty parent dirs
+  if (removeIfEmpty(commandsDir)) ok('.claude/commands/ removed (was empty)');
+  if (removeIfEmpty(claudeDir))   ok('.claude/ removed (was empty)');
+  if (removeIfEmpty(planningDir)) ok('.planning/ removed (was empty)');
+
+  console.log('\n  Uninstall complete.\n');
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+async function main() {
+  const { flags, positional } = parseArgs(process.argv);
+
+  if (flags.help) {
+    printUsage();
+    process.exit(0);
+  }
+
+  const sourceDir = __dirname;
+  const targetDir = positional ? path.resolve(positional) : process.cwd();
+
+  // Verify source is valid
+  const burrowToolsPath = path.join(sourceDir, '.claude', 'burrow', 'burrow-tools.cjs');
+  if (!fs.existsSync(burrowToolsPath)) {
+    console.error(`  \u2717 Cannot find .claude/burrow/burrow-tools.cjs in ${sourceDir}`);
+    console.error('  Run this script from the burrow repo directory.');
+    process.exit(1);
+  }
+
+  if (flags.uninstall) {
+    console.log('\n── Burrow Uninstall ─────────────────────────────────────────────────────\n');
+    if (!flags.yes) createInterface();
+    await runUninstall({ targetDir, yes: flags.yes });
+    closeInterface();
+    return;
+  }
+
+  // Detect mode
+  const detection = detect(targetDir);
+
+  console.log('\n── Burrow Install ───────────────────────────────────────────────────────\n');
+
+  if (!flags.yes) createInterface();
+
+  if (detection.mode === 'fresh') {
+    // Optionally ask for target path
+    let resolvedTarget = targetDir;
+    if (!flags.yes) {
+      const pathAnswer = await ask(
+        `  Install directory [${targetDir}]: `,
+        targetDir
+      );
+      resolvedTarget = path.resolve(pathAnswer);
+    }
+
+    await runInstall({ sourceDir, targetDir: resolvedTarget, yes: flags.yes, detection });
+  } else if (detection.mode === 'upgrade') {
+    await runUpgrade({ sourceDir, targetDir, yes: flags.yes, detection });
+  } else if (detection.mode === 'repair') {
+    await runRepair({ sourceDir, targetDir, yes: flags.yes, detection });
+  }
+
+  closeInterface();
+}
+
+main().catch((err) => {
+  console.error(`  \u2717 Fatal error: ${err.message}`);
+  closeInterface();
+  process.exit(1);
+});
