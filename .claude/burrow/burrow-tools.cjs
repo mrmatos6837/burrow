@@ -2,6 +2,7 @@
 'use strict';
 
 const { parseArgs } = require('node:util');
+const fs = require('node:fs');
 const path = require('node:path');
 
 const core = require('./lib/core.cjs');
@@ -9,6 +10,7 @@ const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
 const { init } = require('./lib/init.cjs');
+const version = require('./lib/version.cjs');
 
 /**
  * Resolve terminal width from --width flag or process.stdout.columns.
@@ -21,6 +23,29 @@ function resolveTermWidth(values) {
     if (!isNaN(n) && n > 0) return n;
   }
   return process.stdout.columns || 80;
+}
+
+/**
+ * Print a one-line update notice to stderr if the cache indicates
+ * an outdated install. Never throws — update notices must never
+ * crash the CLI.
+ *
+ * @param {string} cwd - Current working directory (target project root)
+ */
+function notifyIfOutdated(cwd) {
+  try {
+    const cachePath = path.join(cwd, version.UPDATE_CACHE_FILE);
+    if (!fs.existsSync(cachePath)) return;
+    const cache = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+    if (!cache.sourceVersion || !cache.installedVersion) return;
+    if (version.compareSemver(cache.installedVersion, cache.sourceVersion) < 0) {
+      process.stderr.write(
+        `\n  Update available: ${cache.installedVersion} \u2192 ${cache.sourceVersion}  Run /burrow:update\n\n`
+      );
+    }
+  } catch (_) {
+    // Never crash on notification failure
+  }
 }
 
 /**
@@ -38,6 +63,7 @@ function handleError(message) {
  */
 function writeAndExit(rendered) {
   process.stdout.write(rendered + '\n');
+  notifyIfOutdated(process.cwd());
   process.exit(0);
 }
 
