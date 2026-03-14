@@ -87,6 +87,33 @@ function migrate(data) {
 }
 
 /**
+ * Validate the schema of parsed cards.json data.
+ * Throws a human-readable Error if the data is structurally invalid.
+ * @param {*} data - Parsed JSON value
+ */
+function validateSchema(data) {
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Burrow: invalid cards.json — expected a JSON object, got ' + (data === null ? 'null' : Array.isArray(data) ? 'array' : typeof data));
+  }
+
+  // Support v1 (items) and v2 (cards) root arrays
+  const rootArray = data.cards !== undefined ? data.cards : data.items;
+
+  if (rootArray === undefined) {
+    throw new Error("Burrow: invalid cards.json — missing 'cards' array");
+  }
+
+  if (!Array.isArray(rootArray)) {
+    throw new Error("Burrow: invalid cards.json — expected 'cards' to be an array, got " + typeof rootArray);
+  }
+
+  // Spot-check: first element must have a string id (if present)
+  if (rootArray.length > 0 && typeof rootArray[0].id !== 'string') {
+    throw new Error("Burrow: invalid cards.json — expected card 'id' to be a string, got " + typeof rootArray[0].id);
+  }
+}
+
+/**
  * Load the burrow data from cards.json.
  * Returns default empty v2 structure if the file does not exist.
  * Automatically migrates v1 data to v2 format.
@@ -98,7 +125,12 @@ function load(cwd) {
   try {
     const raw = fs.readFileSync(filePath, 'utf-8');
     const data = JSON.parse(raw);
-    return migrate(data);
+    validateSchema(data);
+    // Skip migrate() entirely for already-v2 data (PERF-09)
+    if (data.version < 2) {
+      return migrate(data);
+    }
+    return data;
   } catch (err) {
     if (err.code === 'ENOENT') {
       return { version: 2, cards: [] };

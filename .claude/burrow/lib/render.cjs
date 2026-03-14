@@ -24,6 +24,7 @@ const MIN_TERM_WIDTH = 40;
  * @returns {string}
  */
 function formatAge(isoString) {
+  if (typeof isoString !== 'string') return '???';
   if (!isoString) return '???';
   const now = Date.now();
   const then = new Date(isoString).getTime();
