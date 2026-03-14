@@ -17,6 +17,7 @@ const {
   archiveCard,
   unarchiveCard,
   countDescendants,
+  searchCards,
 } = require('../.claude/burrow/lib/mongoose.cjs');
 
 /**
@@ -968,6 +969,93 @@ describe('archiveCard full return shape (API-01 + PERF-03)', () => {
     // Card A: childA1 (1) + grandchild (1) + childA2 (1) = 3
     const result = unarchiveCard(data, 'aaaaaaaa');
     assert.equal(result.descendantCount, 3);
+  });
+});
+
+describe('searchCards (API-02)', () => {
+  it('searchCards is exported', () => {
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+    assert.equal(typeof mongoose.searchCards, 'function', 'searchCards should be exported');
+  });
+
+  it('finds matching cards by title (case-insensitive)', () => {
+    const data = sampleTree();
+    const results = searchCards(data, 'card a');
+    assert.ok(results.length >= 1, 'Should find Card A');
+    const match = results.find((r) => r.id === 'aaaaaaaa');
+    assert.ok(match, 'Should find Card A by ID');
+    assert.equal(match.title, 'Card A');
+  });
+
+  it('returns path as breadcrumb string for nested match', () => {
+    const data = sampleTree();
+    const results = searchCards(data, 'grandchild');
+    assert.ok(results.length >= 1, 'Should find Grandchild');
+    const match = results[0];
+    assert.ok(match.path.includes('Card A'), 'Path should include ancestor');
+    assert.ok(match.path.includes('Child A1'), 'Path should include parent');
+    assert.ok(match.path.includes('Grandchild'), 'Path should include the card itself');
+  });
+
+  it('returns empty array when no matches', () => {
+    const data = sampleTree();
+    const results = searchCards(data, 'zzznomatch');
+    assert.deepEqual(results, []);
+  });
+
+  it('skips archived cards', () => {
+    const data = sampleTreeWithArchived();
+    // Child A2 is archived
+    const results = searchCards(data, 'child a2');
+    assert.equal(results.length, 0, 'Should not find archived card');
+  });
+
+  it('returns result with {id, title, path} shape', () => {
+    const data = sampleTree();
+    const results = searchCards(data, 'card b');
+    assert.ok(results.length >= 1);
+    const match = results[0];
+    assert.ok('id' in match, 'Should have id');
+    assert.ok('title' in match, 'Should have title');
+    assert.ok('path' in match, 'Should have path');
+  });
+
+  it('finds multiple matches', () => {
+    const data = sampleTree();
+    // "Card" appears in Card A, Card B, Card C
+    const results = searchCards(data, 'card');
+    assert.ok(results.length >= 3, 'Should find multiple matching cards');
+  });
+});
+
+describe('renderTree depth validation (QUAL-03)', () => {
+  it('renderTree with string depth throws error', () => {
+    const data = sampleTree();
+    assert.throws(() => {
+      renderTree(data, null, { depth: 'abc' });
+    }, /depth.*number|number.*depth/i, 'Should throw about depth being a number');
+  });
+
+  it('renderTree with numeric depth works normally', () => {
+    const data = sampleTree();
+    assert.doesNotThrow(() => {
+      renderTree(data, null, { depth: 1 });
+    });
+  });
+
+  it('renderTree with undefined depth works normally (default)', () => {
+    const data = sampleTree();
+    assert.doesNotThrow(() => {
+      renderTree(data, null, {});
+    });
+  });
+});
+
+describe('PREVIEW_TRUNCATE_LENGTH constant (QUAL-04)', () => {
+  it('PREVIEW_TRUNCATE_LENGTH is exported from mongoose.cjs', () => {
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+    assert.equal(typeof mongoose.PREVIEW_TRUNCATE_LENGTH, 'number', 'PREVIEW_TRUNCATE_LENGTH should be a number');
+    assert.equal(mongoose.PREVIEW_TRUNCATE_LENGTH, 80, 'PREVIEW_TRUNCATE_LENGTH should be 80');
   });
 });
 

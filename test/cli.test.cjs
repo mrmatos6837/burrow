@@ -576,3 +576,69 @@ describe('removed commands', () => {
     }
   });
 });
+
+describe('input validation (VALID-01, VALID-02, VALID-03)', () => {
+  it('read --depth abc produces error mentioning depth and number/numeric', () => {
+    const dir = makeTmpDir();
+    try {
+      const output = run(['read', '--depth', 'abc'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(
+        output.toLowerCase().includes('depth') &&
+        (output.toLowerCase().includes('number') || output.toLowerCase().includes('numeric')),
+        `Output should mention depth and number/numeric, got: ${output}`
+      );
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('add --at -1 produces error about negative position', () => {
+    const dir = makeTmpDir();
+    try {
+      const output = run(['add', '--title', 'Test', '--at', '-1'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(
+        output.toLowerCase().includes('negative') || output.toLowerCase().includes('non-negative') || output.toLowerCase().includes('at'),
+        `Output should mention negative or --at, got: ${output}`
+      );
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('move --at -1 produces error about negative position', () => {
+    const dir = makeTmpDir();
+    try {
+      const card = addCard('MoveCard', dir);
+      const output = run(['move', card.id, '--at', '-1'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(
+        output.toLowerCase().includes('negative') || output.toLowerCase().includes('non-negative') || output.toLowerCase().includes('at'),
+        `Output should mention negative or --at, got: ${output}`
+      );
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('read --bogus-flag produces error (strict mode)', () => {
+    const dir = makeTmpDir();
+    try {
+      const output = run(['read', '--bogus-flag'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('add --bogus-flag --title test produces error (strict mode)', () => {
+    const dir = makeTmpDir();
+    try {
+      const output = run(['add', '--bogus-flag', '--title', 'test'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
