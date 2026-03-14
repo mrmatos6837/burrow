@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rendering & Ergonomics
 status: planning
-stopped_at: Completed 08-engine-quality-ergonomics/08-03-PLAN.md
-last_updated: "2026-03-14T04:45:05.218Z"
+stopped_at: Completed 08-engine-quality-ergonomics/08-02-PLAN.md
+last_updated: "2026-03-14T04:47:07.556Z"
 last_activity: 2026-03-12 — v1.1 roadmap created, 3 phases defined (6-8)
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 7
   percent: 0
 ---
 
@@ -51,6 +51,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-rendering-enhancements P01 | 18min | 2 tasks | 4 files |
 | Phase 07-rendering-enhancements P02 | 10min | 2 tasks | 3 files |
 | Phase 08-engine-quality-ergonomics P03 | 12min | 1 tasks | 3 files |
+| Phase 08-engine-quality-ergonomics P01 | 20min | 2 tasks | 2 files |
+| Phase 08-engine-quality-ergonomics P02 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -75,6 +77,12 @@ Recent decisions affecting current work:
 - [Phase 07-rendering-enhancements]: resolveTermWidth() centralizes width resolution; move with strict: true requires width declared in parseArgs
 - [Phase 08-03]: BURROW_SECTION_LF constant holds LF content; toCRLF() converts on demand — avoids storing two copies
 - [Phase 08-03]: Idempotent init: check-then-write, never overwrite; includes('## Burrow') for CLAUDE.md, line-by-line trim for .gitignore
+- [Phase 08-engine-quality-ergonomics]: countActiveDescendants removed; countDescendants(card, { activeOnly: true }) is unified counting API
+- [Phase 08-engine-quality-ergonomics]: archiveCard/unarchiveCard and deleteCard return full card shape { ...card, descendantCount } for API consistency
+- [Phase 08-engine-quality-ergonomics]: makePreview truncate-first (slice before replace) to avoid processing huge strings; makePreview exported
+- [Phase 08-engine-quality-ergonomics]: validateSchema() spot-checks first card id only — O(1) not O(n) — schema validation should never walk the tree
+- [Phase 08-engine-quality-ergonomics]: generateId() takes no parameters — crypto.randomUUID() collision-free at any reasonable card count without tree walk
+- [Phase 08-engine-quality-ergonomics]: PERF-09: load() skips migrate() for v2 data; version check moved from migrate() into load() caller
 
 ### Pending Todos
 
@@ -88,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:45:05.216Z
-Stopped at: Completed 08-engine-quality-ergonomics/08-03-PLAN.md
+Last session: 2026-03-14T04:47:07.555Z
+Stopped at: Completed 08-engine-quality-ergonomics/08-02-PLAN.md
 Resume file: None

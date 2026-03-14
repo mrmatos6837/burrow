@@ -22,9 +22,9 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### Performance — Redundant Tree Walks
 
-- [ ] **PERF-01**: moveCard combines cycle check, parent lookup, and container access into single traversal
-- [ ] **PERF-02**: Consolidate countDescendants and countActiveDescendants into single parameterized function
-- [ ] **PERF-03**: archiveCard/unarchiveCard counts descendants during recursive set instead of separate walk
+- [x] **PERF-01**: moveCard combines cycle check, parent lookup, and container access into single traversal
+- [x] **PERF-02**: Consolidate countDescendants and countActiveDescendants into single parameterized function
+- [x] **PERF-03**: archiveCard/unarchiveCard counts descendants during recursive set instead of separate walk
 - [ ] **PERF-04**: CRUD operations return path info — eliminate post-mutation getBreadcrumbs tree walk
 - [ ] **PERF-05**: moveCard returns parent info — eliminate redundant findById for parent title
 - [ ] **PERF-06**: editCard captures old values internally — eliminate double findById in edit command
@@ -45,7 +45,7 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 ### Code Quality
 
 - [ ] **QUAL-01**: formatAge validates ISO input instead of silently producing NaN
-- [ ] **QUAL-02**: findParent uses single traversal instead of overlapping root + nested loops
+- [x] **QUAL-02**: findParent uses single traversal instead of overlapping root + nested loops
 - [ ] **QUAL-03**: renderTree validates depth parameter type
 - [ ] **QUAL-04**: Document or consolidate magic truncation numbers (200, 40, 80)
 
@@ -56,7 +56,7 @@ Requirements for v1.1 Rendering & Ergonomics milestone. Each maps to roadmap pha
 
 ### API Consistency
 
-- [ ] **API-01**: deleteCard returns full card (same shape as moveCard/editCard) instead of minimal object
+- [x] **API-01**: deleteCard returns full card (same shape as moveCard/editCard) instead of minimal object
 - [ ] **API-02**: find command reuses tree engine instead of reimplementing recursion with O(n) path copies
 
 ### Installation
@@ -110,9 +110,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REND-08 | Phase 7 | Complete |
 | REND-09 | Phase 7 | Complete |
 | REND-10 | Phase 7 | Complete |
-| PERF-01 | Phase 8 | Pending |
-| PERF-02 | Phase 8 | Pending |
-| PERF-03 | Phase 8 | Pending |
+| PERF-01 | Phase 8 | Complete |
+| PERF-02 | Phase 8 | Complete |
+| PERF-03 | Phase 8 | Complete |
 | PERF-04 | Phase 8 | Pending |
 | PERF-05 | Phase 8 | Pending |
 | PERF-06 | Phase 8 | Pending |
@@ -124,12 +124,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VALID-02 | Phase 8 | Pending |
 | VALID-03 | Phase 8 | Pending |
 | QUAL-01 | Phase 8 | Pending |
-| QUAL-02 | Phase 8 | Pending |
+| QUAL-02 | Phase 8 | Complete |
 | QUAL-03 | Phase 8 | Pending |
 | QUAL-04 | Phase 8 | Pending |
 | DATA-01 | Phase 8 | Pending |
 | DATA-02 | Phase 8 | Pending |
-| API-01 | Phase 8 | Pending |
+| API-01 | Phase 8 | Complete |
 | API-02 | Phase 8 | Pending |
 | INST-01 | Phase 8 | Complete |
 | INST-02 | Phase 8 | Complete |
