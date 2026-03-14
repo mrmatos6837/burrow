@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Packaging & Distribution
 status: executing
 stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-14T23:24:53.588Z"
+last_updated: "2026-03-14T23:25:01.453Z"
 last_activity: "2026-03-14 — Plan 10-01 complete: VERSION file, version.cjs, passive update notification"
 progress:
   total_phases: 3
@@ -50,6 +50,7 @@ Progress: [█████░░░░░] 50%
 *Updated after each plan completion*
 | Phase 09-installer-rewrite P02 | 3 | 2 tasks | 2 files |
 | Phase 10-version-tracking P01 | 12 | 2 tasks | 4 files |
+| Phase 10-version-tracking-update-command P02 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ v1.2 decisions:
 - [Phase 10-version-tracking]: Cache-only notification in CLI — burrow-tools reads cache seeded by installer, never initiates check itself
 - [Phase 10-version-tracking]: null semver treated as 0.0.0 so missing VERSION file always shows outdated notice
 - [Phase 10-version-tracking]: Update notices go to stderr to keep stdout clean for agent-parseable output
+- [Phase 10-version-tracking-update-command]: /burrow:update reads .claude/burrow/.source-dir to find installer path — no hardcoded paths
+- [Phase 10-version-tracking-update-command]: Breadcrumb writes happen after install and upgrade but NOT after repair — repair doesn't change versions
 
 ### Pending Todos
 

@@ -24,7 +24,7 @@ Requirements for Packaging & Distribution milestone. Each maps to roadmap phases
 ### Updates
 
 - [x] **UPD-01**: Re-running installer on existing install replaces source code, preserves `cards.json`
-- [ ] **UPD-02**: `/burrow:update` slash command runs update from within Claude Code session
+- [x] **UPD-02**: `/burrow:update` slash command runs update from within Claude Code session
 - [x] **UPD-03**: Version marker tracked in installed files with comparison logic
 - [x] **UPD-04**: CLI shows passive one-line notification when outdated (cached 24h check)
 
@@ -61,7 +61,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INST-04 | Phase 9 | Complete |
 | INST-05 | Phase 9 | Complete |
 | UPD-01 | Phase 9 | Complete |
-| UPD-02 | Phase 10 | Pending |
+| UPD-02 | Phase 10 | Complete |
 | UPD-03 | Phase 10 | Complete |
 | UPD-04 | Phase 10 | Complete |
 | NPM-01 | Phase 11 | Pending |
