@@ -8,6 +8,7 @@ const core = require('./lib/core.cjs');
 const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
+const { init } = require('./lib/init.cjs');
 
 /**
  * Resolve terminal width from --width flag or process.stdout.columns.
@@ -61,13 +62,24 @@ function main() {
 
   if (!command) {
     handleError(
-      'No command provided. Available: add, edit, remove, move, read, dump, path, find, archive, unarchive'
+      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive'
     );
   }
 
   core.ensureDataDir(cwd);
 
   switch (command) {
+    case 'init': {
+      const result = init(cwd);
+      const lines = [
+        `gitignore: ${result.gitignore}`,
+        `claudeMd: ${result.claudeMd}`,
+        `dataDir: ${result.dataDir}`,
+      ];
+      writeAndExit(`Burrow initialized.\n${lines.join('\n')}`);
+      break;
+    }
+
     case 'add': {
       const { values } = parseArgs({
         args: subArgs,
@@ -488,7 +500,7 @@ function main() {
 
     default:
       handleError(
-        `Unknown command: ${command}. Available: add, edit, remove, move, read, dump, path, find, archive, unarchive`
+        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive`
       );
   }
 }
