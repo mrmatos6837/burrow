@@ -41,20 +41,6 @@ function writeAndExit(rendered) {
   process.exit(0);
 }
 
-/**
- * Build breadcrumbs array for a card from getPath result.
- * @param {object} data - Root data object
- * @param {string} id - Card ID
- * @returns {Array<{id, title}>} Ancestor breadcrumbs (not including the card itself)
- */
-function getBreadcrumbs(data, id) {
-  const pathResult = tree.getPath(data, id);
-  if (!pathResult) return [];
-  // Strip the last element (the card itself), map to {id, title}
-  return pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title }));
-}
-
-
 function main() {
   const command = process.argv[2];
   const subArgs = process.argv.slice(3);
@@ -117,10 +103,9 @@ function main() {
 
       storage.save(cwd, data);
 
-      const breadcrumbs = getBreadcrumbs(data, result.id);
-      const rendered = render.renderMutation('add', result, {
-        breadcrumbs,
-        card: result,
+      const rendered = render.renderMutation('add', result.card, {
+        breadcrumbs: result.breadcrumbs,
+        card: result.card,
         termWidth: resolveTermWidth(values),
       });
       writeAndExit(rendered);
@@ -146,14 +131,6 @@ function main() {
 
       const data = storage.load(cwd);
 
-      // Capture old values before editing
-      const cardBefore = tree.findById(data, id);
-      if (!cardBefore) {
-        handleError(`Card not found: ${id}`);
-      }
-      const oldTitle = cardBefore.title;
-      const oldBody = cardBefore.body;
-
       const result = tree.editCard(data, id, {
         title: values.title,
         body: values.body,
@@ -165,12 +142,11 @@ function main() {
 
       storage.save(cwd, data);
 
-      const breadcrumbs = getBreadcrumbs(data, id);
-      const rendered = render.renderMutation('edit', result, {
-        breadcrumbs,
-        card: result,
-        oldTitle,
-        oldBody,
+      const rendered = render.renderMutation('edit', result.card, {
+        breadcrumbs: result.breadcrumbs,
+        card: result.card,
+        oldTitle: result.oldTitle,
+        oldBody: result.oldBody,
         termWidth: resolveTermWidth(values),
       });
       writeAndExit(rendered);
@@ -252,12 +228,6 @@ function main() {
         newParentId = rawParent;
       }
 
-      // Capture source parent title BEFORE moving
-      const sourceResult = tree.findParent(data, id);
-      const sourceParentTitle = sourceResult && sourceResult.parent
-        ? sourceResult.parent.title
-        : 'root';
-
       const result = tree.moveCard(data, id, newParentId, position);
 
       if (!result) {
@@ -270,8 +240,8 @@ function main() {
       const targetParentTitle = newParentId
         ? (tree.findById(data, newParentId) || {}).title || 'unknown'
         : 'root';
-      const rendered = render.renderMutation('move', result, {
-        fromParentTitle: sourceParentTitle,
+      const rendered = render.renderMutation('move', result.card, {
+        fromParentTitle: result.sourceParentTitle,
         toParentTitle: targetParentTitle,
       });
       writeAndExit(rendered);

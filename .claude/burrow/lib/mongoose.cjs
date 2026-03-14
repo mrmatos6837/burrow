@@ -115,8 +115,8 @@ const PREVIEW_TRUNCATE_LENGTH = 80;
 /**
  * Add a new card to the tree.
  * @param {object} data - Root data object
- * @param {object} opts - {title, parentId, body}
- * @returns {object} The created card
+ * @param {object} opts - {title, parentId, body, position}
+ * @returns {{card: object, breadcrumbs: Array<{id, title}>}|null} The created card with ancestor breadcrumbs, or null if parent not found
  */
 function addCard(data, { title, parentId, body, position }) {
   const container = getContainer(data, parentId);
@@ -138,7 +138,11 @@ function addCard(data, { title, parentId, body, position }) {
   } else {
     container.push(card);
   }
-  return card;
+
+  const pathResult = getPath(data, card.id);
+  const breadcrumbs = pathResult ? pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title })) : [];
+
+  return { card, breadcrumbs };
 }
 
 /**
@@ -146,16 +150,22 @@ function addCard(data, { title, parentId, body, position }) {
  * @param {object} data - Root data object
  * @param {string} id - Card ID
  * @param {object} changes - {title, body}
- * @returns {object|null} Updated card, or null if not found
+ * @returns {{card: object, oldTitle: string, oldBody: string, breadcrumbs: Array<{id, title}>}|null} Result with old values and breadcrumbs, or null if not found
  */
 function editCard(data, id, { title, body }) {
   const card = findById(data, id);
   if (!card) return null;
 
+  const oldTitle = card.title;
+  const oldBody = card.body;
+
   if (title !== undefined) card.title = title;
   if (body !== undefined) card.body = body;
 
-  return card;
+  const pathResult = getPath(data, id);
+  const breadcrumbs = pathResult ? pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title })) : [];
+
+  return { card, oldTitle, oldBody, breadcrumbs };
 }
 
 /**
@@ -211,14 +221,15 @@ function findCardWithAncestry(data, cardId) {
  * @param {string} cardId - ID of card to move
  * @param {string|null} newParentId - Target parent ID, or null for root
  * @param {number} [requestedPosition] - Optional index in target array
- * @returns {object|null} Moved card, or null on error (not found, cycle)
+ * @returns {{card: object, sourceParentTitle: string, breadcrumbs: Array<{id, title}>}|null} Result with source parent title and breadcrumbs, or null on error (not found, cycle)
  */
 function moveCard(data, cardId, newParentId, requestedPosition) {
   // Walk 1: find card, its container, and ancestor IDs for cycle detection
   const found = findCardWithAncestry(data, cardId);
   if (!found) return null;
 
-  const { card, container: sourceContainer, ancestorIds } = found;
+  const { card, parent: sourceParent, container: sourceContainer, ancestorIds } = found;
+  const sourceParentTitle = sourceParent ? sourceParent.title : 'root';
 
   // Cycle check: newParentId cannot be the card itself or any ancestor's descendant
   // ancestorIds contains all ancestors of card; card.id is card itself
@@ -251,7 +262,10 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
     targetContainer.push(card);
   }
 
-  return card;
+  const pathResult = getPath(data, cardId);
+  const breadcrumbs = pathResult ? pathResult.slice(0, -1).map((c) => ({ id: c.id, title: c.title })) : [];
+
+  return { card, sourceParentTitle, breadcrumbs };
 }
 
 

@@ -192,7 +192,9 @@ describe('getPath', () => {
 describe('addCard', () => {
   it('adds card to root with v2 schema', () => {
     const data = emptyData();
-    const card = addCard(data, { title: 'First card' });
+    const result = addCard(data, { title: 'First card' });
+    assert.ok(result, 'result should not be null');
+    const { card, breadcrumbs } = result;
     assert.equal(card.title, 'First card');
     assert.ok(/^[0-9a-f]{8}$/.test(card.id), 'ID should be 8-char hex');
     assert.ok(card.created, 'should have created timestamp');
@@ -201,27 +203,31 @@ describe('addCard', () => {
     assert.equal(card.position, undefined, 'no position field');
     assert.equal(card.notes, undefined, 'no notes field');
     assert.equal(data.cards.length, 1);
+    assert.deepStrictEqual(breadcrumbs, [], 'root card has no breadcrumbs');
   });
 
   it('adds card as child of existing card', () => {
     const data = sampleTree();
-    const card = addCard(data, { title: 'New child', parentId: 'bbbbbbbb' });
-    assert.ok(card);
+    const result = addCard(data, { title: 'New child', parentId: 'bbbbbbbb' });
+    assert.ok(result, 'result should not be null');
+    const { card, breadcrumbs } = result;
     const parent = findById(data, 'bbbbbbbb');
     assert.equal(parent.children.length, 1);
     assert.equal(parent.children[0].id, card.id);
+    assert.equal(breadcrumbs.length, 1, 'child should have 1 breadcrumb (the parent)');
+    assert.equal(breadcrumbs[0].id, 'bbbbbbbb');
   });
 
   it('adds card with body text', () => {
     const data = emptyData();
-    const card = addCard(data, { title: 'With body', body: 'Hello world' });
-    assert.equal(card.body, 'Hello world');
+    const result = addCard(data, { title: 'With body', body: 'Hello world' });
+    assert.equal(result.card.body, 'Hello world');
   });
 
   it('generates ISO 8601 timestamps', () => {
     const data = emptyData();
-    const card = addCard(data, { title: 'Timestamp test' });
-    const parsed = new Date(card.created);
+    const result = addCard(data, { title: 'Timestamp test' });
+    const parsed = new Date(result.card.created);
     assert.ok(!isNaN(parsed.getTime()), 'created should be valid ISO date');
   });
 
@@ -268,26 +274,62 @@ describe('addCard', () => {
     addCard(data, { title: 'Second' });
     assert.equal(data.cards[1].title, 'Second');
   });
+
+  it('returns {card, breadcrumbs} shape', () => {
+    const data = emptyData();
+    const result = addCard(data, { title: 'Test' });
+    assert.ok('card' in result, 'result should have card');
+    assert.ok('breadcrumbs' in result, 'result should have breadcrumbs');
+    assert.ok(Array.isArray(result.breadcrumbs), 'breadcrumbs should be array');
+  });
 });
 
 describe('editCard', () => {
   it('edits title of existing card', () => {
     const data = sampleTree();
     const result = editCard(data, 'aaaaaaaa', { title: 'Renamed A' });
-    assert.equal(result.title, 'Renamed A');
+    assert.ok(result, 'result should not be null');
+    assert.equal(result.card.title, 'Renamed A');
     assert.equal(findById(data, 'aaaaaaaa').title, 'Renamed A');
   });
 
   it('edits body of existing card', () => {
     const data = sampleTree();
     const result = editCard(data, 'bbbbbbbb', { body: 'Updated body' });
-    assert.equal(result.body, 'Updated body');
+    assert.ok(result, 'result should not be null');
+    assert.equal(result.card.body, 'Updated body');
   });
 
   it('returns null for missing ID', () => {
     const data = sampleTree();
     const result = editCard(data, 'zzzzzzzz', { title: 'Nope' });
     assert.equal(result, null);
+  });
+
+  it('returns {card, oldTitle, oldBody, breadcrumbs} shape (PERF-06)', () => {
+    const data = sampleTree();
+    const result = editCard(data, 'aaaaaaaa', { title: 'New Title' });
+    assert.ok('card' in result, 'Should have card');
+    assert.ok('oldTitle' in result, 'Should have oldTitle');
+    assert.ok('oldBody' in result, 'Should have oldBody');
+    assert.ok('breadcrumbs' in result, 'Should have breadcrumbs');
+    assert.equal(result.oldTitle, 'Card A', 'oldTitle should be original value');
+    assert.equal(result.oldBody, '', 'oldBody should be original value');
+    assert.deepStrictEqual(result.breadcrumbs, [], 'root card has empty breadcrumbs');
+  });
+
+  it('returns correct oldTitle before change applied', () => {
+    const data = sampleTree();
+    const result = editCard(data, 'a1a1a1a1', { title: 'Renamed' });
+    assert.equal(result.oldTitle, 'Child A1', 'oldTitle should be original before edit');
+    assert.equal(result.card.title, 'Renamed', 'card.title should reflect new value');
+  });
+
+  it('nested card returns breadcrumbs with ancestors', () => {
+    const data = sampleTree();
+    const result = editCard(data, 'a1a1a1a1', { body: 'new body' });
+    assert.equal(result.breadcrumbs.length, 1, 'nested card should have 1 ancestor');
+    assert.equal(result.breadcrumbs[0].id, 'aaaaaaaa');
   });
 });
 
@@ -323,7 +365,7 @@ describe('moveCard', () => {
     const data = sampleTree();
     const result = moveCard(data, 'a2a2a2a2', 'bbbbbbbb');
     assert.ok(result);
-    assert.equal(result.id, 'a2a2a2a2');
+    assert.equal(result.card.id, 'a2a2a2a2');
     const cardB = findById(data, 'bbbbbbbb');
     assert.equal(cardB.children.length, 1);
     assert.equal(cardB.children[0].id, 'a2a2a2a2');
@@ -358,13 +400,29 @@ describe('moveCard', () => {
   it('moved card has no position field', () => {
     const data = sampleTree();
     const result = moveCard(data, 'a2a2a2a2', 'bbbbbbbb');
-    assert.equal(result.position, undefined);
+    assert.equal(result.card.position, undefined);
   });
 
   it('returns null for missing card ID', () => {
     const data = sampleTree();
     const result = moveCard(data, 'zzzzzzzz', 'bbbbbbbb');
     assert.equal(result, null);
+  });
+
+  it('returns {card, sourceParentTitle, breadcrumbs} shape (PERF-05)', () => {
+    const data = sampleTree();
+    const result = moveCard(data, 'a2a2a2a2', 'bbbbbbbb');
+    assert.ok('card' in result, 'Should have card');
+    assert.ok('sourceParentTitle' in result, 'Should have sourceParentTitle');
+    assert.ok('breadcrumbs' in result, 'Should have breadcrumbs');
+    assert.equal(result.sourceParentTitle, 'Card A', 'sourceParentTitle should be original parent');
+    assert.ok(Array.isArray(result.breadcrumbs), 'breadcrumbs should be array');
+  });
+
+  it('sourceParentTitle is "root" when moving from root level', () => {
+    const data = sampleTree();
+    const result = moveCard(data, 'cccccccc', 'aaaaaaaa');
+    assert.equal(result.sourceParentTitle, 'root', 'Card at root should have sourceParentTitle=root');
   });
 });
 
@@ -393,8 +451,8 @@ describe('removed exports', () => {
 describe('ID generation', () => {
   it('generates 8-char hex IDs', () => {
     const data = emptyData();
-    const card = addCard(data, { title: 'Test' });
-    assert.match(card.id, /^[0-9a-f]{8}$/);
+    const result = addCard(data, { title: 'Test' });
+    assert.match(result.card.id, /^[0-9a-f]{8}$/);
   });
 });
 
@@ -438,10 +496,10 @@ describe('addCard without collectAllIds (PERF-10)', () => {
     const data = emptyData();
     const ids = new Set();
     for (let i = 0; i < 100; i++) {
-      const card = addCard(data, { title: `Card ${i}` });
-      assert.ok(card, `Card ${i} should be created`);
-      assert.ok(!ids.has(card.id), `Duplicate ID detected: ${card.id}`);
-      ids.add(card.id);
+      const result = addCard(data, { title: `Card ${i}` });
+      assert.ok(result, `Card ${i} should be created`);
+      assert.ok(!ids.has(result.card.id), `Duplicate ID detected: ${result.card.id}`);
+      ids.add(result.card.id);
     }
     assert.equal(ids.size, 100, 'All 100 IDs should be unique');
   });
@@ -449,8 +507,8 @@ describe('addCard without collectAllIds (PERF-10)', () => {
   it('addCard generates valid 8-char hex ID each time', () => {
     const data = emptyData();
     for (let i = 0; i < 10; i++) {
-      const card = addCard(data, { title: `Card ${i}` });
-      assert.match(card.id, /^[0-9a-f]{8}$/, `ID ${card.id} should be 8-char hex`);
+      const result = addCard(data, { title: `Card ${i}` });
+      assert.match(result.card.id, /^[0-9a-f]{8}$/, `ID ${result.card.id} should be 8-char hex`);
     }
   });
 });
