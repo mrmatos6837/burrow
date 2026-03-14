@@ -16,7 +16,7 @@ const {
   renderTree,
   archiveCard,
   unarchiveCard,
-  countActiveDescendants,
+  countDescendants,
 } = require('../.claude/burrow/lib/mongoose.cjs');
 
 /**
@@ -397,6 +397,63 @@ describe('ID generation', () => {
   });
 });
 
+describe('makePreview optimizations (PERF-08)', () => {
+  const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+
+  it('makePreview is exported', () => {
+    assert.equal(typeof mongoose.makePreview, 'function', 'makePreview should be exported');
+  });
+
+  it('short body with newlines: replaces newlines, no truncation', () => {
+    const result = mongoose.makePreview('short\nbody');
+    assert.equal(result, 'short body');
+  });
+
+  it('80-char body with newlines: returns full cleaned string (no truncation)', () => {
+    const body = 'A'.repeat(40) + '\n' + 'B'.repeat(39);
+    const result = mongoose.makePreview(body);
+    // 40 chars + space (replacing \n) + 39 chars = 80 chars
+    assert.equal(result.length, 80);
+    assert.ok(!result.includes('...'));
+  });
+
+  it('huge body (10000 chars): result length <= 83 chars', () => {
+    const hugeBody = 'x'.repeat(10000);
+    const result = mongoose.makePreview(hugeBody);
+    assert.ok(result.length <= 83, `Expected <= 83 chars, got ${result.length}`);
+    assert.ok(result.endsWith('...'));
+  });
+
+  it('huge body with newlines: truncates before processing extra newlines', () => {
+    // Newlines after position 83 should never be processed (truncate-first)
+    const body = 'a'.repeat(40) + '\n' + 'b'.repeat(40) + '\n'.repeat(9916);
+    const result = mongoose.makePreview(body);
+    assert.ok(result.length <= 83, `Expected <= 83 chars, got ${result.length}`);
+  });
+});
+
+describe('addCard without collectAllIds (PERF-10)', () => {
+  it('addCard generates unique IDs across 100 sequential adds', () => {
+    const data = emptyData();
+    const ids = new Set();
+    for (let i = 0; i < 100; i++) {
+      const card = addCard(data, { title: `Card ${i}` });
+      assert.ok(card, `Card ${i} should be created`);
+      assert.ok(!ids.has(card.id), `Duplicate ID detected: ${card.id}`);
+      ids.add(card.id);
+    }
+    assert.equal(ids.size, 100, 'All 100 IDs should be unique');
+  });
+
+  it('addCard generates valid 8-char hex ID each time', () => {
+    const data = emptyData();
+    for (let i = 0; i < 10; i++) {
+      const card = addCard(data, { title: `Card ${i}` });
+      assert.match(card.id, /^[0-9a-f]{8}$/, `ID ${card.id} should be 8-char hex`);
+    }
+  });
+});
+
 /**
  * Helper: create a tree with body content and archived cards for render/archive tests.
  * Structure:
@@ -478,25 +535,65 @@ function sampleTreeWithBody() {
   return data;
 }
 
-describe('countActiveDescendants', () => {
-  it('returns 0 for leaf card', () => {
+describe('countActiveDescendants (removed — covered by countDescendants activeOnly)', () => {
+  it('countDescendants(card, { activeOnly: true }) returns 0 for leaf card', () => {
     const data = sampleTree();
     const card = findById(data, 'cccccccc');
-    assert.equal(countActiveDescendants(card), 0);
+    assert.equal(countDescendants(card, { activeOnly: true }), 0);
   });
 
-  it('counts only active children (skips archived and their subtrees)', () => {
+  it('countDescendants(card, { activeOnly: true }) counts only active, skips archived subtrees', () => {
     const data = sampleTreeWithArchived();
     const cardA = findById(data, 'aaaaaaaa');
     // childA1 is active (1), grandchild is archived (skipped), childA2 is archived (skipped)
-    assert.equal(countActiveDescendants(cardA), 1);
+    assert.equal(countDescendants(cardA, { activeOnly: true }), 1);
   });
 
-  it('counts all children when none archived', () => {
+  it('countDescendants(card) counts all children when none archived', () => {
     const data = sampleTree();
     const cardA = findById(data, 'aaaaaaaa');
     // childA1 (1) + grandchild (1) + childA2 (1) = 3
-    assert.equal(countActiveDescendants(cardA), 3);
+    assert.equal(countDescendants(cardA), 3);
+  });
+});
+
+describe('countDescendants (parameterized)', () => {
+  it('countDescendants(card) counts all descendants (no opts)', () => {
+    const data = sampleTree();
+    const cardA = findById(data, 'aaaaaaaa');
+    // childA1 (1) + grandchild (1) + childA2 (1) = 3
+    assert.equal(countDescendants(cardA), 3);
+  });
+
+  it('countDescendants(card) returns 0 for leaf', () => {
+    const data = sampleTree();
+    const card = findById(data, 'cccccccc');
+    assert.equal(countDescendants(card), 0);
+  });
+
+  it('countDescendants(card, { activeOnly: true }) skips archived and their subtrees', () => {
+    const data = sampleTreeWithArchived();
+    const cardA = findById(data, 'aaaaaaaa');
+    // childA1 active (1), grandchild archived (skipped), childA2 archived (skipped) = 1
+    assert.equal(countDescendants(cardA, { activeOnly: true }), 1);
+  });
+
+  it('countDescendants(card, { activeOnly: false }) counts all descendants', () => {
+    const data = sampleTreeWithArchived();
+    const cardA = findById(data, 'aaaaaaaa');
+    // childA1 (1) + grandchild (1) + childA2 (1) = 3
+    assert.equal(countDescendants(cardA, { activeOnly: false }), 3);
+  });
+
+  it('countDescendants(card, { activeOnly: true }) returns 0 for leaf', () => {
+    const data = sampleTree();
+    const card = findById(data, 'cccccccc');
+    assert.equal(countDescendants(card, { activeOnly: true }), 0);
+  });
+
+  it('countActiveDescendants is NOT exported (function removed)', () => {
+    const mongoose = require('../.claude/burrow/lib/mongoose.cjs');
+    assert.equal(mongoose.countActiveDescendants, undefined);
   });
 });
 

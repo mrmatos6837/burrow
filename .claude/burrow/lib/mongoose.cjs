@@ -26,34 +26,25 @@ function findById(data, id) {
 
 /**
  * Find the parent of a card by ID.
+ * Uses a single recursive traversal (no separate root-level loop).
  * @param {object} data - Root data object
  * @param {string} id - Card ID to find parent of
  * @returns {{parent: object|null, container: Array}|null} parent card (null for root), container (the array the card lives in)
  */
 function findParent(data, id) {
-  // Check root level
-  for (const card of data.cards) {
-    if (card.id === id) {
-      return { parent: null, container: data.cards };
-    }
-  }
-  // Check nested
-  function search(parentCard) {
-    if (!parentCard.children || !parentCard.children.length) return null;
-    for (const card of parentCard.children) {
+  function search(parentCard, container) {
+    for (const card of container) {
       if (card.id === id) {
-        return { parent: parentCard, container: parentCard.children };
+        return { parent: parentCard, container };
       }
-      const found = search(card);
-      if (found) return found;
+      if (card.children && card.children.length) {
+        const found = search(card, card.children);
+        if (found) return found;
+      }
     }
     return null;
   }
-  for (const card of data.cards) {
-    const found = search(card);
-    if (found) return found;
-  }
-  return null;
+  return search(null, data.cards);
 }
 
 /**
@@ -91,15 +82,19 @@ function getPath(data, id) {
 }
 
 /**
- * Count all descendants recursively.
+ * Count descendants recursively.
  * @param {object} card
+ * @param {object} [opts]
+ * @param {boolean} [opts.activeOnly=false] - When true, skip archived children and their subtrees
  * @returns {number}
  */
-function countDescendants(card) {
+function countDescendants(card, opts) {
+  const activeOnly = opts && opts.activeOnly;
   let count = 0;
   if (card.children && card.children.length) {
     for (const child of card.children) {
-      count += 1 + countDescendants(child);
+      if (activeOnly && child.archived) continue;
+      count += 1 + countDescendants(child, opts);
     }
   }
   return count;
@@ -177,7 +172,32 @@ function deleteCard(data, id) {
 }
 
 /**
+ * Internal helper: find a card and its ancestry (parent + container) in a single walk.
+ * @param {object} data - Root data object
+ * @param {string} cardId - Card ID to find
+ * @returns {{card: object, parent: object|null, container: Array, ancestorIds: Set}|null}
+ */
+function findCardWithAncestry(data, cardId) {
+  function search(container, parent, ancestorIds) {
+    for (const card of container) {
+      if (card.id === cardId) {
+        return { card, parent, container, ancestorIds };
+      }
+      if (card.children && card.children.length) {
+        const nextAncestors = new Set(ancestorIds);
+        nextAncestors.add(card.id);
+        const found = search(card.children, card, nextAncestors);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  return search(data.cards, null, new Set());
+}
+
+/**
  * Move a card to a new parent (or root).
+ * Uses at most 2 tree walks: one to find card + ancestry, one to get target container.
  * @param {object} data - Root data object
  * @param {string} cardId - ID of card to move
  * @param {string|null} newParentId - Target parent ID, or null for root
@@ -185,10 +205,22 @@ function deleteCard(data, id) {
  * @returns {object|null} Moved card, or null on error (not found, cycle)
  */
 function moveCard(data, cardId, newParentId, requestedPosition) {
-  const card = findById(data, cardId);
-  if (!card) return null;
+  // Walk 1: find card, its container, and ancestor IDs for cycle detection
+  const found = findCardWithAncestry(data, cardId);
+  if (!found) return null;
 
-  // Cycle check: newParentId cannot be a descendant of cardId
+  const { card, container: sourceContainer, ancestorIds } = found;
+
+  // Cycle check: newParentId cannot be the card itself or any ancestor's descendant
+  // ancestorIds contains all ancestors of card; card.id is card itself
+  if (newParentId != null && (newParentId === cardId || ancestorIds.has(newParentId))) {
+    // newParentId is an ancestor of card — but we need to check if newParentId is a descendant of card
+    // ancestorIds only has ancestors, not descendants. We need to check if newParentId is under card.
+    // If newParentId === cardId, that's a trivial cycle. Otherwise check via getPath.
+    if (newParentId === cardId) return null;
+  }
+
+  // For cycle detection: newParentId must not be a descendant of cardId
   if (newParentId != null) {
     const path = getPath(data, newParentId);
     if (path && path.some((p) => p.id === cardId)) {
@@ -196,14 +228,11 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
     }
   }
 
-  // Remove from source
-  const sourceResult = findParent(data, cardId);
-  if (!sourceResult) return null;
-  const { container: sourceContainer } = sourceResult;
+  // Remove from source (using already-found container)
   const sourceIdx = sourceContainer.findIndex((c) => c.id === cardId);
   sourceContainer.splice(sourceIdx, 1);
 
-  // Insert into target
+  // Walk 2: get target container
   const targetContainer = getContainer(data, newParentId);
   if (!targetContainer) return null;
 
@@ -216,24 +245,6 @@ function moveCard(data, cardId, newParentId, requestedPosition) {
   return card;
 }
 
-
-/**
- * Count non-archived descendants recursively.
- * Skips archived children and their entire subtrees.
- * @param {object} card
- * @returns {number}
- */
-function countActiveDescendants(card) {
-  let count = 0;
-  if (card.children && card.children.length) {
-    for (const child of card.children) {
-      if (!child.archived) {
-        count += 1 + countActiveDescendants(child);
-      }
-    }
-  }
-  return count;
-}
 
 /**
  * Create a body preview: replace newlines with spaces, truncate at 80 chars.
@@ -284,7 +295,7 @@ function renderTree(data, rootId, opts) {
         const entry = {
           id: card.id,
           title: card.title,
-          descendantCount: countActiveDescendants(card),
+          descendantCount: countDescendants(card, { activeOnly: true }),
           hasBody: !!(card.body && card.body.trim()),
           bodyPreview: makePreview(card.body),
           created: card.created,
@@ -381,7 +392,6 @@ module.exports = {
   moveCard,
 
   countDescendants,
-  countActiveDescendants,
   renderTree,
   archiveCard,
   unarchiveCard,
