@@ -51,7 +51,9 @@ Full details: `milestones/v1.1-ROADMAP.md`
 **Success Criteria** (what must be TRUE):
   1. `.claude/commands/burrow.md` appears in `npm pack --dry-run` output
   2. `npx create-burrow` no longer crashes with ENOENT on burrow.md copy step
-**Plans:** 0/1 plans
+**Plans:** 1/1 plans
+Plans:
+- [ ] 12-01-PLAN.md — Add .claude/commands/burrow.md to package.json files whitelist
 
 ### Phase 9: Installer Rewrite
 **Goal**: Anyone can install burrow with a single guided command, and re-running on an existing install upgrades cleanly without touching user data
