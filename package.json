@@ -1,0 +1,30 @@
+{
+  "name": "create-burrow",
+  "version": "1.2.0",
+  "description": "Infinitely nestable Trello for AI agents. Persistent card-based memory for Claude Code.",
+  "license": "MIT",
+  "author": "mrmatos",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrmatos/burrow.git"
+  },
+  "bin": {
+    "create-burrow": "install.cjs"
+  },
+  "files": [
+    "install.cjs",
+    ".claude/burrow/",
+    ".claude/commands/burrow/"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai-agent",
+    "memory",
+    "trello",
+    "cards"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

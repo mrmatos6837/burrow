@@ -116,7 +116,7 @@ function parseArgs(argv) {
 
 function printUsage() {
   console.log(`
-Usage: node install.cjs [target-dir] [options]
+Usage: npx create-burrow [target-dir] [options]
 
   Installs (or manages) Burrow in the target project directory.
 
@@ -135,11 +135,11 @@ Modes (auto-detected):
   uninstall         Removes .claude/burrow/, .claude/commands/burrow*, .planning/burrow/, and the CLAUDE.md sentinel block.
 
 Examples:
-  node install.cjs                   Interactive install in current directory
-  node install.cjs /path/to/project  Interactive install in specified directory
-  node install.cjs --yes             Non-interactive install with all defaults
-  node install.cjs --uninstall       Interactive uninstall (requires confirmation)
-  node install.cjs --uninstall --yes Non-interactive uninstall
+  npx create-burrow                   Interactive install in current directory
+  npx create-burrow /path/to/project  Interactive install in specified directory
+  npx create-burrow --yes             Non-interactive install with all defaults
+  npx create-burrow --uninstall       Interactive uninstall (requires confirmation)
+  npx create-burrow --uninstall --yes Non-interactive uninstall
 `);
 }
 
