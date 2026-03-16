@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Packaging & Distribution
 status: executing
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-14T23:27:29.767Z"
-last_activity: "2026-03-14 — Plan 10-01 complete: VERSION file, version.cjs, passive update notification"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-16T19:24:00Z"
+last_activity: "2026-03-16 — Plan 11-01 complete: package.json with create-burrow bin, updated --help text for npx"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 50
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** v1.2 Packaging & Distribution — Phase 10: Version Tracking & Update Command
+**Current focus:** v1.2 Packaging & Distribution — COMPLETE
 
 ## Current Position
 
-Phase: 10 of 11 (Version Tracking & Update Command)
+Phase: 11 of 11 (npm Package Manifest)
 Plan: 1 of 1 complete
-Status: In progress
-Last activity: 2026-03-14 — Plan 10-01 complete: VERSION file, version.cjs, passive update notification
+Status: Complete
+Last activity: 2026-03-16 — Plan 11-01 complete: package.json with create-burrow bin, updated --help text for npx
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [█████░░░░░] 50%
 | Phase 09-installer-rewrite P02 | 3 | 2 tasks | 2 files |
 | Phase 10-version-tracking P01 | 12 | 2 tasks | 4 files |
 | Phase 10-version-tracking-update-command P02 | 8 | 2 tasks | 2 files |
+| Phase 11-npm-package P01 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ v1.2 decisions:
 - [Phase 10-version-tracking]: Update notices go to stderr to keep stdout clean for agent-parseable output
 - [Phase 10-version-tracking-update-command]: /burrow:update reads .claude/burrow/.source-dir to find installer path — no hardcoded paths
 - [Phase 10-version-tracking-update-command]: Breadcrumb writes happen after install and upgrade but NOT after repair — repair doesn't change versions
+- [Phase 11-npm-package]: npm package name is create-burrow so users can run npx create-burrow; files whitelist of 3 entries excludes all dev/planning/internal tooling; README.md auto-included by npm regardless of whitelist (acceptable)
 
 ### Pending Todos
 
@@ -84,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T23:24:53.586Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-03-16T19:24:00Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None

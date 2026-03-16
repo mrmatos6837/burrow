@@ -38,7 +38,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 
 - [x] **Phase 9: Installer Rewrite** - Guided interactive install with detection, idempotency, non-interactive mode, CLAUDE.md setup, and clean uninstall (completed 2026-03-14)
 - [x] **Phase 10: Version Tracking & Update Command** - Version marker, outdated check, passive notification, and `/burrow:update` slash command (completed 2026-03-14)
-- [ ] **Phase 11: npm Package** - Publish `create-burrow` to npm with files whitelist and `--help` output
+- [x] **Phase 11: npm Package** - Publish `create-burrow` to npm with files whitelist and `--help` output (completed 2026-03-16)
 
 ## Phase Details
 
@@ -79,7 +79,7 @@ Plans:
   1. `npx create-burrow` runs the guided installer end-to-end — no git clone or manual download needed
   2. The published npm package contains only source files, commands, and the installer — no planning docs, test files, or generated artifacts
   3. Running `npx create-burrow --help` prints usage information describing available flags and options
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 11-01-PLAN.md — package.json with bin/files whitelist, --help text update, npm pack verification
 
@@ -97,4 +97,4 @@ Plans:
 | 8. Engine Quality & Ergonomics | v1.1 | 4/4 | Complete | 2026-03-14 |
 | 9. Installer Rewrite | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
-| 11. npm Package | v1.2 | 0/1 | Not started | - |
+| 11. npm Package | 1/1 | Complete   | 2026-03-16 | - |
