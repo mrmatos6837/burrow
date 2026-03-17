@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Packaging & Distribution
 status: completed
 stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-17T00:03:00Z"
+last_updated: "2026-03-17T00:05:23.961Z"
 last_activity: "2026-03-17 — Plan 12-01 complete: added .claude/commands/burrow.md to npm files whitelist, fixing ENOENT in npx create-burrow"
 progress:
   total_phases: 4

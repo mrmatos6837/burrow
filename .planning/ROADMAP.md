@@ -111,4 +111,4 @@ Plans:
 | 9. Installer Rewrite | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
-| 12. Fix npm Package Files Whitelist | 1/1 | Complete   | 2026-03-17 | - |
+| 12. Fix npm Package Files Whitelist | 1/1 | Complete    | 2026-03-17 | - |
