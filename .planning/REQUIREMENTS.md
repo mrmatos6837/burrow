@@ -18,7 +18,7 @@ Requirements for Packaging & Distribution milestone. Each maps to roadmap phases
 ### npm Package
 
 - [x] **NPM-01**: Burrow is published as `create-burrow` on npm (`npx create-burrow`)
-- [ ] **NPM-02**: Package uses `files` whitelist — only ships source, commands, and installer
+- [x] **NPM-02**: Package uses `files` whitelist — only ships source, commands, and installer
 - [x] **NPM-03**: Running with `--help` displays usage information
 
 ### Updates
@@ -65,7 +65,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UPD-03 | Phase 10 | Complete |
 | UPD-04 | Phase 10 | Complete |
 | NPM-01 | Phase 11 | Complete |
-| NPM-02 | Phase 12 | Pending |
+| NPM-02 | Phase 12 | Complete |
 | NPM-03 | Phase 11 | Complete |
 
 **Coverage:**

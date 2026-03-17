@@ -39,7 +39,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [x] **Phase 9: Installer Rewrite** - Guided interactive install with detection, idempotency, non-interactive mode, CLAUDE.md setup, and clean uninstall (completed 2026-03-14)
 - [x] **Phase 10: Version Tracking & Update Command** - Version marker, outdated check, passive notification, and `/burrow:update` slash command (completed 2026-03-14)
 - [x] **Phase 11: npm Package** - Publish `create-burrow` to npm with files whitelist and `--help` output (completed 2026-03-16)
-- [ ] **Phase 12: Fix npm Package Files Whitelist** - Add missing burrow.md to files whitelist so npx create-burrow works (gap closure)
+- [x] **Phase 12: Fix npm Package Files Whitelist** - Add missing burrow.md to files whitelist so npx create-burrow works (gap closure) (completed 2026-03-17)
 
 ## Phase Details
 
@@ -51,7 +51,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 **Success Criteria** (what must be TRUE):
   1. `.claude/commands/burrow.md` appears in `npm pack --dry-run` output
   2. `npx create-burrow` no longer crashes with ENOENT on burrow.md copy step
-**Plans:** 1/1 plans
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 12-01-PLAN.md — Add .claude/commands/burrow.md to package.json files whitelist
 
@@ -111,4 +111,4 @@ Plans:
 | 9. Installer Rewrite | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
-| 12. Fix npm Package Files Whitelist | v1.2 | 0/1 | Pending | - |
+| 12. Fix npm Package Files Whitelist | 1/1 | Complete   | 2026-03-17 | - |

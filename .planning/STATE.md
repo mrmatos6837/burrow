@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Packaging & Distribution
 status: completed
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-03-16T20:59:07.381Z"
-last_activity: "2026-03-16 — Plan 11-01 complete: package.json with create-burrow bin, updated --help text for npx"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-17T00:03:00Z"
+last_activity: "2026-03-17 — Plan 12-01 complete: added .claude/commands/burrow.md to npm files whitelist, fixing ENOENT in npx create-burrow"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 
 ## Current Position
 
-Phase: 11 of 11 (npm Package Manifest)
+Phase: 12 of 12 (Fix npm Files Whitelist)
 Plan: 1 of 1 complete
 Status: Complete
-Last activity: 2026-03-16 — Plan 11-01 complete: package.json with create-burrow bin, updated --help text for npx
+Last activity: 2026-03-17 — Plan 12-01 complete: added .claude/commands/burrow.md to npm files whitelist, fixing ENOENT in npx create-burrow
 
 Progress: [██████████] 100%
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | Phase 10-version-tracking P01 | 12 | 2 tasks | 4 files |
 | Phase 10-version-tracking-update-command P02 | 8 | 2 tasks | 2 files |
 | Phase 11-npm-package P01 | 8 | 2 tasks | 2 files |
+| Phase 12-fix-npm-files-whitelist P01 | 3 | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ v1.2 decisions:
 - [Phase 10-version-tracking-update-command]: /burrow:update reads .claude/burrow/.source-dir to find installer path — no hardcoded paths
 - [Phase 10-version-tracking-update-command]: Breadcrumb writes happen after install and upgrade but NOT after repair — repair doesn't change versions
 - [Phase 11-npm-package]: npm package name is create-burrow so users can run npx create-burrow; files whitelist of 3 entries excludes all dev/planning/internal tooling; README.md auto-included by npm regardless of whitelist (acceptable)
+- [Phase 12-fix-npm-files-whitelist]: Added .claude/commands/burrow.md as 4th entry in package.json files array — installer line 162 references this file as commandFile during every install; audit install.cjs labelMap when modifying files whitelist
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:24:00Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-03-17T00:03:00Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
