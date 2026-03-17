@@ -14,7 +14,8 @@
   "files": [
     "install.cjs",
     ".claude/burrow/",
-    ".claude/commands/burrow/"
+    ".claude/commands/burrow/",
+    ".claude/commands/burrow.md"
   ],
   "keywords": [
     "claude",
