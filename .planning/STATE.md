@@ -82,6 +82,10 @@ v1.2 decisions:
 See burrow cards for tracked work:
 - `burrow get d6e53b29` — Backlog (future work)
 
+### Roadmap Evolution
+
+- Phase 13 added: npm-First Update System — replace local git clone assumptions with npm registry version checks and npx-based /burrow:update
+
 ### Blockers/Concerns
 
 None.

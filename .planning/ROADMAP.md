@@ -40,6 +40,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [x] **Phase 10: Version Tracking & Update Command** - Version marker, outdated check, passive notification, and `/burrow:update` slash command (completed 2026-03-14)
 - [x] **Phase 11: npm Package** - Publish `create-burrow` to npm with files whitelist and `--help` output (completed 2026-03-16)
 - [x] **Phase 12: Fix npm Package Files Whitelist** - Add missing burrow.md to files whitelist so npx create-burrow works (gap closure) (completed 2026-03-17)
+- [ ] **Phase 13: npm-First Update System** - Replace local git clone update assumptions with npm registry version checks and npx-based updates
 
 ## Phase Details
 
@@ -111,4 +112,19 @@ Plans:
 | 9. Installer Rewrite | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
-| 12. Fix npm Package Files Whitelist | 1/1 | Complete    | 2026-03-17 | - |
+| 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
+| 13. npm-First Update System | v1.2 | 0/0 | Not planned | - |
+
+### Phase 13: npm-First Update System
+**Goal**: Replace local git clone update assumptions with npm-first architecture — version checks fetch from npm registry, /burrow:update runs npx, no more .source-dir or writeBreadcrumbs
+**Depends on**: Phase 12
+**Requirements**: UPD-02, UPD-03, UPD-04
+**Success Criteria** (what must be TRUE):
+  1. `checkForUpdate(cwd)` fetches latest version from npm registry, compares to installed VERSION, caches for 24h, and prints notification if outdated
+  2. `/burrow:update` runs `npx create-burrow --yes` instead of reading `.source-dir` to find a local clone
+  3. `writeBreadcrumbs()`, `.source-dir` breadcrumb, `notifyIfOutdated()`, and orphaned `checkForUpdate(sourceDir, targetDir)` are all removed
+  4. Passive notification fires at most once per 24h per project (not on every CLI call)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 13 to break down)
