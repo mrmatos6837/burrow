@@ -113,7 +113,7 @@ Plans:
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
-| 13. npm-First Update System | v1.2 | 0/0 | Not planned | - |
+| 13. npm-First Update System | v1.2 | 0/1 | Planned | - |
 
 ### Phase 13: npm-First Update System
 **Goal**: Replace local git clone update assumptions with npm-first architecture — version checks fetch from npm registry, /burrow:update runs npx, no more .source-dir or writeBreadcrumbs
@@ -124,7 +124,7 @@ Plans:
   2. `/burrow:update` runs `npx create-burrow --yes` instead of reading `.source-dir` to find a local clone
   3. `writeBreadcrumbs()`, `.source-dir` breadcrumb, `notifyIfOutdated()`, and orphaned `checkForUpdate(sourceDir, targetDir)` are all removed
   4. Passive notification fires at most once per 24h per project (not on every CLI call)
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 13 to break down)
+- [ ] 13-01-PLAN.md — Rewrite version system for npm registry, update CLI notification, npx-based /burrow:update, remove dead code
