@@ -113,7 +113,7 @@ Plans:
 | 10. Version Tracking & Update Command | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
-| 13. npm-First Update System | 1/1 | Complete   | 2026-03-19 | - |
+| 13. npm-First Update System | 1/1 | Complete    | 2026-03-19 | - |
 
 ### Phase 13: npm-First Update System
 **Goal**: Replace local git clone update assumptions with npm-first architecture — version checks fetch from npm registry, /burrow:update runs npx, no more .source-dir or writeBreadcrumbs
