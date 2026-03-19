@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Packaging & Distribution
-status: completed
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-17T00:05:23.961Z"
-last_activity: "2026-03-17 — Plan 12-01 complete: added .claude/commands/burrow.md to npm files whitelist, fixing ENOENT in npx create-burrow"
+status: unknown
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-19T17:12:46.773Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -21,20 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** v1.2 Packaging & Distribution — COMPLETE
+**Current focus:** Phase 13 — npm-first-update-system
 
 ## Current Position
 
-Phase: 12 of 12 (Fix npm Files Whitelist)
-Plan: 1 of 1 complete
-Status: Complete
-Last activity: 2026-03-17 — Plan 12-01 complete: added .claude/commands/burrow.md to npm files whitelist, fixing ENOENT in npx create-burrow
-
-Progress: [██████████] 100%
+Phase: 13 (npm-first-update-system) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
 **v1.1 Velocity:**
+
 - Total plans completed: 8
 - Average duration: ~14 min
 - Total execution time: ~115 min
@@ -53,6 +48,7 @@ Progress: [██████████] 100%
 | Phase 10-version-tracking-update-command P02 | 8 | 2 tasks | 2 files |
 | Phase 11-npm-package P01 | 8 | 2 tasks | 2 files |
 | Phase 12-fix-npm-files-whitelist P01 | 3 | 1 task | 1 file |
+| Phase 13-npm-first-update-system P01 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -61,6 +57,7 @@ Progress: [██████████] 100%
 All v1.1 decisions archived in PROJECT.md Key Decisions table and milestones/v1.1-ROADMAP.md.
 
 v1.2 decisions:
+
 - UPD-01 assigned to Phase 9 (installer rewrite) because "re-run preserves data" is installer logic, not a separate update feature
 - Phase 11 (npm) depends on Phase 9 (installer) — can't publish what doesn't exist — but not on Phase 10 (versions)
 - Sentinel markers are HTML comments (<!-- burrow:start --> / <!-- burrow:end -->) so they are invisible in rendered markdown
@@ -76,10 +73,14 @@ v1.2 decisions:
 - [Phase 10-version-tracking-update-command]: Breadcrumb writes happen after install and upgrade but NOT after repair — repair doesn't change versions
 - [Phase 11-npm-package]: npm package name is create-burrow so users can run npx create-burrow; files whitelist of 3 entries excludes all dev/planning/internal tooling; README.md auto-included by npm regardless of whitelist (acceptable)
 - [Phase 12-fix-npm-files-whitelist]: Added .claude/commands/burrow.md as 4th entry in package.json files array — installer line 162 references this file as commandFile during every install; audit install.cjs labelMap when modifying files whitelist
+- [Phase 13]: checkForUpdate now async with single-arg (cwd) signature fetching from npm registry instead of local git clone
+- [Phase 13]: Tests mock https.get to avoid network dependency in CI/offline environments
+- [Phase 13]: writeBreadcrumbs and .source-dir removed — npm-based update flow needs no local breadcrumbs
 
 ### Pending Todos
 
 See burrow cards for tracked work:
+
 - `burrow get d6e53b29` — Backlog (future work)
 
 ### Roadmap Evolution
@@ -92,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T00:03:00Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-19T17:12:46.771Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
