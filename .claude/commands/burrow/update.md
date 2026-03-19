@@ -6,17 +6,10 @@ allowed-tools:
   - Bash
   - Read
 ---
-Update burrow to the latest version by running the installer in upgrade mode.
+Update burrow to the latest version from npm.
 
 Steps:
-1. Read `.claude/burrow/.source-dir` to find the burrow source repository path.
-2. If the file does not exist, ask the user: "Where is your burrow repo cloned? Please provide the full path to the burrow source directory."
-3. Run: `node <sourceDir>/install.cjs --yes`
-4. Report the result to the user.
+1. Run: `npx create-burrow --yes`
+2. Report the result to the user.
 
-Example (if .source-dir contains `/home/user/burrow`):
-```
-node /home/user/burrow/install.cjs --yes
-```
-
-Note: `.claude/burrow/.source-dir` is written automatically by the installer after a fresh install or upgrade. If it is missing, the user needs to provide the path to the directory where they originally cloned the burrow repository.
+This fetches the latest published version of burrow from npm and runs the installer in non-interactive mode. Your existing cards.json data is always preserved during upgrades.

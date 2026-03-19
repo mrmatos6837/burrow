@@ -2,8 +2,6 @@
 'use strict';
 
 const { parseArgs } = require('node:util');
-const fs = require('node:fs');
-const path = require('node:path');
 
 const core = require('./lib/core.cjs');
 const storage = require('./lib/warren.cjs');
@@ -26,29 +24,6 @@ function resolveTermWidth(values) {
 }
 
 /**
- * Print a one-line update notice to stderr if the cache indicates
- * an outdated install. Never throws — update notices must never
- * crash the CLI.
- *
- * @param {string} cwd - Current working directory (target project root)
- */
-function notifyIfOutdated(cwd) {
-  try {
-    const cachePath = path.join(cwd, version.UPDATE_CACHE_FILE);
-    if (!fs.existsSync(cachePath)) return;
-    const cache = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
-    if (!cache.sourceVersion || !cache.installedVersion) return;
-    if (version.compareSemver(cache.installedVersion, cache.sourceVersion) < 0) {
-      process.stderr.write(
-        `\n  Update available: ${cache.installedVersion} \u2192 ${cache.sourceVersion}  Run /burrow:update\n\n`
-      );
-    }
-  } catch (_) {
-    // Never crash on notification failure
-  }
-}
-
-/**
  * Handle error output: human-readable rendered error.
  * @param {string} message - Error description
  */
@@ -59,15 +34,27 @@ function handleError(message) {
 
 /**
  * Write rendered output to stdout and exit 0.
+ * Checks npm registry for updates at most once per 24h (via cache) and
+ * prints a notice to stderr if an update is available. Never throws.
  * @param {string} rendered - Formatted string
  */
-function writeAndExit(rendered) {
+async function writeAndExit(rendered) {
   process.stdout.write(rendered + '\n');
-  notifyIfOutdated(process.cwd());
+  // Passive update notification (at most once per 24h via cache)
+  try {
+    const result = await version.checkForUpdate(process.cwd());
+    if (result && result.outdated) {
+      process.stderr.write(
+        `\n  Update available: ${result.installedVersion} \u2192 ${result.latestVersion}  Run /burrow:update\n\n`
+      );
+    }
+  } catch (_) {
+    // Never crash on notification failure
+  }
   process.exit(0);
 }
 
-function main() {
+async function main() {
   const command = process.argv[2];
   const subArgs = process.argv.slice(3);
   const cwd = process.cwd();
@@ -497,9 +484,7 @@ function main() {
   }
 }
 
-try {
-  main();
-} catch (err) {
+main().catch((err) => {
   process.stdout.write(render.renderError(err.message) + '\n');
   process.exit(1);
-}
+});
