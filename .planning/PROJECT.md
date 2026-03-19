@@ -72,7 +72,7 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
-**Current state (v1.1):** 1,559 LOC JavaScript, 240 tests, 8 phases shipped across 2 milestones. Rendering pipeline fully rewritten, engine optimized, CLI hardened with strict parsing and input validation.
+**Current state (v1.2 in progress):** 1,559+ LOC JavaScript, 240+ tests, 13 phases shipped across 3 milestones. Phase 13 complete — npm-first update system replaces local-git-clone with registry-based version checks and npx-based updates.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -184,4 +184,4 @@ install.cjs                # Copies source, commands, and data into target proje
 | searchCards in engine | Recursive search lives in mongoose.cjs with ancestor accumulation — O(n) walk | ✓ Good — CLI find is a thin wrapper, search logic centralized |
 
 ---
-*Last updated: 2026-03-14 after v1.2 milestone start*
+*Last updated: 2026-03-19 after Phase 13 (npm-first-update-system) complete*
