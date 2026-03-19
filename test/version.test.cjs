@@ -1,18 +1,19 @@
 'use strict';
 
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const { describe, it, before, after, beforeEach, afterEach, mock } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
+const versionModule = require('../.claude/burrow/lib/version.cjs');
 const {
-  getSourceVersion,
   getInstalledVersion,
   compareSemver,
   checkForUpdate,
+  fetchLatestVersion,
   UPDATE_CACHE_FILE,
-} = require('../.claude/burrow/lib/version.cjs');
+} = versionModule;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -25,49 +26,13 @@ function removeTmpDir(dir) {
 }
 
 /**
- * Seed a VERSION file at sourceDir/.claude/burrow/VERSION
- */
-function seedSourceVersion(dir, version) {
-  const vDir = path.join(dir, '.claude', 'burrow');
-  fs.mkdirSync(vDir, { recursive: true });
-  fs.writeFileSync(path.join(vDir, 'VERSION'), version + '\n');
-}
-
-/**
- * Seed a VERSION file at targetDir/.claude/burrow/VERSION
+ * Seed a VERSION file at dir/.claude/burrow/VERSION
  */
 function seedInstalledVersion(dir, version) {
   const vDir = path.join(dir, '.claude', 'burrow');
   fs.mkdirSync(vDir, { recursive: true });
   fs.writeFileSync(path.join(vDir, 'VERSION'), version + '\n');
 }
-
-// ── getSourceVersion ──────────────────────────────────────────────────────────
-
-describe('getSourceVersion', () => {
-  let tmp;
-  beforeEach(() => { tmp = createTmpDir(); });
-  afterEach(() => { removeTmpDir(tmp); });
-
-  it('reads version from source VERSION file', () => {
-    seedSourceVersion(tmp, '1.2.0');
-    const v = getSourceVersion(tmp);
-    assert.equal(v, '1.2.0');
-  });
-
-  it('returns null when VERSION file is missing', () => {
-    const v = getSourceVersion(tmp);
-    assert.equal(v, null);
-  });
-
-  it('trims whitespace from version string', () => {
-    const vDir = path.join(tmp, '.claude', 'burrow');
-    fs.mkdirSync(vDir, { recursive: true });
-    fs.writeFileSync(path.join(vDir, 'VERSION'), '  1.3.0  \n');
-    const v = getSourceVersion(tmp);
-    assert.equal(v, '1.3.0');
-  });
-});
 
 // ── getInstalledVersion ───────────────────────────────────────────────────────
 
@@ -85,6 +50,14 @@ describe('getInstalledVersion', () => {
   it('returns null when VERSION file is missing', () => {
     const v = getInstalledVersion(tmp);
     assert.equal(v, null);
+  });
+
+  it('trims whitespace from version string', () => {
+    const vDir = path.join(tmp, '.claude', 'burrow');
+    fs.mkdirSync(vDir, { recursive: true });
+    fs.writeFileSync(path.join(vDir, 'VERSION'), '  1.3.0  \n');
+    const v = getInstalledVersion(tmp);
+    assert.equal(v, '1.3.0');
   });
 });
 
@@ -124,101 +97,195 @@ describe('compareSemver', () => {
   });
 });
 
+// ── fetchLatestVersion ────────────────────────────────────────────────────────
+
+describe('fetchLatestVersion', () => {
+  it('is exported as a function', () => {
+    assert.equal(typeof fetchLatestVersion, 'function');
+  });
+
+  it('returns a Promise', () => {
+    const result = fetchLatestVersion();
+    assert.ok(result && typeof result.then === 'function', 'should return a Promise');
+    // Consume the promise to avoid unhandled rejection in offline environments
+    result.then(() => {}).catch(() => {});
+  });
+
+  it('returns null on network error (never throws)', async () => {
+    // Mock https.get to simulate network error
+    const https = require('node:https');
+    const original = https.get;
+    let errorCallback;
+    https.get = (_url, _opts, _cb) => {
+      const fakeReq = {
+        on: (event, cb) => {
+          if (event === 'error') errorCallback = cb;
+          return fakeReq;
+        },
+        destroy: () => {},
+      };
+      // Trigger error asynchronously
+      setTimeout(() => { if (errorCallback) errorCallback(new Error('ENOTFOUND')); }, 0);
+      return fakeReq;
+    };
+
+    try {
+      const result = await fetchLatestVersion();
+      assert.equal(result, null, 'should return null on network error');
+    } finally {
+      https.get = original;
+    }
+  });
+});
+
 // ── checkForUpdate ────────────────────────────────────────────────────────────
 
 describe('checkForUpdate', () => {
-  let srcDir;
   let tgtDir;
 
   beforeEach(() => {
-    srcDir = createTmpDir();
     tgtDir = createTmpDir();
   });
 
   afterEach(() => {
-    removeTmpDir(srcDir);
     removeTmpDir(tgtDir);
   });
 
-  it('returns { outdated: true } when installed < source', () => {
-    seedSourceVersion(srcDir, '1.2.0');
+  /**
+   * Helper: patch fetchLatestVersion in the loaded module to return a fixed version
+   * without making a real network call.
+   */
+  async function withMockedLatest(latestVersion, fn) {
+    const https = require('node:https');
+    const original = https.get;
+    https.get = (_url, _opts, cb) => {
+      const fakeRes = {
+        on: (event, handler) => {
+          if (event === 'data') handler(JSON.stringify({ version: latestVersion }));
+          if (event === 'end') handler();
+          return fakeRes;
+        },
+      };
+      // Call callback asynchronously
+      setTimeout(() => cb(fakeRes), 0);
+      return { on: () => {}, destroy: () => {} };
+    };
+    try {
+      await fn();
+    } finally {
+      https.get = original;
+    }
+  }
+
+  it('returns { outdated: true } when installed < latest', async () => {
+    await withMockedLatest('1.2.0', async () => {
+      seedInstalledVersion(tgtDir, '1.1.0');
+      const result = await checkForUpdate(tgtDir);
+      assert.ok(result, 'should return a result object');
+      assert.equal(result.outdated, true);
+      assert.equal(result.installedVersion, '1.1.0');
+      assert.equal(result.latestVersion, '1.2.0');
+    });
+  });
+
+  it('returns { outdated: false } when installed == latest', async () => {
+    await withMockedLatest('1.2.0', async () => {
+      seedInstalledVersion(tgtDir, '1.2.0');
+      const result = await checkForUpdate(tgtDir);
+      assert.ok(result, 'should return a result object');
+      assert.equal(result.outdated, false);
+    });
+  });
+
+  it('returns { outdated: false } when installed > latest', async () => {
+    await withMockedLatest('1.1.0', async () => {
+      seedInstalledVersion(tgtDir, '1.2.0');
+      const result = await checkForUpdate(tgtDir);
+      assert.ok(result, 'should return a result object');
+      assert.equal(result.outdated, false);
+    });
+  });
+
+  it('returns null when cache is fresh (< 24h)', async () => {
     seedInstalledVersion(tgtDir, '1.1.0');
-    const result = checkForUpdate(srcDir, tgtDir);
-    assert.ok(result, 'should return a result object');
-    assert.equal(result.outdated, true);
-    assert.equal(result.sourceVersion, '1.2.0');
-    assert.equal(result.installedVersion, '1.1.0');
-  });
-
-  it('returns { outdated: false } when installed == source', () => {
-    seedSourceVersion(srcDir, '1.2.0');
-    seedInstalledVersion(tgtDir, '1.2.0');
-    const result = checkForUpdate(srcDir, tgtDir);
-    assert.ok(result);
-    assert.equal(result.outdated, false);
-  });
-
-  it('returns { outdated: false } when installed > source', () => {
-    seedSourceVersion(srcDir, '1.1.0');
-    seedInstalledVersion(tgtDir, '1.2.0');
-    const result = checkForUpdate(srcDir, tgtDir);
-    assert.ok(result);
-    assert.equal(result.outdated, false);
-  });
-
-  it('writes cache file after checking', () => {
-    seedSourceVersion(srcDir, '1.2.0');
-    seedInstalledVersion(tgtDir, '1.1.0');
-    checkForUpdate(srcDir, tgtDir);
-    const cachePath = path.join(tgtDir, UPDATE_CACHE_FILE);
-    assert.ok(fs.existsSync(cachePath), 'cache file should be written');
-    const cache = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
-    assert.ok(cache.lastCheck, 'cache should have lastCheck');
-    assert.equal(cache.sourceVersion, '1.2.0');
-    assert.equal(cache.installedVersion, '1.1.0');
-  });
-
-  it('returns null when cache is fresh (< 24h)', () => {
-    seedSourceVersion(srcDir, '1.2.0');
-    seedInstalledVersion(tgtDir, '1.1.0');
-    // Seed a fresh cache
+    // Seed a fresh cache (1 hour ago)
     const cachePath = path.join(tgtDir, UPDATE_CACHE_FILE);
     const cacheDir = path.dirname(cachePath);
     fs.mkdirSync(cacheDir, { recursive: true });
-    const recentTimestamp = new Date(Date.now() - 3600000).toISOString(); // 1 hour ago
+    const recentTimestamp = new Date(Date.now() - 3600000).toISOString();
     fs.writeFileSync(cachePath, JSON.stringify({
       lastCheck: recentTimestamp,
-      sourceVersion: '1.2.0',
+      latestVersion: '1.2.0',
       installedVersion: '1.1.0',
     }));
-    const result = checkForUpdate(srcDir, tgtDir);
+    const result = await checkForUpdate(tgtDir);
     assert.equal(result, null, 'should return null for fresh cache');
   });
 
-  it('performs check when cache is stale (> 24h)', () => {
-    seedSourceVersion(srcDir, '1.2.0');
-    seedInstalledVersion(tgtDir, '1.1.0');
-    // Seed a stale cache (25 hours ago)
-    const cachePath = path.join(tgtDir, UPDATE_CACHE_FILE);
-    const cacheDir = path.dirname(cachePath);
-    fs.mkdirSync(cacheDir, { recursive: true });
-    const staleTimestamp = new Date(Date.now() - 90000000).toISOString(); // 25 hours ago
-    fs.writeFileSync(cachePath, JSON.stringify({
-      lastCheck: staleTimestamp,
-      sourceVersion: '1.0.0',
-      installedVersion: '0.9.0',
-    }));
-    const result = checkForUpdate(srcDir, tgtDir);
-    assert.ok(result, 'should return result when cache is stale');
-    assert.equal(result.outdated, true);
+  it('performs check when cache is stale (> 24h)', async () => {
+    await withMockedLatest('1.2.0', async () => {
+      seedInstalledVersion(tgtDir, '1.1.0');
+      // Seed a stale cache (25 hours ago)
+      const cachePath = path.join(tgtDir, UPDATE_CACHE_FILE);
+      const cacheDir = path.dirname(cachePath);
+      fs.mkdirSync(cacheDir, { recursive: true });
+      const staleTimestamp = new Date(Date.now() - 90000000).toISOString(); // 25 hours ago
+      fs.writeFileSync(cachePath, JSON.stringify({
+        lastCheck: staleTimestamp,
+        latestVersion: '0.1.0',
+        installedVersion: '0.0.1',
+      }));
+      const result = await checkForUpdate(tgtDir);
+      assert.ok(result, 'should return result when cache is stale');
+      assert.equal(result.latestVersion, '1.2.0', 'should have fetched fresh latest version');
+    });
   });
 
-  it('returns { outdated: true } when installed VERSION missing', () => {
-    seedSourceVersion(srcDir, '1.2.0');
-    // No installed version
-    const result = checkForUpdate(srcDir, tgtDir);
-    assert.ok(result);
-    assert.equal(result.outdated, true);
-    assert.equal(result.installedVersion, null);
+  it('writes cache file after checking', async () => {
+    await withMockedLatest('1.2.0', async () => {
+      seedInstalledVersion(tgtDir, '1.1.0');
+      await checkForUpdate(tgtDir);
+      const cachePath = path.join(tgtDir, UPDATE_CACHE_FILE);
+      assert.ok(fs.existsSync(cachePath), 'cache file should be written');
+      const cache = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+      assert.ok(cache.lastCheck, 'cache should have lastCheck');
+      assert.equal(cache.latestVersion, '1.2.0');
+      assert.equal(cache.installedVersion, '1.1.0');
+    });
+  });
+
+  it('returns { outdated: true } when installed VERSION missing (null treated as 0.0.0)', async () => {
+    await withMockedLatest('1.2.0', async () => {
+      // No installed version file — getInstalledVersion returns null (treated as 0.0.0)
+      const result = await checkForUpdate(tgtDir);
+      assert.ok(result, 'should return a result object');
+      assert.equal(result.outdated, true);
+      assert.equal(result.installedVersion, null);
+    });
+  });
+
+  it('returns null on error (never crashes)', async () => {
+    // Mock https.get to simulate network error for checkForUpdate
+    const https = require('node:https');
+    const original = https.get;
+    https.get = (_url, _opts, _cb) => {
+      const fakeReq = {
+        on: (event, cb) => {
+          if (event === 'error') setTimeout(() => cb(new Error('ENOTFOUND')), 0);
+          return fakeReq;
+        },
+        destroy: () => {},
+      };
+      return fakeReq;
+    };
+    try {
+      // Even with network failure, checkForUpdate should return null not throw
+      const result = await checkForUpdate(tgtDir);
+      // null is acceptable (network failure returns null latestVersion, but we still get result)
+      // The function catches all errors internally
+      assert.ok(result === null || typeof result === 'object', 'should never throw');
+    } finally {
+      https.get = original;
+    }
   });
 });

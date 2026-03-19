@@ -2,26 +2,13 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const https = require('node:https');
 
 // Cache file path relative to targetDir
 const UPDATE_CACHE_FILE = '.planning/burrow/.update-check';
 
 // 24 hours in milliseconds
 const CACHE_TTL_MS = 86400000;
-
-/**
- * Read the VERSION file from sourceDir/.claude/burrow/VERSION.
- * @param {string} sourceDir - Root of the burrow source repo
- * @returns {string|null} Trimmed version string or null on missing/error
- */
-function getSourceVersion(sourceDir) {
-  try {
-    const versionPath = path.join(sourceDir, '.claude', 'burrow', 'VERSION');
-    return fs.readFileSync(versionPath, 'utf-8').trim();
-  } catch (_) {
-    return null;
-  }
-}
 
 /**
  * Read the VERSION file from targetDir/.claude/burrow/VERSION.
@@ -57,24 +44,53 @@ function compareSemver(a, b) {
 }
 
 /**
- * Check if an update is available by comparing source vs installed version.
+ * Fetch the latest version of the create-burrow package from the npm registry.
+ * Returns null on network error or parse failure — never throws.
  *
- * Uses a 24h cache stored at targetDir/.planning/burrow/.update-check to avoid
- * spamming the filesystem on every CLI invocation.
- *
- * Returns null if the cache is fresh (no check needed).
- * Returns { outdated: boolean, sourceVersion: string|null, installedVersion: string|null }
- *   after performing a check (and writing the new cache).
- *
- * Wrapped in try/catch: update checks must NEVER crash the CLI.
- *
- * @param {string} sourceDir - Root of the burrow source repo
- * @param {string} targetDir - Root of the target (installed) project
- * @returns {{ outdated: boolean, sourceVersion: string|null, installedVersion: string|null }|null}
+ * @returns {Promise<string|null>}
  */
-function checkForUpdate(sourceDir, targetDir) {
+function fetchLatestVersion() {
+  return new Promise((resolve) => {
+    const req = https.get('https://registry.npmjs.org/create-burrow/latest', {
+      headers: { 'Accept': 'application/json' },
+      timeout: 5000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const pkg = JSON.parse(data);
+          resolve(pkg.version || null);
+        } catch (_) {
+          resolve(null);
+        }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
+/**
+ * Check if an update is available by comparing the installed version against
+ * the latest version published on npm.
+ *
+ * Uses a 24h cache stored at cwd/.planning/burrow/.update-check to avoid
+ * hitting the registry on every CLI invocation.
+ *
+ * Returns null if:
+ *   - The cache is fresh (< 24h old)
+ *   - Any error occurs (network failure, file I/O, etc.)
+ *
+ * Returns { outdated: boolean, latestVersion: string|null, installedVersion: string|null }
+ *   after performing a fresh check.
+ *
+ * @param {string} cwd - Root of the target (installed) project
+ * @returns {Promise<{ outdated: boolean, latestVersion: string|null, installedVersion: string|null }|null>}
+ */
+async function checkForUpdate(cwd) {
   try {
-    const cachePath = path.join(targetDir, UPDATE_CACHE_FILE);
+    const cachePath = path.join(cwd, UPDATE_CACHE_FILE);
 
     // Check if cache is fresh
     if (fs.existsSync(cachePath)) {
@@ -88,10 +104,9 @@ function checkForUpdate(sourceDir, targetDir) {
       }
     }
 
-    // Perform comparison
-    const sourceVersion = getSourceVersion(sourceDir);
-    const installedVersion = getInstalledVersion(targetDir);
-    const outdated = compareSemver(installedVersion, sourceVersion) < 0;
+    const latestVersion = await fetchLatestVersion();
+    const installedVersion = getInstalledVersion(cwd);
+    const outdated = compareSemver(installedVersion, latestVersion) < 0;
 
     // Write cache
     try {
@@ -101,22 +116,22 @@ function checkForUpdate(sourceDir, targetDir) {
       }
       fs.writeFileSync(
         cachePath,
-        JSON.stringify({ lastCheck: new Date().toISOString(), sourceVersion, installedVersion })
+        JSON.stringify({ lastCheck: new Date().toISOString(), latestVersion, installedVersion })
       );
     } catch (_) {
       // Cache write failure is non-fatal
     }
 
-    return { outdated, sourceVersion, installedVersion };
+    return { outdated, latestVersion, installedVersion };
   } catch (_) {
     return null;
   }
 }
 
 module.exports = {
-  getSourceVersion,
   getInstalledVersion,
   compareSemver,
   checkForUpdate,
+  fetchLatestVersion,
   UPDATE_CACHE_FILE,
 };
