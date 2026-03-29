@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.2 Packaging & Distribution (Shipped: 2026-03-29)
+
+**Delivered:** Burrow installable by anyone with a single command — guided installer, npm package, version tracking, and update mechanism.
+
+**Stats:** 5 phases, 7 plans | 2,526 LOC | 68 tests | 12 requirements | 5 days
+
+**Key accomplishments:**
+
+1. Guided interactive installer with detection, upgrade, repair, and clean uninstall
+2. CLAUDE.md sentinel block management — auto-insert/remove agent instructions
+3. Version tracking with 24h-cached passive update notifications via stderr
+4. npm package (`create-burrow`) for one-command install via `npx create-burrow`
+5. npm-first update system — registry-based version checks, npx-based `/burrow:update`
+
+**Archives:** `milestones/v1.2-ROADMAP.md`, `milestones/v1.2-REQUIREMENTS.md`, `milestones/v1.2-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.1 Rendering & Ergonomics (Shipped: 2026-03-14)
 
 **Delivered:** Rendering pipeline rewrite, engine optimizations, CLI hardening, and project bootstrapping — 33 requirements across rendering, performance, validation, and data integrity.
@@ -7,6 +25,7 @@
 **Stats:** 3 phases, 8 plans | 1,559 LOC | 240 tests | 33 requirements | 34 commits | 2 days
 
 **Key accomplishments:**
+
 1. Rendering pipeline rewrite — renderTree operates on nested structure directly, eliminating flatten-renest roundtrip
 2. Dynamic terminal width — render output adapts to terminal size with MIN_TERM_WIDTH floor
 3. Engine optimization — consolidated tree walks (moveCard 4→2, parameterized countDescendants, inline archive counting)
@@ -25,6 +44,7 @@
 **Stats:** 5 phases, 10 plans | 1,415 LOC + 2,065 test LOC | 150 tests | 42 requirements | ~90 commits | 2 days
 
 **Key accomplishments:**
+
 1. Recursive tree engine — infinitely nestable cards with CRUD, move, find, path traversal
 2. Simplified v2 schema — dropped position/ordering, renamed notes→body, 6-field cards
 3. Depth-configurable views — flat render array with cascade archive/unarchive
@@ -35,4 +55,3 @@
 **Archives:** `milestones/v1.0-ROADMAP.md`, `milestones/v1.0-REQUIREMENTS.md`, `milestones/v1.0-MILESTONE-AUDIT.md`
 
 ---
-

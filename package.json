@@ -6,7 +6,7 @@
   "author": "mrmatos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrmatos/burrow.git"
+    "url": "git+https://github.com/mrmatos6837/burrow.git"
   },
   "bin": {
     "create-burrow": "install.cjs"

@@ -39,21 +39,20 @@ One recursive data structure — cards containing cards — navigated by an agen
 - ✓ Data integrity — schema validation on load, formatAge guards, enriched CRUD returns — v1.1
 - ✓ CLI hardening — strict flag parsing, input validation, searchCards engine function — v1.1
 - ✓ Project bootstrapping — `burrow init` for .gitignore and CLAUDE.md setup — v1.1
+- ✓ Guided interactive installer with detection, upgrade, repair, and uninstall — v1.2
+- ✓ CLAUDE.md sentinel block management (auto-insert/remove agent instructions) — v1.2
+- ✓ Non-interactive install via `--yes` flag — v1.2
+- ✓ npm package (`create-burrow`) for `npx create-burrow` distribution — v1.2
+- ✓ Version tracking with 24h-cached passive update notifications — v1.2
+- ✓ `/burrow:update` in-session update command — v1.2
+- ✓ npm-first update system (registry-based version checks, npx-based updates) — v1.2
+- ✓ Clean uninstall (removes files and sentinel block only) — v1.2
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-## Current Milestone: v1.2 Packaging & Distribution
-
-**Goal:** Make burrow installable by anyone with a single command — guided installer UX, npm package, update mechanism, and proper version tracking.
-
-**Target features:**
-- Guided interactive installer (rewrite install.cjs with readline prompts, detection, idempotency)
-- npm package (`create-burrow`) for `npx create-burrow` distribution
-- Update mechanism (re-run installer in update mode, preserve user data)
-- Version tracking and startup check (passive notification when outdated)
-- Package/installed file separation (clear boundary between distributed and generated files)
+(None yet — start next milestone with `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -72,7 +71,7 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
-**Current state (v1.2 in progress):** 1,559+ LOC JavaScript, 240+ tests, 13 phases shipped across 3 milestones. Phase 13 complete — npm-first update system replaces local-git-clone with registry-based version checks and npx-based updates.
+**Current state (v1.2 shipped):** 2,526 LOC JavaScript, 240+ tests, 13 phases shipped across 3 milestones. Installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -182,6 +181,12 @@ install.cjs                # Copies source, commands, and data into target proje
 | Schema validation on load | validateSchema() spot-checks first card id — O(1) not O(n) | ✓ Good — catches corruption early with clear error messages |
 | crypto.randomUUID() for IDs | No parameters, no tree walk — collision-free at any reasonable scale | ✓ Good — eliminated O(n) collectAllIds on every addCard |
 | searchCards in engine | Recursive search lives in mongoose.cjs with ancestor accumulation — O(n) walk | ✓ Good — CLI find is a thin wrapper, search logic centralized |
+| Engine/CLI separation for installer | Pure-function engine module (installer.cjs) with no readline; CLI wired on top | ✓ Good — testable engine, clean separation |
+| Sentinel markers as HTML comments | Invisible in rendered markdown, safe for CLAUDE.md block management | ✓ Good — clean insert/remove without touching other content |
+| VERSION file as single source of truth | Not package.json — VERSION file is authoritative and copied to install targets | ✓ Good — works for both npm and local installs |
+| npm-first update architecture | Registry-based version checks, npx-based updates, no local breadcrumbs | ✓ Good — eliminated .source-dir and writeBreadcrumbs entirely |
+| Cache-only CLI notification | burrow-tools reads .update-check cache, never initiates network check itself | ✓ Good — CLI stays fast, installer seeds the cache |
+| create-burrow npm package name | `npx create-burrow` convention for project scaffolding | ✓ Good — standard npm create-* pattern |
 
 ---
-*Last updated: 2026-03-19 after Phase 13 (npm-first-update-system) complete*
+*Last updated: 2026-03-29 after v1.2 milestone*

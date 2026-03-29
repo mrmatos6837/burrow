@@ -383,7 +383,7 @@ async function main() {
   const burrowToolsPath = path.join(sourceDir, '.claude', 'burrow', 'burrow-tools.cjs');
   if (!fs.existsSync(burrowToolsPath)) {
     console.error(`  \u2717 Cannot find .claude/burrow/burrow-tools.cjs in ${sourceDir}`);
-    console.error('  Run this script from the burrow repo directory.');
+    console.error('  Package may be incomplete — try: npm cache clean --force && npx create-burrow');
     process.exit(1);
   }
 

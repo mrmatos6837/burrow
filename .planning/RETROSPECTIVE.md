@@ -91,6 +91,50 @@
 
 ---
 
+## Milestone: v1.2 — Packaging & Distribution
+
+**Shipped:** 2026-03-29
+**Phases:** 5 | **Plans:** 7 | **Tests:** 68
+
+### What Was Built
+- Guided interactive installer with detection, upgrade, repair, and uninstall modes
+- CLAUDE.md sentinel block management — HTML comment markers for auto-insert/remove
+- Version tracking with 24h-cached passive notifications via stderr
+- npm package (`create-burrow`) for `npx create-burrow` one-command install
+- npm-first update system — registry-based version checks, npx-based `/burrow:update`
+- Clean uninstall that removes only burrow files and sentinel block
+
+### What Worked
+- **Engine/CLI separation**: Pure-function installer.cjs (no readline) with CLI layer on top — made testing trivial with 34 unit tests using temp directories
+- **Sentinel markers as HTML comments**: Invisible in rendered markdown, safe insert/remove without touching other CLAUDE.md content
+- **Audit-driven gap closure**: Phase 12 (files whitelist fix) and Phase 13 (npm-first rewrite) both born from milestone audit findings
+- **npm create-* convention**: `npx create-burrow` is instantly familiar to any Node developer
+- **Dead code removal in Phase 13**: Removing .source-dir/writeBreadcrumbs simplified the entire update flow
+
+### What Was Inefficient
+- **npm publish not actually run**: Phase 11 built the package but never published — the actual publish attempt revealed 24h cooldown and 2FA requirements not addressed in planning
+- **Traceability table drift**: UPD-02/03/04 mapped to Phase 10 only, not updated when Phase 13 reimplemented them — tech debt caught by audit
+- **Stale error messages**: install.cjs "Run from burrow repo" wording survived from pre-npm era into the npm package
+
+### Patterns Established
+- **Sentinel markers** — `<!-- burrow:start -->` / `<!-- burrow:end -->` for managed file sections
+- **Cache-only CLI notifications** — CLI reads cache, never initiates network requests
+- **stderr for metadata** — update notices go to stderr, stdout stays clean for agent parsing
+- **Async writeAndExit** — main CLI entry point now async with promise-based error handling
+
+### Key Lessons
+1. Build the package AND publish it — verification should include the actual distribution step
+2. Audit-driven phases are high-value — both Phase 12 and 13 closed real gaps found by audit
+3. npm 24h cooldown and 2FA are blockers to plan around, not discover at publish time
+4. Dead code removal is a feature — removing .source-dir simplified the entire update architecture
+
+### Cost Observations
+- Model mix: Opus for execution, Sonnet for agents
+- Sessions: ~5-6 across 5 days
+- Notable: Phases 12 and 13 were small (1 plan each) but high-impact gap closures
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -99,6 +143,7 @@
 |-----------|--------|-------|------------|
 | v1.0 | 5 | 10 | First milestone — established GSD + Burrow workflow |
 | v1.1 | 3 | 8 | Rendering rewrite + engine optimization — enriched returns pattern |
+| v1.2 | 5 | 7 | Packaging & distribution — installer, npm, version tracking |
 
 ### Cumulative Quality
 
@@ -106,10 +151,12 @@
 |-----------|-------|-------------|-------------|----------|
 | v1.0 | 150 | 1,415 | 2,065 | Yes |
 | v1.1 | 240 | 1,559 | 3,236 | Yes |
+| v1.2 | 308 | 2,526 | 4,100+ | Yes |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Schema simplicity pays compound interest
-2. Audit before shipping — catches real bugs
+2. Audit before shipping — catches real bugs (v1.0 init.cjs, v1.2 files whitelist + update architecture)
 3. Pre-computed metadata > redundant tree walks (v1.1: rendering + engine)
 4. Enriched returns > post-mutation queries (v1.1: CRUD pattern)
+5. Verify the full distribution path — building a package isn't shipping it (v1.2: npm publish gap)
