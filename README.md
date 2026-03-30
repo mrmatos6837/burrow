@@ -57,12 +57,19 @@ The agent picks the depth, the focus, and the rendering. You just ask.
 
 Requires [Claude Code](https://docs.anthropic.com/en/docs/claude-code) already installed on your project.
 
+Run this from inside your project directory:
+
 ```bash
-git clone https://github.com/mrmatos6837/burrow.git
-node burrow/install.cjs ~/your-project
+npx create-burrow
 ```
 
-This copies the source and commands into your project, creates `.planning/burrow/cards.json`, and appends a Burrow section to your `CLAUDE.md` that tells the agent how to use burrow — reading it on session start, storing persistent instructions as cards, and routing all mutations through the CLI.
+The interactive installer detects what's already there and offers the right option: fresh install, upgrade existing installation, repair a broken one, or uninstall. It copies the source and commands into your project, creates `.planning/burrow/cards.json`, and appends a Burrow section to your `CLAUDE.md` that tells the agent how to use burrow — reading it on session start, storing persistent instructions as cards, and routing all mutations through the CLI.
+
+For CI or scripting, skip the prompts entirely:
+
+```bash
+npx create-burrow --yes
+```
 
 That's it. Open Claude Code and say `/burrow` to get started.
 
@@ -76,7 +83,16 @@ That's it. Open Claude Code and say `/burrow` to get started.
 CLAUDE.md                        # agent instructions (appended, not overwritten)
 ```
 
-**Requirements:** Node.js v19+ — zero npm dependencies.
+**Requirements:** Node.js 18+ — zero npm dependencies.
+
+### Manual install
+
+If you prefer to avoid npx or want to inspect the code before running:
+
+```bash
+git clone https://github.com/mrmatos6837/burrow.git
+node burrow/install.cjs ~/your-project
+```
 
 ## Usage
 
@@ -95,6 +111,7 @@ Or use the shortcut commands directly:
 /burrow:add       /burrow:read      /burrow:dump
 /burrow:edit      /burrow:move      /burrow:archive
 /burrow:remove    /burrow:unarchive /burrow:help
+/burrow:update
 ```
 
 All data lives in a single file: `.planning/burrow/cards.json`. The agent reads it into memory, resolves your references, and calls the CLI. You never touch JSON.
@@ -234,7 +251,13 @@ Consistent, reliable, fast and infinitely extensible.
 
 ## Uninstall
 
-Delete the files and it's gone. No background processes, no global state, nothing to clean up.
+The easiest way is through the installer — it'll offer uninstall as an option:
+
+```bash
+npx create-burrow
+```
+
+Or delete the files manually. No background processes, no global state, nothing else to clean up.
 
 ```bash
 rm -rf .claude/burrow .claude/commands/burrow.md .claude/commands/burrow .planning/burrow
@@ -282,4 +305,4 @@ Issues and PRs welcome.
 
 ## License
 
-TBD
+MIT
