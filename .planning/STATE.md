@@ -27,6 +27,12 @@ Milestone v1.2 complete. Next: `/gsd:new-milestone`
 
 ## Session Continuity
 
-Last session: 2026-03-29
+Last session: 2026-03-30
 Stopped at: Milestone v1.2 complete
 Resume file: None
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260330-f9e | update the readme to reflect the most recent changes | 2026-03-30 | 6e66e0e | [260330-f9e-update-the-readme-to-reflect-the-most-re](./quick/260330-f9e-update-the-readme-to-reflect-the-most-re/) |
