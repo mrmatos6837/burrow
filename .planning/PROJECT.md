@@ -1,6 +1,6 @@
 # Burrow
 
-> Infinitely nestable Trello for AI agents.
+> Infinitely nestable cards for AI agents.
 
 ## What This Is
 

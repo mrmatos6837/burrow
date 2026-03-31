@@ -1,7 +1,7 @@
 {
   "name": "create-burrow",
-  "version": "1.2.0",
-  "description": "Infinitely nestable Trello for AI agents. Persistent card-based memory for Claude Code.",
+  "version": "1.2.2",
+  "description": "Infinitely nestable cards for AI agents. Persistent card-based memory for Claude Code.",
   "license": "MIT",
   "author": "mrmatos",
   "repository": {
@@ -22,9 +22,15 @@
     "claude-code",
     "ai-agent",
     "memory",
-    "trello",
-    "cards"
+    "nested-cards",
+    "cards",
+    "agent-memory",
+    "cli",
+    "tree"
   ],
+  "scripts": {
+    "prepublishOnly": "node -e \"require('fs').writeFileSync('.claude/burrow/VERSION', require('./package.json').version + '\\n')\""
+  },
   "engines": {
     "node": ">=18"
   }
