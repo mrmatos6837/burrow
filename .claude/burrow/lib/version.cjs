@@ -132,6 +132,5 @@ module.exports = {
   getInstalledVersion,
   compareSemver,
   checkForUpdate,
-  fetchLatestVersion,
   UPDATE_CACHE_FILE,
 };

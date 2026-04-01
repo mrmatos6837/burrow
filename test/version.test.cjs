@@ -11,7 +11,6 @@ const {
   getInstalledVersion,
   compareSemver,
   checkForUpdate,
-  fetchLatestVersion,
   UPDATE_CACHE_FILE,
 } = versionModule;
 
@@ -97,47 +96,6 @@ describe('compareSemver', () => {
   });
 });
 
-// ── fetchLatestVersion ────────────────────────────────────────────────────────
-
-describe('fetchLatestVersion', () => {
-  it('is exported as a function', () => {
-    assert.equal(typeof fetchLatestVersion, 'function');
-  });
-
-  it('returns a Promise', () => {
-    const result = fetchLatestVersion();
-    assert.ok(result && typeof result.then === 'function', 'should return a Promise');
-    // Consume the promise to avoid unhandled rejection in offline environments
-    result.then(() => {}).catch(() => {});
-  });
-
-  it('returns null on network error (never throws)', async () => {
-    // Mock https.get to simulate network error
-    const https = require('node:https');
-    const original = https.get;
-    let errorCallback;
-    https.get = (_url, _opts, _cb) => {
-      const fakeReq = {
-        on: (event, cb) => {
-          if (event === 'error') errorCallback = cb;
-          return fakeReq;
-        },
-        destroy: () => {},
-      };
-      // Trigger error asynchronously
-      setTimeout(() => { if (errorCallback) errorCallback(new Error('ENOTFOUND')); }, 0);
-      return fakeReq;
-    };
-
-    try {
-      const result = await fetchLatestVersion();
-      assert.equal(result, null, 'should return null on network error');
-    } finally {
-      https.get = original;
-    }
-  });
-});
-
 // ── checkForUpdate ────────────────────────────────────────────────────────────
 
 describe('checkForUpdate', () => {
@@ -152,8 +110,7 @@ describe('checkForUpdate', () => {
   });
 
   /**
-   * Helper: patch fetchLatestVersion in the loaded module to return a fixed version
-   * without making a real network call.
+   * Helper: patch https.get to return a fixed version without making a real network call.
    */
   async function withMockedLatest(latestVersion, fn) {
     const https = require('node:https');
