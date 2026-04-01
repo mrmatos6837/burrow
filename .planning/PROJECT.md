@@ -52,7 +52,17 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 <!-- Current scope. Building toward these. -->
 
-(None yet — start next milestone with `/gsd:new-milestone`)
+## Current Milestone: v1.3 Onboarding & Configuration
+
+**Goal:** Give users control over how Burrow behaves — configurable context loading from install through runtime, reducing token cost by up to 95%.
+
+**Target features:**
+- `burrow index` command — lightweight JSON tree output (titles + IDs only)
+- Config system (`config.json`) — persistent settings for loadMode and auto-threshold
+- Installer onboarding prompts — ask about context loading mode during setup
+- `/burrow:config` command — view and change settings from within Claude Code
+- CLAUDE.md snippet variants — sentinel block adapts to chosen loading mode
+- Workflow update (LOAD step) — respects loadMode instead of always reading full cards.json
 
 ### Out of Scope
 
@@ -188,5 +198,22 @@ install.cjs                # Copies source, commands, and data into target proje
 | Cache-only CLI notification | burrow-tools reads .update-check cache, never initiates network check itself | ✓ Good — CLI stays fast, installer seeds the cache |
 | create-burrow npm package name | `npx create-burrow` convention for project scaffolding | ✓ Good — standard npm create-* pattern |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-29 after v1.2 milestone*
+*Last updated: 2026-04-01 after milestone v1.3 started*
