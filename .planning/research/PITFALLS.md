@@ -1,249 +1,377 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** CLI bucket-based task manager / Claude Code addon (flat-file, YAML frontmatter, agent-facing)
-**Researched:** 2026-03-06
+**Domain:** Retrofitting config system, context loading modes, and installer onboarding onto existing Burrow CLI tool (v1.3)
+**Researched:** 2026-04-01
 **Confidence:** HIGH
+
+> This document supersedes the original PITFALLS.md (2026-03-06) for milestone v1.3. The original covered foundational pitfalls for the core engine and storage layer — those are still valid for that scope. This document focuses exclusively on pitfalls introduced by adding config management, configurable context loading, onboarding prompts, and CLAUDE.md sentinel block variants to the existing system.
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: YAML Frontmatter Parsing Fragility
-
-**What goes wrong:**
-YAML frontmatter parsing silently breaks when item content contains `---` delimiters, colons in titles, multi-line values, tab characters, or special YAML characters (`#`, `@`, `*`, `[`, `{`). A user creates an item titled `Bug: fix the login` and the colon causes a YAML parse error. Or they paste a code snippet with `---` into the notes body and the parser splits the file incorrectly.
-
-**Why it happens:**
-YAML looks simple but has deep syntax edge cases. The `---` delimiter detection is a naive string split in most implementations. Developers test with clean data and miss adversarial content. The gray-matter library handles most cases but still relies on js-yaml underneath, which has had prototype pollution vulnerabilities (CVE-2025-64718) and can choke on unexpected input.
-
-**How to avoid:**
-- Use gray-matter with `safeLoad` / safe schema options (no custom YAML types).
-- Wrap every frontmatter parse in try/catch with a clear error message that identifies which file failed and why.
-- Validate frontmatter fields against an expected schema after parsing (expected keys, types).
-- Escape or quote all string values when writing frontmatter programmatically -- never interpolate raw user input into YAML.
-- Write a dedicated `parseFrontmatter(filePath)` function with comprehensive error handling used everywhere.
-- Test with adversarial titles: colons, quotes, `---`, Unicode, empty strings, very long strings.
-
-**Warning signs:**
-- Items silently disappear from views (parse fails, item skipped).
-- Intermittent "invalid YAML" errors that users can't reproduce.
-- Items with certain characters in titles never render correctly.
-
-**Phase to address:**
-Phase 1 (Core data layer). The frontmatter parser is the foundation. If it's fragile, everything built on top is unreliable. Build it with a comprehensive test suite before moving to features.
+Mistakes that cause rewrites, data corruption, or silent behavior changes.
 
 ---
 
-### Pitfall 2: File I/O Race Conditions and Data Loss
+### Pitfall 1: Config File Treated as Sacred — No Defensive Load
 
 **What goes wrong:**
-The agent and the developer both invoke Burrow operations concurrently. Two rapid `bw-add` commands create files with the same timestamp-based ID, overwriting one. A `bw-move` reads a file, modifies frontmatter, and writes it back -- but another process modified it in between. On crash or Ctrl+C during write, the file is truncated to zero bytes. This is not hypothetical: Claude Code itself had a documented race condition bug with `.claude.json` corruption from concurrent sessions (GitHub issue #29036).
+`config.json` is loaded with a simple `JSON.parse(fs.readFileSync(...))` and immediately destructured. When the user hand-edits the file (typo, trailing comma, wrong type for a value), the next CLI invocation crashes with a raw JSON parse error or a `TypeError: Cannot read property 'x' of undefined`. The user sees a cryptic stack trace, not a recovery path.
+
+This is not hypothetical. Claude Code's own `.claude.json` had a documented corruption-on-crash bug (GitHub issue #28809 and #15608) caused by non-atomic writes and concurrent processes. The same class of failure hits user-edited config files.
 
 **Why it happens:**
-Node.js `fs.writeFileSync` is not atomic. Writing directly to the target file means a crash mid-write produces a corrupted file. Timestamp-based IDs can collide within the same millisecond. Developers assume single-user means single-process, but Claude Code spawns subagents and background tasks.
+Developers test with well-formed config. No one tests with a config that has a missing key, a wrong-type value, or invalid JSON. When the file is user-visible and user-editable, all three will happen in production.
 
-**How to avoid:**
-- Use atomic writes: write to a `.tmp` file in the same directory, then `fs.renameSync()` to the target path. Rename is atomic on POSIX filesystems.
-- Generate item IDs using a counter from config.json (increment + save) or use `crypto.randomUUID()` instead of timestamps.
-- Never read-modify-write without re-reading immediately before write.
-- Keep write operations as narrow as possible -- modify one file at a time, not batch operations.
+**Specific failure modes for Burrow v1.3:**
+- User edits `config.json` and sets `"loadMode": "laazy"` (typo). Tool silently falls back or crashes depending on where validation lives.
+- User upgrades Burrow; new version adds a `"autoThreshold"` key. Old `config.json` has no such key. Code tries to read `config.autoThreshold` and gets `undefined`, then uses it in a comparison.
+- User removes the entire `config.json` between sessions (e.g., repo clean, accidental delete). Next CLI invocation fails on missing file rather than re-creating defaults.
 
-**Warning signs:**
-- Items occasionally have wrong or duplicated content.
-- Zero-byte `.md` files appearing in the items directory.
-- Config.json reverting to a previous state after operations.
+**Prevention:**
+- Never load config without a `try/catch` around `JSON.parse`.
+- Always merge loaded config over a `DEFAULTS` object: `const cfg = { ...DEFAULTS, ...loadedCfg }`. New keys get defaults; old keys are not clobbered.
+- Validate the merged config — check that `loadMode` is one of the allowed enum values; clamp `autoThreshold` to a numeric range. If invalid, log a warning and use the default for that key rather than crashing.
+- Treat a missing `config.json` as equivalent to an empty file: return `DEFAULTS` and optionally create the file on next save.
+- Use the same atomic write pattern (tmp + rename) as `warren.cjs` uses for `cards.json`.
 
-**Phase to address:**
-Phase 1 (Core data layer). Atomic file operations and safe ID generation must be baked in from the start. Retrofitting atomicity is painful.
+**Detection:**
+- CLI crashes with `SyntaxError: Unexpected token` when config is malformed.
+- CLI silently behaves as if loadMode is the wrong value.
+- Tests fail only when config file is absent or contains new keys.
+
+**Phase to address:** Phase 1 of v1.3 (Config System). The defensive load pattern must be the very first thing built — every subsequent feature depends on it.
 
 ---
 
-### Pitfall 3: Agent Output Ambiguity -- Mixing Human and Machine Formats
+### Pitfall 2: CLAUDE.md Sentinel Block Variant Switching Corrupts Content
 
 **What goes wrong:**
-The CLI tool returns formatted text that the agent must parse to extract data, or returns JSON that gets displayed to the user as raw JSON. The agent hallucinates item IDs because the output format was unclear. The user sees `{"success":true,"items":[...]}` instead of a readable table. Worse: the agent interprets a formatted text table and gets column alignment wrong, moving the wrong item.
+The sentinel block content changes depending on the chosen `loadMode` (e.g., "full" vs "lazy" vs "index"). The upgrade path writes new content between the existing `<!-- burrow:start -->` and `<!-- burrow:end -->` markers. If the write is interrupted (crash, Ctrl+C, disk-full), the file is partially written and now contains a truncated sentinel block.
+
+Worse: if the markers are searched with `indexOf` and the content between them contains a string that looks like a marker (a user who wrote their own `<!-- burrow:start -->` comment elsewhere in the file, for example), the replacement lands in the wrong place and silently corrupts unrelated content.
+
+The current `writeSentinelBlock()` in `installer.cjs` handles the replace-in-place case but writes directly to the target path (non-atomic). A crash mid-write leaves a partially-written CLAUDE.md.
 
 **Why it happens:**
-CLI tools are traditionally designed for human consumption (pretty tables, colors) or machine consumption (JSON, TSV). Burrow needs both: the agent reads structured data to reason about items, and the user sees formatted output in the terminal. Developers build one format and try to use it for both, which serves neither well.
+String-replace on live files without atomic write. The CLAUDE.md file is one of the most user-precious files in the project — it is version-controlled, hand-edited, and read by every Claude session. A corruption here breaks the agent's entire instruction set until the user manually repairs it.
 
-**How to avoid:**
-- Enforce a strict separation: `burrow-tools.cjs` ALWAYS returns JSON to stdout. The workflow markdown templates handle formatting for display.
-- The agent parses JSON. The workflow formats JSON into the pan/drill views for the user.
-- Never have the agent parse formatted text output. Never show raw JSON to the user.
-- Define a clear contract: every CLI command returns `{ success: boolean, data: ..., error?: string }`.
-- Document the JSON schema for each command's output in the workflow file so the agent knows what to expect.
+**Specific failure modes for Burrow v1.3:**
+- User switches from `full` to `lazy` via `/burrow:config`. The new sentinel content is written. If the process is interrupted between `writeFileSync` of the new content and the rename, CLAUDE.md is half-old/half-new.
+- User has customized CLAUDE.md with a comment `<!-- burrow:start of notes -->` (not a real sentinel, but the string contains the marker prefix). `indexOf(SENTINEL_START)` finds the wrong location.
+- On upgrade, the sentinel block exists but the installed version used a slightly different marker string (whitespace difference, capitalization). The "does it contain the sentinel?" check fails to find it, so a second block is appended instead of replacing the first.
 
-**Warning signs:**
-- Workflow prompts contain instructions like "parse the output and extract the item ID from the second column."
-- Users see JSON blobs in chat.
-- Agent operations fail intermittently because output format changed between commands.
+**Prevention:**
+- Make `writeSentinelBlock()` atomic: write the full new CLAUDE.md content to a `.tmp` file, then rename. Never write directly to CLAUDE.md.
+- Use exact, distinctive sentinel markers that are highly unlikely to appear in human-written content: `<!-- burrow:start -->` is fine but must be matched as a complete line, not a substring.
+- When checking for an existing block, match the start marker at the start of a line (`/^<!-- burrow:start -->$/m`) rather than anywhere in the file.
+- Write a dedicated test that simulates: (a) sentinel present and well-formed, (b) sentinel start present but end missing (malformed), (c) sentinel absent, (d) user content that contains the marker string literally. All four must produce correct, non-corrupting behavior.
+- The current `writeSentinelBlock()` handles the "start without end" malformed case by replacing from start to EOF — this is correct but should be tested explicitly.
 
-**Phase to address:**
-Phase 1 (Core CLI tool). Establish the JSON output contract before building any features. Every command added later must follow the same contract.
+**Detection:**
+- CLAUDE.md contains the start marker but not the end marker after a variant switch.
+- The agent stops loading cards.json silently (instructions were corrupted and the agent doesn't see the LOAD step).
+- A second sentinel block appears in CLAUDE.md (duplicate insertion).
+
+**Phase to address:** Phase 2 of v1.3 (CLAUDE.md snippet variants). Must be addressed before any variant-switching logic ships.
 
 ---
 
-### Pitfall 4: Feature Creep Turning Simple Buckets Into a Project Manager
+### Pitfall 3: Workflow LOAD Step Ignores Config — Behavior Diverges From Config
 
 **What goes wrong:**
-The bucket + tag model is elegant in its simplicity. Then someone wants priority levels. Then due dates. Then dependencies between items. Then recurring items. Then sub-tasks. Each addition is "just one more field" but collectively they transform Burrow from a lightweight capture tool into a poor man's Jira. Taskwarrior's own maintainers reflected: "There is a fine line between 'richly-featured' and 'bloated'. There may not be a line at all."
+The config system (`config.json`) says `loadMode: "index"`. The workflow file (`burrow.md`) still has hardcoded instructions to read `cards.json` directly. The two sources of truth are out of sync. The agent reads config, sees "index", but then the workflow unconditionally reads `cards.json` anyway — or vice versa: the workflow conditionally branches on loadMode but the CLAUDE.md snippet still says "read cards.json on session start."
+
+There are now three places that describe the loading behavior:
+1. `config.json` — the setting
+2. `burrow.md` workflow — the agent instructions at invocation time
+3. CLAUDE.md sentinel block — the session-start instructions
+
+If all three are not updated atomically when the mode changes, the agent receives conflicting instructions across a single session.
 
 **Why it happens:**
-Every individual feature request is reasonable. The problem is the aggregate. Each new frontmatter field increases parsing complexity, display complexity, and cognitive load. The out-of-scope list in PROJECT.md already excludes priority scores and complex sorting, but the pressure will come from "just tags with special meaning" or "just one more optional field."
+The config and the workflow file are edited independently. A developer updates the config write path but forgets to regenerate or switch the workflow snippet. This is a coherence problem, not a code bug — and coherence bugs are invisible until the agent does the wrong thing silently.
 
-**How to avoid:**
-- The item schema is: bucket, title, created, tags, notes. That is the ceiling, not the floor.
-- New item-level metadata goes into notes as freeform text, not as new frontmatter fields.
-- If the agent needs to reason about priority or due dates, it reads the notes field and uses its own judgment -- no structured fields needed.
-- Test the "would I explain this in 30 seconds?" rule for any proposed addition.
-- Refer back to PROJECT.md out-of-scope decisions before accepting any feature.
+**Specific failure modes for Burrow v1.3:**
+- User sets `loadMode: "index"` via `/burrow:config`. Config file is updated. CLAUDE.md sentinel block is updated. But the next `/burrow` invocation uses `burrow.md` which still says "read cards.json directly". Two conflicting instructions hit the agent in the same session.
+- Fresh install uses `loadMode: "full"` (default). Workflow file hardcodes full-load behavior. Six months later the user changes mode to `lazy`. Workflow is not regenerated. The session-start instruction in CLAUDE.md says lazy, but the invocation-time workflow says full.
+- The `burrow index` command is implemented in the CLI but the `lazy` workflow mode still references `cards.json` directly because the workflow was never updated to call `burrow index`.
 
-**Warning signs:**
-- Frontmatter has more than 5-6 fields.
-- The config.json schema keeps growing with new per-bucket settings.
-- Display rendering has conditional logic for "show this column if this field exists."
+**Prevention:**
+- The LOAD step in `burrow.md` must be mode-aware at runtime, not hardcoded. Instead of "read cards.json", it should say: "Check config.json for loadMode. If 'full', read cards.json. If 'index' or 'lazy', read the index output."
+- Alternatively: the workflow always reads `config.json` first (it is tiny — a single JSON file read) and then branches. This is explicit and self-documenting.
+- The CLAUDE.md sentinel block and the workflow file should not duplicate the loading strategy. One source of truth: the workflow reads config and decides. CLAUDE.md only needs to say "on session start, check config and load accordingly."
+- When testing the `/burrow:config` command, verify that changing the mode actually changes agent behavior — not just that the config file changed.
 
-**Phase to address:**
-Every phase. This is a continuous discipline, not a one-time decision. But the schema freeze should happen in Phase 1 and be explicitly documented.
+**Detection:**
+- Agent reads full `cards.json` even after `loadMode` was changed to `index`.
+- Agent reads the index even when `loadMode` is `full` (loading stale abbreviated data).
+- Tests pass because they test the config file write path but not the workflow branch logic.
+
+**Phase to address:** Phase 3 of v1.3 (Workflow LOAD step update). Cannot ship the config system without verifying workflow coherence end-to-end.
 
 ---
 
-### Pitfall 5: Reconciliation That Annoys Instead of Helps
+### Pitfall 4: Installer Upgrade Path Loses Config — Overwrites config.json on Re-install
 
 **What goes wrong:**
-The agent suggests reconciling after every phase execution. It presents 15 potential matches, most of them wrong. The user has to say "no" 14 times. After a few sessions, the user ignores reconciliation entirely or disables it. The feature designed to be Burrow's killer integration becomes an annoyance that trains users to dismiss it.
+The current `performUpgrade()` in `installer.cjs` unconditionally copies `.claude/burrow/` from source to destination. If `config.json` lives inside `.claude/burrow/` (e.g., at `.claude/burrow/config.json` or `.planning/burrow/config.json`), an upgrade overwrites it with the default config from the package. The user's `loadMode` and `autoThreshold` settings are silently reset.
+
+The same logic that currently protects `cards.json` ("never touched on upgrade") must also protect `config.json`. But unlike `cards.json` which lives in `.planning/burrow/`, config's location is not yet decided — if it lands inside `.claude/burrow/`, it gets clobbered by the directory copy.
 
 **Why it happens:**
-Naive string matching between completed work descriptions and item titles produces too many false positives. The reconciliation triggers too often (after every small change, not just significant completions). The interaction model requires explicit confirmation for each match instead of batching.
+`copyDirSync` is a blanket recursive copy. Any file that lives in the copied directory gets overwritten. The install/upgrade logic was written before config.json existed, so it has no awareness of it.
 
-**How to avoid:**
-- Present reconciliation as a summary, not an interrogation. "These 3 items look done: [list]. Archive them? (y/all/pick/skip)"
-- Set a minimum threshold for triggering reconciliation -- only after meaningful work phases, not after every file edit.
-- Let the agent use its judgment to filter low-confidence matches before presenting to the user.
-- Keep the interaction to a single decision point, not a per-item loop.
-- Make reconciliation skippable with zero friction ("skip" is always an option, no guilt).
+**Specific failure modes for Burrow v1.3:**
+- User installs v1.3, answers onboarding prompts, sets `loadMode: "lazy"`. Three months later they run `/burrow:update`. The upgrade copies fresh source files including a default `config.json`. User's loadMode is now `"full"` again. No warning is given.
+- Fresh install creates default `config.json` in the data dir. Later, `performRepair()` replaces a missing `config.json` — but `performRepair` only copies missing files from source, so it would copy the source default. If the user's config was intentionally deleted (as a reset), this is correct. If it was accidentally deleted, it's data loss.
+- A user who has never installed config (pre-v1.3 install) runs the v1.3 installer. The upgrade sees "all core files present, mode=upgrade" and copies `.claude/burrow/` over existing. A default config is created. But the sentinel block in CLAUDE.md still says "full load" (old default) because the upgrade didn't re-prompt or regenerate it.
 
-**Warning signs:**
-- Users start typing "skip" reflexively at every reconciliation prompt.
-- Reconciliation takes longer than the actual work it's reconciling.
-- False positive rate exceeds 50% of suggestions.
+**Prevention:**
+- `config.json` must live in `.planning/burrow/` (the data directory), not in `.claude/burrow/` (the source directory). This mirrors the `cards.json` pattern: source code in `.claude/burrow/`, user data in `.planning/burrow/`. The upgrade logic already explicitly preserves everything in `.planning/burrow/`.
+- Add `config.json` to the "never overwrite on upgrade" list alongside `cards.json`.
+- When upgrading from pre-v1.3 to v1.3, detect the absence of `config.json` and create it with defaults (don't prompt on upgrade — prompt was only for fresh install). Log a single line: "Config created with default settings. Run /burrow:config to change."
+- Document the invariant in a comment in `installer.cjs`: `.planning/burrow/` is user data, never overwritten.
 
-**Phase to address:**
-Phase 3 or later (GSD Integration). Build the core CRUD and rendering first. Reconciliation is an integration feature that should only be built after the basic workflow is proven.
+**Detection:**
+- After running `/burrow:update`, the user's loadMode setting reverts to default.
+- The upgrade logs "upgraded" but does not mention config being reset.
+- Post-upgrade, the CLAUDE.md sentinel block does not match the user's config.
+
+**Phase to address:** Phase 1 of v1.3 (Config System) — decide the file location before writing any other config logic. Phase 4 of v1.3 (Installer onboarding) — verify the upgrade path preserves the file.
 
 ---
 
-### Pitfall 6: Rendering That Breaks With Real Data
+### Pitfall 5: Onboarding Prompts Re-Ask on Every Upgrade
 
 **What goes wrong:**
-The pan and drill views look perfect with 3 buckets of 5 items each during development. Then a real project has a bucket with 40 items, titles that are 80+ characters long, tags with special characters, and items with no tags mixed with items with multiple tags. The aligned dotted display breaks. Indentation pushes content off-screen. The terminal wraps lines and destroys the visual structure.
+The installer detects `mode: "upgrade"` but still presents the full onboarding questionnaire about `loadMode`. The user already made this decision. Being asked again on upgrade is confusing ("did my setting get wiped?") and undermines trust. Alternatively, the installer skips onboarding prompts entirely on upgrade but also fails to notify the user that a new configurable option was introduced — leaving users on the old behavior forever with no path to discover the new option.
 
 **Why it happens:**
-Terminal rendering is tested with controlled data. Real data has variable-length strings, Unicode characters (which may be wider than one column), and quantities that exceed what fits in a standard 80-column terminal. The pan view's "dotted alignment" pattern assumes short bucket names and small counts.
+The upgrade path is built to mirror the fresh-install path for simplicity. Adding an "is this an upgrade? skip prompts" branch is an afterthought. The result is inconsistent: some prompts are skipped, some aren't, and the user cannot predict which.
 
-**How to avoid:**
-- Truncate long titles with ellipsis at a configurable max width (default: 60 chars).
-- Cap visible items per bucket in drill view with a "and N more..." indicator.
-- Test rendering with: empty buckets, single-item buckets, 50+ item buckets, 100-char titles, Unicode/emoji in titles, zero tags, 10+ tags.
-- Use a simple rendering approach -- avoid box-drawing characters or complex alignment that breaks with variable data.
-- The CLI tool returns data; the workflow formats it. This means rendering logic lives in the workflow template, where it can be adjusted without changing the tool.
+**Specific failure modes for Burrow v1.3:**
+- User re-runs `npx create-burrow` on an existing project. Installer detects upgrade mode. Asks "How should Burrow load context? (full / lazy / index)". User already configured this six months ago and doesn't remember their setting. They pick the default. Their config is now overwritten.
+- User upgrades from v1.2 to v1.3 (which introduces `loadMode`). No prompt is shown. They never learn that lazy loading exists. They stay on `full` mode paying 95% more token cost than necessary.
+- `--yes` flag is passed on upgrade. The installer silently creates config with defaults and overwrites existing config.
 
-**Warning signs:**
-- "It looks fine" testing only uses fixture data with short names.
-- No test for what happens when a bucket has zero items or 100 items.
-- Display alignment uses string padding that doesn't account for wide characters.
+**Prevention:**
+- On `mode: "upgrade"`, if `config.json` already exists: skip all config prompts. The user's settings are preserved implicitly.
+- On `mode: "upgrade"`, if `config.json` does NOT exist (first v1.3 upgrade from pre-v1.3): show a single one-line notice: "New in this version: configurable context loading. Default is 'full'. Run /burrow:config to change." Then create config with defaults, no prompt.
+- `--yes` on upgrade must never overwrite user data. `--yes` means "accept defaults for anything not already configured" — not "replace everything."
+- The guiding principle: upgrades are silent unless something breaks or something new requires user decision that cannot have a safe default.
 
-**Phase to address:**
-Phase 2 (Rendering/Views). But the data model from Phase 1 should include field-length conventions that rendering can depend on.
+**Detection:**
+- Users report being asked for settings they already configured.
+- Users on old versions never discover new features (silent default adoption without notification).
+- `--yes` upgrade wipes config.
+
+**Phase to address:** Phase 4 of v1.3 (Installer onboarding). Design the upgrade path before building any prompt logic.
 
 ---
 
-## Technical Debt Patterns
+## Moderate Pitfalls
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Hardcoding bucket names in config | Fast to ship | Can't rename or reorder buckets without editing config manually | Never -- use IDs from the start |
-| String concatenation for file paths | Simpler code | Breaks on Windows, spaces in paths | Never -- use `path.join()` always |
-| Reading all items into memory for every operation | Simple implementation | Slows down at 500+ items | MVP only -- add lazy loading in Phase 2 |
-| Storing archive in same directory as active items with a flag | One directory to manage | Every query must filter archived items | Never -- separate directories from the start |
-| Inline rendering in the CLI tool | Faster initial development | Can't change display without changing the tool | Never -- tool returns JSON, workflow formats |
+Mistakes that cause incorrect behavior but are recoverable without data loss.
+
+---
+
+### Pitfall 6: `burrow index` Output Schema Is Unstable — Agents Hardcode Structure
+
+**What goes wrong:**
+The `burrow index` command outputs a lightweight JSON tree (titles + IDs only). The workflow file for `loadMode: "index"` describes what fields to expect from this output. If the index output schema changes in a later version (e.g., adding `archived` flag, adding `childCount`), the workflow instructions become stale. The agent reads the new output but the instructions describe the old schema — causing misinterpretation or silent data truncation.
+
+**Why it happens:**
+CLI output schemas are rarely versioned. Developers add a field "for convenience" without realizing the workflow file depends on knowing exactly what fields exist.
+
+**Prevention:**
+- Define the `burrow index` output schema explicitly in a comment in the source, parallel to the `cards.json` schema definition in PROJECT.md.
+- When changing the index output, search for and update all workflow files that reference it (a `grep` for `burrow index` in `.claude/` files).
+- Keep the index output minimal: only fields the workflow actually uses. Resist adding fields speculatively.
+
+**Phase to address:** Phase 1 of v1.3 (burrow index command). Lock the schema before writing the workflow.
+
+---
+
+### Pitfall 7: `loadMode: "lazy"` Skips Load on Session Start — Agent Has No Context for First Command
+
+**What goes wrong:**
+`loadMode: "lazy"` means the agent does not read `cards.json` at session start. It reads on the first `/burrow` invocation. But the CLAUDE.md session-start instructions may be used by the agent for non-burrow purposes ("remember to track todos as Burrow cards"). If the agent references a Burrow card in a non-burrow context (e.g., "check if the OAuth bug is still open") before any `/burrow` command is issued, it has no data in memory and either hallucinates or gives an "I don't have that context" response.
+
+**Why it happens:**
+Lazy loading assumes the agent only reads Burrow data when explicitly invoked via `/burrow`. But CLAUDE.md instructions are always active — they may prompt the agent to reference card data in any context.
+
+**Prevention:**
+- The CLAUDE.md snippet for `lazy` mode must be explicit: "Do NOT reference Burrow card data unless you have explicitly loaded it in this session."
+- Alternatively: `lazy` mode does not change CLAUDE.md at all — it only changes the workflow's LOAD step behavior. The user simply does not get the "silently load on session start" behavior. This is simpler and safer.
+- Document this tradeoff clearly in the config prompt and in `/burrow:config` output: "lazy mode reduces token cost but cards are not available until you run /burrow."
+
+**Phase to address:** Phase 3 of v1.3 (Workflow LOAD step). Requires explicit behavioral specification before implementation.
+
+---
+
+### Pitfall 8: Auto-Threshold for Mode Switching Is Checked at Wrong Time
+
+**What goes wrong:**
+If `loadMode: "auto"` switches between `full` and `index` based on `cards.json` size, the check must happen at load time — not at install time or config-write time. A project starts small (full load is fine) and grows over months. If the auto-threshold check is only run during install/config-change, the mode never automatically switches even as the tree grows. Conversely, if the check runs on every CLI invocation regardless of mode, it adds a file stat call to every command.
+
+**Why it happens:**
+The auto-threshold feature sounds simple ("switch modes when file gets big") but requires answering when the check runs, how often, and what happens when it flips back and forth (a file that grows past threshold, then some cards are archived and it drops below threshold).
+
+**Prevention:**
+- If `loadMode: "auto"` is implemented, define exactly one check point: the LOAD step in the workflow, not the CLI.
+- The CLI `burrow index` command does not need to know about thresholds — it just outputs the index. Mode selection is the workflow's concern.
+- Consider whether hysteresis is needed: once in `index` mode (because tree exceeded threshold), stay there even if the tree shrinks temporarily. This prevents flapping.
+- If the complexity is too high, defer `auto` mode to a later milestone and ship only explicit `full` / `index` / `lazy` for v1.3.
+
+**Phase to address:** Phase 3 of v1.3 (Workflow LOAD step). If `auto` mode is deferred, this pitfall is avoided entirely.
+
+---
+
+### Pitfall 9: `/burrow:config` Command Changes Config But Not CLAUDE.md — Split State
+
+**What goes wrong:**
+The user runs `/burrow:config set loadMode lazy`. The command updates `config.json` correctly. But the CLAUDE.md sentinel block still contains the instructions for `full` mode ("silently read cards.json on session start"). The new config takes effect for all `/burrow` invocations (because the workflow reads config at invocation time), but the session-start behavior is still full-load until the user re-runs the installer or manually updates CLAUDE.md.
+
+The user observes: "I set it to lazy but cards.json is still being loaded at session start." They're right. The config and the CLAUDE.md are out of sync.
+
+**Why it happens:**
+The `/burrow:config` command updates one file (config.json). The CLAUDE.md update is treated as an installer concern, not a config-change concern. The two are decoupled by design but the user's mental model couples them ("changing the mode should change everything").
+
+**Prevention:**
+- `/burrow:config set loadMode <value>` must update both `config.json` AND regenerate the CLAUDE.md sentinel block atomically (using `writeSentinelBlock()` with the appropriate snippet variant).
+- If CLAUDE.md cannot be found (e.g., user deleted it), log a warning: "config.json updated. CLAUDE.md not found — session-start behavior unchanged. Re-run the installer to fix."
+- Treat config changes and sentinel block updates as a single transaction: if either write fails, the command should report the partial failure clearly.
+
+**Detection:**
+- After `/burrow:config set loadMode lazy`, agent still reads cards.json at session start.
+- `config.json` says `lazy`, CLAUDE.md snippet says `full`. Diverged state.
+
+**Phase to address:** Phase 4 of v1.3 (`/burrow:config` command). The command must be aware of CLAUDE.md from day one.
+
+---
+
+## Minor Pitfalls
+
+Small mistakes with limited blast radius.
+
+---
+
+### Pitfall 10: Config File Added to `.gitignore` Accidentally
+
+**What goes wrong:**
+`cards.json.bak` is correctly gitignored. If `config.json` is added to the same gitignore block by mistake, users lose their config settings when switching branches or checking out a fresh clone. This is particularly insidious because the user might not notice for a long time — the tool auto-creates a default config, so there's no error. Their `loadMode` preference just silently resets on clone.
+
+**Prevention:**
+- `config.json` should be committed (like `cards.json` itself). Add only `.planning/burrow/config.json.bak` and `.planning/burrow/.update-check` to `.gitignore`.
+- Document the commit intent: "config.json is project-level config, intentionally version-controlled."
+- In `ensureGitignoreEntry()`, only add the `.bak` extension for backup files and the `.update-check` for the version cache.
+
+**Phase to address:** Phase 1 of v1.3 (Config System). Verify gitignore entries when designing the file layout.
+
+---
+
+### Pitfall 11: `--yes` Flag Silently Misses New Prompts
+
+**What goes wrong:**
+The `--yes` flag currently means "accept all defaults in non-interactive mode." When a new onboarding prompt is added (e.g., "Which loadMode would you like?"), the `--yes` code path must explicitly map it to a default. If the developer adds the prompt but forgets to add the `--yes` branch, the installer hangs waiting for input in non-interactive CI environments.
+
+**Prevention:**
+- Each interactive prompt must have a documented default that is also the `--yes` value.
+- Test the full install flow with `--yes` as part of the installer test suite.
+- Structure the prompt code so the default is a constant shared between the interactive and non-interactive paths, not hardcoded in two places.
+
+**Phase to address:** Phase 4 of v1.3 (Installer onboarding).
+
+---
+
+### Pitfall 12: `burrow index` Output Is Not Atomic — Partial Reads Are Possible
+
+**What goes wrong:**
+`burrow index` writes its output to stdout. The agent reads this output. If `cards.json` is very large and index generation takes non-zero time while another process is modifying `cards.json`, the index output may reflect a partially-written tree. This is extremely unlikely in practice (the read is fast, mutations are atomic), but the risk is real in projects where the agent and user are both active simultaneously.
+
+This is a low-probability issue but worth flagging because it's the same class as the race condition in the old YAML-based design.
+
+**Prevention:**
+- `burrow index` reads `cards.json` using the same `load()` function from `warren.cjs` — which reads the whole file atomically as a single `readFileSync` call. No streaming, no partial read. The index is generated from the fully-loaded in-memory tree. This is already correct by construction given the existing storage layer.
+- No additional work needed — just verify this is the implementation path and add a test that confirms the index uses `warren.load()` not a raw `readFileSync`.
+
+**Phase to address:** Phase 1 of v1.3 (burrow index command). Verify during implementation, not after.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|----------------|------------|
+| Config system (Phase 1) | Non-defensive JSON load crashes on user hand-edit | Merge-over-defaults pattern, validate enum fields, never crash |
+| Config system (Phase 1) | Config file inside `.claude/burrow/` gets overwritten on upgrade | Put `config.json` in `.planning/burrow/` alongside `cards.json` |
+| Config system (Phase 1) | Config added to `.gitignore` accidentally | Only gitignore `.bak` and `.update-check`, never `config.json` itself |
+| `burrow index` command (Phase 1) | Schema instability causes workflow mismatch | Lock schema in a comment before writing workflow |
+| CLAUDE.md variants (Phase 2) | Non-atomic write corrupts CLAUDE.md on crash | Write to `.tmp`, rename atomically — same pattern as `warren.cjs` |
+| CLAUDE.md variants (Phase 2) | Sentinel marker matched as substring in user content | Match sentinel markers at start-of-line, not as arbitrary substring |
+| Workflow LOAD step (Phase 3) | Workflow hardcodes loading strategy, ignores config | Workflow reads `config.json` and branches; workflow is the single LOAD authority |
+| Workflow LOAD step (Phase 3) | CLAUDE.md and workflow give conflicting instructions | One source of truth: workflow decides, CLAUDE.md only says "follow workflow" |
+| `lazy` mode (Phase 3) | Agent has no card context for non-burrow references | Document that lazy mode means no ambient card context; cards only available after first `/burrow` |
+| `auto` threshold (Phase 3) | Mode flaps on tree size changes | Implement hysteresis or defer `auto` mode to v1.4 |
+| Installer onboarding (Phase 4) | Re-prompts existing users on upgrade | Detect existing `config.json`; skip prompts, preserve settings |
+| Installer onboarding (Phase 4) | Pre-v1.3 upgrade silently gets default config with no notification | Log one-line notice on first-time config creation |
+| `/burrow:config` command (Phase 4) | Config change does not update CLAUDE.md — split state | `/burrow:config set` updates both `config.json` and CLAUDE.md sentinel block |
+| `--yes` flag (Phase 4) | New prompts not handled in non-interactive mode — hangs | Every prompt has an explicit `--yes` default; test non-interactive path |
+
+---
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| GSD workflow injection | Modifying files inside `.claude/get-shit-done/` | Burrow workflows live in `.claude/burrow/`, commands in `.claude/commands/gsd/` -- never touch GSD core |
-| Claude Code slash commands | Putting complex logic in the `.md` command file | Command files should be thin dispatchers that call the workflow or CLI tool. Logic lives in `burrow-tools.cjs` or `workflows/burrow.md` |
-| File system watchers | Using `fs.watch` to detect item changes for live updates | Don't. The tool reads files on demand. No watchers, no daemons, no background processes |
-| Config.json concurrent access | Multiple commands reading/writing config simultaneously | Treat config.json as append-mostly. Use atomic writes. Keep writes rare (only on bucket create/delete/reorder) |
+| `warren.cjs` save pattern | Config write doesn't use same atomic pattern | Implement `saveConfig()` in parallel to `warren.save()` — same tmp+rename pattern |
+| `installer.cjs` upgrade path | `copyDirSync` silently overwrites user config | Config lives in `.planning/burrow/`, not `.claude/burrow/` — immune to `copyDirSync` |
+| `writeSentinelBlock()` | Direct `writeFileSync` to CLAUDE.md | Refactor to write-to-tmp, then rename — same as warren.cjs |
+| `burrow.md` workflow | Hardcoded `cards.json` load instruction | Read `config.json` first, then branch on `loadMode` |
+| `version.cjs` update cache | `.update-check` accidentally gitignored with `config.json` | `.update-check` is gitignored (ephemeral cache), `config.json` is not (user data) |
+| `init.cjs` legacy init | Old `init` uses `## Burrow` heading detection, not sentinel | Post-v1.3, detection should use sentinel markers, not heading text |
 
-## Performance Traps
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Globbing all `.md` files on every command | Noticeable delay before output | Cache file list within a single command invocation (not across commands) | 200+ items in a single bucket |
-| Parsing all frontmatter to render pan view | Pan view should be instant but takes 500ms+ | Pan view only needs bucket + count. Use `config.json` for bucket names and count files per directory instead of parsing | 500+ total items |
-| Synchronous file I/O blocking Node.js | CLI feels sluggish | Use `Sync` variants for simple operations (this is a CLI, not a server) -- but batch reads with `Promise.all` for large listings | 100+ items needing concurrent reads |
-| Re-reading config.json on every sub-operation | Adds ~1ms per read, compounds in loops | Read config once at command start, pass as parameter | Commands that touch 50+ items |
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Using `yaml.load()` (unsafe) instead of `yaml.safeLoad()` or safe schema | Prototype pollution via crafted YAML (CVE-2025-64718). An item's frontmatter could inject `__proto__` properties | Always use safe YAML loading. Use `gray-matter` with default safe settings. Validate parsed output shape |
-| Executing user-provided strings as shell commands | If item titles or notes contain shell metacharacters and are passed to `exec()` | Never shell out with user data. Use `child_process.execFile` or avoid shell entirely -- Burrow should not need to spawn processes |
-| Storing sensitive data in item notes | Items are plain markdown files readable by anyone with file access | Document that Burrow items are not encrypted. Do not store passwords, tokens, or secrets as items |
-
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Requiring bucket specification for every command | "Add item to which bucket?" every time, even when there's only one obvious choice | Default bucket concept or "last used bucket" memory. Let `/gsd:bw-add fix login bug` infer the bucket from context |
-| Showing all buckets in drill view when user asked about one | Information overload, user has to scroll past irrelevant buckets | Drill view takes an optional bucket filter. Default to showing the requested bucket only |
-| Archiving without confirmation for destructive-feeling operations | User anxiety about losing items | Archive is non-destructive (items move to archive dir, fully searchable). Communicate this clearly. But still confirm bulk archive operations |
-| Verbose success messages | "Item 'fix login bug' has been successfully added to bucket 'bugs' with tags ['frontend'] at 2026-03-06T..." clutters the conversation | Terse confirmations: "Added to bugs: fix login bug [frontend]". One line. The agent can elaborate if asked |
-| Natural language command parsing that fails silently | User says "move the login thing to done" and the agent can't find a match but doesn't say so | Always confirm what was matched: "Moving 'fix login bug' from bugs to done. Correct?" If no match: "No items matching 'login thing' found in active buckets" |
-
-## "Looks Done But Isn't" Checklist
-
-- [ ] **Frontmatter parser:** Handles colons in titles, `---` in notes body, empty fields, missing fields, extra fields -- verify with adversarial test fixtures
-- [ ] **Item creation:** Generates unique IDs even under rapid successive calls -- verify by creating 100 items in a loop
-- [ ] **Bucket limits:** Enforced on add AND on move-into-bucket -- verify both paths
-- [ ] **Archive search:** Archived items are actually searchable, not just stored -- verify search returns archived results with clear labeling
-- [ ] **Pan view counts:** Count reflects actual parseable items, not just file count (corrupted files should not inflate count) -- verify by placing a non-parseable `.md` file in items/
-- [ ] **Config.json:** Survives invalid edits (user hand-edits JSON badly) -- verify with malformed JSON producing a clear error, not a crash
-- [ ] **Tag display:** Items with zero tags display differently from items whose tags field is an empty array -- verify both render correctly
-- [ ] **Empty states:** Every view has a meaningful empty state (no buckets, no items in bucket, no archived items) -- verify all three
+---
 
 ## Recovery Strategies
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Corrupted frontmatter in item file | LOW | Parse error identifies the file. User manually fixes YAML or deletes the file. Other items unaffected because each item is a separate file |
-| Config.json corruption | MEDIUM | Keep a `config.json.bak` written before each modification. Recovery: copy backup over corrupted file. Worst case: user recreates bucket definitions (item files still have bucket field) |
-| Accidentally archived wrong items | LOW | Archive is non-destructive. `bw-show archive` to find items, move them back. This is why archive must be searchable |
-| ID collision (two items same filename) | MEDIUM | One item is lost. Prevention is critical (use UUID). Detection: log a warning if target file already exists during write. Recovery: check git history or archive for the lost item |
-| Feature creep beyond schema | HIGH | Requires migration of all item files if frontmatter schema changes. Prevention is far cheaper. Recovery: write a migration script that reads old format and writes new format |
+| Scenario | Recovery Cost | Recovery Steps |
+|----------|---------------|----------------|
+| `config.json` corrupted by hand-edit | LOW | CLI detects parse failure, logs clear error identifying the field. User deletes file or fixes it. Defaults are recreated on next invocation. |
+| CLAUDE.md sentinel block corrupted | MEDIUM | User runs `node .claude/burrow/burrow-tools.cjs init` (or installer repair). Sentinel is re-inserted from current config. User's non-Burrow CLAUDE.md content is preserved. |
+| Config lost on upgrade (wrong file location) | MEDIUM | User re-runs `/burrow:config` to set preferences. Data (`cards.json`) is unaffected. |
+| `lazy` mode; agent references cards without loading | LOW | User runs `/burrow` to trigger explicit load, then asks again. No data loss — the mode just deferred the load. |
+| CLAUDE.md and config.json in split state after failed config change | LOW | Run `/burrow:config set loadMode <value>` again — idempotent. Or reinstall. |
 
-## Pitfall-to-Phase Mapping
+---
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| YAML frontmatter fragility | Phase 1 (Data Layer) | Adversarial test suite passes: colons, dashes, quotes, Unicode, empty values, missing fields |
-| File I/O race conditions | Phase 1 (Data Layer) | Atomic write function exists. Rapid-fire creation test produces no collisions |
-| Agent output ambiguity | Phase 1 (CLI Tool) | Every command returns valid JSON with `{ success, data, error? }` schema. No formatted text in stdout |
-| Feature creep | All Phases | Item frontmatter schema has not grown beyond: bucket, title, created, tags. Review at each phase boundary |
-| Reconciliation annoyance | Phase 3+ (Integration) | User testing confirms reconciliation is helpful, not annoying. Skip is frictionless. False positive rate < 30% |
-| Rendering with real data | Phase 2 (Views) | Render tests include: 0 items, 1 item, 50+ items, 80-char titles, Unicode, no tags, many tags |
-| GSD core modification | Phase 1 (Setup) | No files inside `.claude/get-shit-done/` are created or modified. Verify with directory diff |
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Config defensive load:** Test with missing `config.json`, malformed JSON, missing keys, wrong-type values, unknown keys. All produce defaults or clear errors, never crashes.
+- [ ] **Config upgrade preservation:** Test `performUpgrade()` with an existing `config.json`. Verify it is NOT overwritten.
+- [ ] **Sentinel atomicity:** Simulate process kill mid-write during a variant switch. CLAUDE.md must be either fully old or fully new, never partial.
+- [ ] **Sentinel marker search:** Test with CLAUDE.md that contains the sentinel string as a false positive in user content. Verify the replacement lands in the correct location.
+- [ ] **Workflow coherence:** After `/burrow:config set loadMode lazy`, verify the agent does NOT load cards.json at session start AND does NOT reference card data before a `/burrow` invocation.
+- [ ] **Upgrade from v1.2:** Run installer upgrade from pre-v1.3. Verify no prompts, one-line notice, default config created, cards.json preserved, existing CLAUDE.md sentinel block updated.
+- [ ] **`--yes` non-interactive:** Full install and upgrade with `--yes`. No hanging. Defaults applied. No user data overwritten.
+- [ ] **`/burrow:config` atomicity:** After `set loadMode <value>`, verify both `config.json` and CLAUDE.md sentinel block reflect the new value. Test with CLAUDE.md absent (config updates, warning logged, no crash).
+
+---
 
 ## Sources
 
-- [Taskwarrior: What Have We Learned](https://taskwarrior.org/docs/advice/) -- lessons on feature creep and scope discipline from a mature CLI task manager
-- [Node.js CLI Apps Best Practices](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- error handling, output formatting, cross-platform issues
-- [Claude Code race condition issue #29036](https://github.com/anthropics/claude-code/issues/29036) -- real-world file corruption from concurrent sessions in Claude Code itself
-- [CVE-2025-64718: js-yaml prototype pollution](https://www.resolvedsecurity.com/vulnerability-catalog/CVE-2025-64718) -- YAML parsing security vulnerability
-- [Todo.txt vs Taskwarrior comparisons](https://lwn.net/Articles/824333/) -- design tradeoffs in flat-file vs structured task managers
-- [Towards Atomic File Modifications](https://dev.to/martinhaeusler/towards-atomic-file-modifications-2a9n) -- write-then-rename pattern for safe file updates
+- Direct inspection of `installer.cjs`, `warren.cjs`, `version.cjs`, `init.cjs`, `burrow-tools.cjs`, and `burrow.md` (HIGH confidence — current codebase)
+- Claude Code GitHub issue #28809: `.claude.json` becomes corrupted with non-atomic writes during tool use (HIGH confidence — official repo, documented 2025)
+- Claude Code GitHub issue #15608: config file corruption when multiple processes run concurrently (HIGH confidence — official repo)
+- Claude Code GitHub issues #7336, #11364, #16458, #19105: lazy loading context overhead and mode-switching failure rates (MEDIUM confidence — feature request threads, not official docs)
+- Lazy-loaded prompt engineering patterns article (gopubby.com): "skill discovery fails 10–20% of the time" with lazy loading (LOW confidence — single source, unverified)
+- JSON schema evolution best practices: backward-compatible field additions, default values, versioned schemas (MEDIUM confidence — multiple sources agree on merge-over-defaults pattern)
+- Original `PITFALLS.md` (2026-03-06) for foundational pitfalls still applicable to the core engine (HIGH confidence — prior research)
 
 ---
-*Pitfalls research for: Burrow -- CLI bucket-based task manager / Claude Code addon*
-*Researched: 2026-03-06*
+
+*Pitfalls research for: Burrow v1.3 — Onboarding & Configuration*
+*Researched: 2026-04-01*
+*Scope: Config system, context loading modes, CLAUDE.md variants, installer upgrade path, /burrow:config command*

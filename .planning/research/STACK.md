@@ -1,140 +1,232 @@
-# Stack Research
+# Technology Stack
 
-**Domain:** Node.js CLI addon for Claude Code (bucket-based task manager with markdown+YAML flat files)
-**Researched:** 2026-03-06
-**Confidence:** HIGH
+**Project:** Burrow v1.3 — Onboarding & Configuration
+**Researched:** 2026-04-01
+**Scope:** NEW features only. Config system, index command, installer onboarding prompts. Existing v1.2 stack not re-researched.
 
-## Constraint
+---
 
-**Zero external npm dependencies.** Burrow is a Claude Code addon distributed as flat files. It cannot assume `npm install` has been run. Every capability must come from Node.js built-in modules or custom code vendored into the addon. This is not a preference -- it is a hard constraint inherited from the GSD framework pattern.
+## Constraint (Unchanged)
 
-## Recommended Stack
+**Zero external npm dependencies.** Burrow is distributed as flat files via `npx create-burrow`. There is no install step at the target project. Every capability must come from Node.js built-in modules or custom code. This is a hard constraint, not a preference.
 
-### Core Technologies
+**Node.js 22 LTS** is the target runtime (verified: v22.14.0 in use). All APIs below are stable on this version.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Node.js | 22.x LTS | Runtime | Already required by Claude Code and GSD. v22 is current LTS ("Jod"), ships `util.styleText()` and stable `util.parseArgs()`. No additional runtime needed. |
-| CommonJS (`.cjs`) | N/A | Module format | GSD convention. Claude Code invokes tools via `node path/to/tool.cjs`. ESM would require `--input-type=module` or `.mjs` extension, adding friction for no benefit in a CLI tool. |
+---
 
-### Built-in Node.js APIs (the actual "stack")
+## What v1.3 Actually Needs
 
-| API | Module | Purpose | Why This Over Alternatives |
-|-----|--------|---------|---------------------------|
-| `fs.readFileSync` / `fs.writeFileSync` | `node:fs` | File CRUD | Synchronous is correct here -- CLI tool runs, does one thing, exits. Async adds complexity with zero benefit for single-file operations. |
-| `fs.mkdirSync` | `node:fs` | Directory creation | `{ recursive: true }` handles nested paths. |
-| `fs.readdirSync` | `node:fs` | List items/archive | With `{ withFileTypes: true }` for filtering `.md` files efficiently. |
-| `fs.existsSync` | `node:fs` | Path checking | Simple boolean check. Preferred over try/catch on `statSync`. |
-| `path.join` / `path.resolve` | `node:path` | Path construction | Cross-platform path handling. Always use over string concatenation. |
-| `util.parseArgs()` | `node:util` | CLI argument parsing | Stable since Node.js 20. Supports `--flag value`, `-f`, boolean/string types, and positionals. Replaces minimist/yargs entirely. Verified working on v22.14.0. |
-| `util.styleText()` | `node:util` | Terminal text coloring | New in Node.js 22, stable. Supports bold, dim, underline, italic, and all 16 ANSI colors. Replaces chalk/kleur/picocolors entirely. Verified: all needed styles (bold, dim, green, yellow, red, cyan) work on v22.14.0. |
-| `JSON.parse` / `JSON.stringify` | Built-in | Config management | `config.json` is the storage format. Native JSON handles all config needs. |
-| `crypto.randomUUID()` | `node:crypto` | Item ID generation | Stable since Node.js 19. Generates RFC 4122 v4 UUIDs without external libs. Use for unique item filenames if slug collisions are a concern. |
-| `process.stdout.write` | Built-in | Output | Direct stdout control. Preferred over `console.log` for structured output (avoids trailing newline when undesired). |
+The milestone adds four capabilities, each with its own stack requirements:
 
-### Custom Implementations (vendored into addon)
+| Capability | What It Needs |
+|------------|---------------|
+| `config.json` management | Read/write JSON, defaults merging, validation, atomic write (already have in warren.cjs) |
+| `burrow index` command | Recursive tree walk producing `{id, title, children[]}` — pure JS, no new APIs |
+| Installer onboarding prompts | New `readline`-based `ask()` calls in install.cjs; TTY detection for `--yes` auto-fallback |
+| `/burrow:config` command | New subcommand in burrow-tools.cjs; reads/writes config.json; no new APIs |
+| CLAUDE.md snippet variants | String template selection based on `loadMode`; already have `writeSentinelBlock()` |
 
-| Component | Purpose | Complexity | Notes |
-|-----------|---------|------------|-------|
-| YAML frontmatter parser | Parse `---\nyaml\n---\nmarkdown` | Low | GSD already has `extractFrontmatter()` in `lib/frontmatter.cjs`. Fork and simplify for Burrow's narrower schema (no 3-level nesting needed). ~40 lines of code. |
-| YAML frontmatter serializer | Write frontmatter back to files | Low | GSD has `reconstructFrontmatter()`. Fork it. Burrow items have flat schemas (title, bucket, tags[], created, updated) -- simpler than GSD's deeply nested PLAN frontmatter. ~30 lines. |
-| Frontmatter splice | Replace frontmatter in existing file | Low | GSD has `spliceFrontmatter()`. Direct reuse pattern. ~5 lines. |
-| Text renderer | Pan view, drill view, item display | Medium | Custom. Uses `util.styleText()` for colors, manual string padding for alignment. The dotted-leader pattern (bucket name . . . count) is ~10 lines. No need for a table library. |
-| Slug generator | Convert titles to filenames | Low | `text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')`. GSD has `generateSlug()`. |
+None of these capabilities require new external libraries or new Node.js APIs beyond what v1.2 already uses. The additions are patterns and modules, not new technology.
 
-### Data Formats
+---
 
-| Format | Used For | Schema |
-|--------|----------|--------|
-| Markdown + YAML frontmatter | Item files | `title`, `bucket`, `tags[]`, `created`, `updated` in frontmatter; free-form notes in body |
-| JSON | Config (`config.json`) | `buckets[]` (name, order, limit), `settings` (default bucket, archive behavior) |
-| Plain text | CLI display output | Formatted with ANSI via `util.styleText()` |
-| JSON | CLI structured output | For agent consumption (`--json` flag) |
+## Recommended Stack — New Additions Only
 
-## Architecture Pattern: Single-File CLI Tool
+### New Built-in APIs
 
-Follow GSD's established pattern:
+| API | Module | Purpose | Confidence |
+|-----|--------|---------|-----------|
+| `fs.statSync(path)` | `node:fs` | File size check for `auto` mode threshold — `stat.size` in bytes, divide by 4 for token estimate | HIGH — stable, used widely, verified v22.14.0 |
+| `readline/promises` (for future migration) | `node:readline/promises` | Async `question()` returning a Promise instead of callback — available Node.js 17+, stable on 22 | HIGH — verified available. Current install.cjs uses callback-style `readline`, either style works. No forced migration needed. |
+
+**Note on `readline/promises`:** The existing installer uses callback-style `readline.createInterface` + manual Promise wrappers. This works. `readline/promises` provides native async/await support but is functionally equivalent. Recommend keeping callback style for consistency unless refactoring.
+
+### New Patterns (Pure JS, No New APIs)
+
+| Pattern | Implementation | Where |
+|---------|---------------|-------|
+| Config JSON load with defaults | `JSON.parse` + object spread `{ ...DEFAULTS, ...parsed }` | New `lib/config.cjs` |
+| Config JSON save atomic | Reuse `warren.cjs` atomic write pattern (tmp + rename) | New `lib/config.cjs` |
+| Config validation | Plain `typeof` + `Array.includes()` for enum values | New `lib/config.cjs` |
+| Index tree walk | Recursive map: `cards.map(c => ({ id, title, children: buildIndex(c.children) }))` | New function in `mongoose.cjs` or inline in `burrow-tools.cjs` |
+| Auto-threshold check | `fs.statSync(cardsPath).size > config.autoThreshold * 1024` | In workflow or `burrow-tools.cjs` index/load routing |
+| CLAUDE.md snippet variants | Function returning snippet string based on `loadMode` param | In `installer.cjs` |
+| TTY detection | `Boolean(process.stdin.isTTY)` — `undefined` when piped (non-interactive), `true` in terminal | Already implicit in install.cjs `--yes` flag; make explicit |
+
+---
+
+## Component Design
+
+### New: `lib/config.cjs`
+
+Single responsibility: read and write `config.json` in `.planning/burrow/`.
+
+```javascript
+// Path: .planning/burrow/config.json
+// Schema:
+{
+  "loadMode": "full",       // "full" | "index" | "auto"
+  "autoThreshold": 50       // KB threshold for auto mode (integer)
+}
+```
+
+**Key decisions:**
+- `CONFIG_DEFAULTS` constant defines fallbacks — missing keys on read get defaults via spread
+- Validation on read: coerce invalid `loadMode` to `"full"`, clamp `autoThreshold` to 1–10000
+- Atomic write: write to `.tmp`, rename — same pattern as `warren.cjs` `save()`
+- ENOENT on read returns defaults (config.json absence = unconfigured, not an error)
+- Do NOT extend `warren.cjs` — config is a separate concern with different schema validation
+
+**Built-in APIs used:** `node:fs` (readFileSync, writeFileSync, renameSync, existsSync), `node:path`
+
+### Modified: `lib/mongoose.cjs`
+
+Add one pure function: `buildIndex(cards)`.
+
+```javascript
+// Returns lightweight tree: id + title + children only (no body, created, archived)
+function buildIndex(cards) {
+  return cards.map(c => ({
+    id: c.id,
+    title: c.title,
+    ...(c.children && c.children.length ? { children: buildIndex(c.children) } : {})
+  }));
+}
+```
+
+**Why here:** Mongoose owns tree operations. Index is a read-only tree transformation. No new APIs needed.
+
+**Output contract:** Leaf cards omit `children` entirely (not `children: []`) to minimize output size. Archived cards follow the same include/exclude rules as `listCards` — by default, excluded.
+
+### Modified: `lib/installer.cjs`
+
+Add `buildClaudeMdSnippet(loadMode)` function that returns the appropriate CLAUDE.md sentinel block content based on the chosen loading mode.
+
+Three variants:
+- `"full"` — current snippet (read cards.json directly)
+- `"index"` — instruct agent to run `burrow index` and read that
+- `"auto"` — instruct agent to check index first, load full only if within threshold
+
+**Why here:** `writeSentinelBlock()` already lives in installer.cjs and accepts `blockContent` as a string parameter. Snippet selection is just string branching.
+
+**Built-in APIs used:** None new — pure string operations.
+
+### Modified: `install.cjs`
+
+Add loadMode prompt to the interactive onboarding flow (after install confirmation, before writing files).
 
 ```
-.claude/burrow/
-  burrow-tools.cjs          # Single entry point, all commands
-  lib/
-    frontmatter.cjs          # YAML frontmatter parse/serialize (forked from GSD)
-    items.cjs                # Item CRUD operations
-    render.cjs               # Text rendering (pan view, drill view)
-    config.cjs               # Config read/write/validate
+? How should Claude load Burrow on session start?
+  1. Full load — read cards.json directly (default, works for small trees)
+  2. Index only — read titles+IDs only, fetch cards on demand (saves tokens)
+  3. Auto — use index if tree is large, full load if small
 ```
 
-**Why this structure:** Matches `gsd-tools.cjs` conventions. The agent calls `node .claude/burrow/burrow-tools.cjs <command> [args]`. Single entry point with subcommands. Lib modules keep concerns separated without any module system beyond `require()`.
+**Non-interactive fallback:** If `--yes` flag is set OR `!process.stdin.isTTY`, skip the prompt and use `"full"` as default. This matches how the existing `--yes` path works for all other prompts.
 
-## Alternatives Considered
+**Built-in APIs used:** `node:readline` (already imported), `process.stdin.isTTY`
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Custom YAML parser | `js-yaml` npm package | External dependency. Burrow's YAML is trivially simple (flat key-value + one array field). Full YAML spec support is unnecessary overhead and violates the zero-deps constraint. |
-| Custom YAML parser | `yaml` npm package | Same as above. More modern API but still an external dep. |
-| `util.styleText()` | `chalk` / `picocolors` | External dependencies. `styleText()` covers all needed formatting (bold, dim, colors) natively in Node.js 22. |
-| `util.parseArgs()` | `minimist` / `yargs` / `commander` | External dependencies. `parseArgs()` handles Burrow's simple argument patterns (subcommand + named flags + positionals). |
-| `crypto.randomUUID()` | `uuid` npm package | Built-in since Node.js 19. No reason for external package. |
-| Synchronous fs | `fs/promises` (async) | CLI tool does sequential file ops and exits. Async adds complexity (async/await boilerplate, error handling) with no performance benefit. GSD uses sync fs throughout. |
-| CommonJS | ESM | GSD convention is `.cjs`. Switching to ESM would create inconsistency with the parent framework. |
-| Flat files | SQLite / LevelDB | Project constraint: flat file storage only. Markdown files are human-readable, git-friendly, and trivially debuggable. |
+### Modified: `burrow-tools.cjs`
 
-## What NOT to Use
+Add two new subcommands:
+
+**`index`** — emit lightweight JSON index to stdout:
+```
+node .claude/burrow/burrow-tools.cjs index
+```
+Output: `JSON.stringify({ cards: buildIndex(data.cards) })` — single-line JSON (no pretty-print, agent parses it).
+
+**`config`** — view or set config values:
+```
+node .claude/burrow/burrow-tools.cjs config              # show current config
+node .claude/burrow/burrow-tools.cjs config --set loadMode=index
+node .claude/burrow/burrow-tools.cjs config --set autoThreshold=100
+```
+Outputs human-readable confirmation text (consistent with all other commands).
+
+**`util.parseArgs()` additions:** Two new options: `--set` (string type) for config set; no new flags for index.
+
+---
+
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Any npm package | Hard constraint: zero external dependencies. Addon is distributed as flat files with no install step. | Node.js built-in APIs + custom code |
-| `gray-matter` | Popular frontmatter parser, but it is an npm package with transitive deps. Overkill for Burrow's flat schema. | Custom `extractFrontmatter()` (forked from GSD's proven implementation) |
-| `inquirer` / `prompts` | Interactive CLI prompts. Burrow is not interactive -- the agent interprets user intent and calls the CLI tool with explicit arguments. | Direct argument parsing via `parseArgs()` |
-| `blessed` / `ink` / `terminal-kit` | TUI frameworks. Burrow renders simple formatted text, not interactive UIs. | `util.styleText()` + manual string formatting |
-| `fs/promises` (async) | Adds unnecessary complexity for sequential single-file operations in a CLI that runs and exits. | `fs.readFileSync` / `fs.writeFileSync` |
-| `child_process.exec` for git | Burrow does not manage git. The GSD framework handles commits. | N/A -- out of scope |
-| Full YAML spec parser | YAML is complex (anchors, aliases, multiline, type coercion). Burrow needs none of this. Building or importing a full parser invites bugs for features never used. | Minimal parser that handles: `key: value`, `key: [a, b]`, and `- item` lists. Nothing else. |
+| Any npm package | Hard constraint | Node.js built-ins only |
+| `readline/promises` migration | Current callback-style readline works, migration is churn for zero gain | Keep existing `ask()` wrapper pattern |
+| `fs.promises` / async file ops | Config reads are startup-time, synchronous is correct for a CLI that runs-and-exits | `fs.readFileSync` |
+| Schema versioning in config.json | Config has 2 fields. Defaults-spread handles forward/backward compat. A version field is premature. | Defaults-spread on every read |
+| Separate config CLI module | `/burrow:config` is a thin wrapper around `lib/config.cjs` — it belongs in `burrow-tools.cjs` switch/case | Add `case 'config':` in existing switch |
+| TOML or YAML for config | JSON is already the storage format for cards.json. JSON.parse/stringify with no dependencies. | JSON |
+| File watching (`fs.watch`) | Burrow does not hot-reload. Each CLI invocation is stateless. | N/A |
+| OS-level config location (`os.homedir()`) | All config is per-project in `.planning/burrow/config.json`. Global config is out of scope. | Per-project only |
 
-## Stack Patterns
+---
 
-**For the CLI tool entry point:**
-- Use `util.parseArgs()` with strict mode to catch typos
-- Route subcommands via switch/case (matches GSD pattern)
-- Output JSON for agent consumption, formatted text for display (detect with `--json` flag)
+## Integration Points
 
-**For frontmatter parsing:**
-- Fork GSD's `extractFrontmatter()` but simplify: Burrow items max out at 1-level nesting (tags array). Remove GSD's 3-level nesting support.
-- Validate schema on write: reject items missing `title` or `bucket`
+### How config.json flows through the system
 
-**For text rendering:**
-- Build strings, write once to stdout. No incremental rendering.
-- Use `util.styleText('dim', text)` for secondary info, `util.styleText('bold', text)` for headers
-- Dotted leaders: `name + ' ' + '.'.repeat(width - name.length - countStr.length - 2) + ' ' + countStr`
+```
+install.cjs (prompt)
+  → writes .planning/burrow/config.json
+  → writes CLAUDE.md sentinel block (variant based on loadMode)
 
-**For config management:**
-- Read: `JSON.parse(fs.readFileSync(configPath, 'utf-8'))`
-- Write: `fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf-8')`
-- Always write with trailing newline (git-friendly)
-- Validate on read, provide defaults for missing optional fields
+burrow-tools.cjs config --set
+  → reads .planning/burrow/config.json (lib/config.cjs)
+  → validates new value
+  → writes .planning/burrow/config.json
+  → does NOT update CLAUDE.md (user must re-run installer to change snippet)
+
+burrow-tools.cjs index
+  → reads .planning/burrow/cards.json (warren.cjs load())
+  → builds index (mongoose.cjs buildIndex())
+  → writes JSON to stdout
+
+workflows/burrow.md (LOAD step)
+  → reads .planning/burrow/config.json (agent reads directly or via burrow-tools.cjs config)
+  → branches: full → read cards.json | index → run burrow index | auto → check size, pick one
+```
+
+### Files touched by v1.3
+
+| File | Change Type | Description |
+|------|-------------|-------------|
+| `.claude/burrow/lib/config.cjs` | **NEW** | Config load/save/validate/defaults |
+| `.claude/burrow/lib/mongoose.cjs` | Modified | Add `buildIndex()` export |
+| `.claude/burrow/lib/installer.cjs` | Modified | Add `buildClaudeMdSnippet(loadMode)`, export it |
+| `.claude/burrow/burrow-tools.cjs` | Modified | Add `index` and `config` subcommands |
+| `install.cjs` | Modified | Add loadMode prompt to interactive flow |
+| `.claude/burrow/workflows/burrow.md` | Modified | LOAD step respects loadMode |
+
+---
 
 ## Version Compatibility
 
-| Component | Minimum Node.js | Status in v22.14.0 |
-|-----------|-----------------|---------------------|
-| `util.parseArgs()` | 18.3+ (experimental), 20+ (stable) | Stable. Verified working. |
-| `util.styleText()` | 21.7+ (experimental), 22+ (stable) | Stable. Verified working with all needed styles. |
-| `crypto.randomUUID()` | 19+ (stable) | Stable. Verified working. |
-| `fs.mkdirSync({ recursive })` | 10.12+ | Stable. Long-established. |
-| CommonJS `require()` | All versions | Stable. Will not be removed. |
+All APIs verified on Node.js v22.14.0.
 
-**Node.js 22 is the minimum supported version.** This is acceptable because Claude Code itself requires a modern Node.js runtime. No need to support older versions.
+| API | Minimum Node.js | Status |
+|-----|-----------------|--------|
+| `fs.statSync()` | All versions | Stable — been there since v0.1 |
+| `fs.readFileSync` / `writeFileSync` / `renameSync` | All versions | Stable |
+| `readline.createInterface` (callback style) | All versions | Stable — in use since v1.2 |
+| `readline/promises.createInterface` | 17+ (stable 22+) | Available, not required for v1.3 |
+| `process.stdin.isTTY` | All versions | `undefined` when piped, `true` in terminal |
+| `util.parseArgs()` | 18.3+ experimental, 20+ stable | Stable on v22 — already in use |
+| `JSON.parse` / `JSON.stringify` | All versions | Stable |
+
+---
 
 ## Sources
 
-- Node.js v22 `util.parseArgs()` -- [Official docs](https://nodejs.org/docs/latest-v22.x/api/util.html#utilparseargsconfig), verified working on v22.14.0
-- Node.js v22 `util.styleText()` -- [Official docs](https://nodejs.org/docs/latest-v22.x/api/util.html#utilstyletextformat-text), verified working on v22.14.0 with all needed styles (bold, dim, underline, italic, red, green, yellow, blue, cyan)
-- GSD `frontmatter.cjs` -- `.claude/get-shit-done/bin/lib/frontmatter.cjs`, proven implementation with extract/reconstruct/splice pattern (directly inspected)
-- GSD `gsd-tools.cjs` -- `.claude/get-shit-done/bin/gsd-tools.cjs`, established CLI tool pattern with subcommand routing (directly inspected)
-- [Node.js 22 release announcement](https://nodejs.org/en/blog/announcements/v22-release-announce) -- feature overview
-- [ANSI terminal color comparison](https://dev.to/webdiscus/comparison-of-nodejs-libraries-to-colorize-text-in-terminal-4j3a) -- confirmed `util.styleText()` as built-in alternative
+- Node.js v22 `fs` docs: https://nodejs.org/api/fs.html — `statSync`, `readFileSync`, `writeFileSync`, `renameSync`
+- Node.js v22 `readline/promises`: https://nodejs.org/api/readline.html#promises-api — verified available
+- Node.js v22 `util.parseArgs()`: https://nodejs.org/docs/latest-v22.x/api/util.html#utilparseargsconfig — already in use
+- `process.stdin.isTTY`: https://nodejs.org/api/tty.html — `undefined` when not a TTY (non-interactive), `true` when terminal
+- Verified on runtime: `node --version` → `v22.14.0`, all APIs confirmed present
 
 ---
-*Stack research for: Burrow CLI addon (zero-dependency Node.js tool)*
-*Researched: 2026-03-06*
+
+*Stack research for: Burrow v1.3 Onboarding & Configuration milestone*
+*Researched: 2026-04-01*
+*Confidence: HIGH — all APIs verified on Node.js v22.14.0, patterns derived from existing codebase*
