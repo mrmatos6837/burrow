@@ -78,38 +78,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFG-01 | — | Pending |
-| CFG-02 | — | Pending |
-| CFG-03 | — | Pending |
-| CFG-04 | — | Pending |
-| CFG-05 | — | Pending |
-| IDX-01 | — | Pending |
-| IDX-02 | — | Pending |
-| IDX-03 | — | Pending |
-| ONB-01 | — | Pending |
-| ONB-02 | — | Pending |
-| ONB-03 | — | Pending |
-| ONB-04 | — | Pending |
-| CMD-01 | — | Pending |
-| CMD-02 | — | Pending |
-| CMD-03 | — | Pending |
-| CMD-04 | — | Pending |
-| CMD-05 | — | Pending |
-| SNP-01 | — | Pending |
-| SNP-02 | — | Pending |
-| SNP-03 | — | Pending |
-| WFL-01 | — | Pending |
-| WFL-02 | — | Pending |
-| WFL-03 | — | Pending |
-| WFL-04 | — | Pending |
-| WFL-05 | — | Pending |
-| WFL-06 | — | Pending |
+| CFG-01 | Phase 14 | Pending |
+| CFG-02 | Phase 14 | Pending |
+| CFG-03 | Phase 14 | Pending |
+| CFG-04 | Phase 14 | Pending |
+| CFG-05 | Phase 14 | Pending |
+| IDX-01 | Phase 14 | Pending |
+| IDX-02 | Phase 14 | Pending |
+| IDX-03 | Phase 14 | Pending |
+| SNP-01 | Phase 15 | Pending |
+| SNP-02 | Phase 15 | Pending |
+| SNP-03 | Phase 15 | Pending |
+| WFL-01 | Phase 16 | Pending |
+| WFL-02 | Phase 16 | Pending |
+| WFL-03 | Phase 16 | Pending |
+| WFL-04 | Phase 16 | Pending |
+| WFL-05 | Phase 16 | Pending |
+| WFL-06 | Phase 16 | Pending |
+| ONB-01 | Phase 17 | Pending |
+| ONB-02 | Phase 17 | Pending |
+| ONB-03 | Phase 17 | Pending |
+| ONB-04 | Phase 17 | Pending |
+| CMD-01 | Phase 17 | Pending |
+| CMD-02 | Phase 17 | Pending |
+| CMD-03 | Phase 17 | Pending |
+| CMD-04 | Phase 17 | Pending |
+| CMD-05 | Phase 17 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26 (pending roadmap creation)
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after initial definition*
+*Last updated: 2026-04-01 after roadmap creation*

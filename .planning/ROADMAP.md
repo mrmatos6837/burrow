@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-03-09)
 - ✅ **v1.1 Rendering & Ergonomics** — Phases 6-8 (shipped 2026-03-14)
 - ✅ **v1.2 Packaging & Distribution** — Phases 9-13 (shipped 2026-03-29)
+- 🚧 **v1.3 Onboarding & Configuration** — Phases 14-17 (in progress)
 
 ## Phases
 
@@ -45,6 +46,63 @@ Full details: `milestones/v1.2-ROADMAP.md`
 
 </details>
 
+### 🚧 v1.3 Onboarding & Configuration (In Progress)
+
+**Milestone Goal:** Give users control over how Burrow loads context — configurable modes, installer onboarding prompts, and runtime config command — reducing token cost by up to 95%.
+
+- [ ] **Phase 14: Config Foundation + Index Command** - `lib/config.cjs` with get/set/list API and `burrow index` lightweight JSON output
+- [ ] **Phase 15: CLAUDE.md Sentinel Variants** - `generateSnippet(loadMode)` replacing hardcoded snippet; atomic `writeSentinelBlock()`
+- [ ] **Phase 16: Workflow LOAD Step + Load Command** - `burrow load` dispatcher and `workflows/burrow.md` updated to branch on loadMode
+- [ ] **Phase 17: Installer Onboarding + Config Command** - loadMode prompt during install, upgrade path preservation, and `/burrow:config` slash command
+
+## Phase Details
+
+### Phase 14: Config Foundation + Index Command
+**Goal**: Config persists across sessions and `burrow index` outputs a lightweight tree that costs ~95% fewer tokens than a full cards.json read
+**Depends on**: Phase 13 (v1.2 complete)
+**Requirements**: CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, IDX-01, IDX-02, IDX-03
+**Success Criteria** (what must be TRUE):
+  1. Running `burrow config list` prints current settings with defaults shown for any unset keys
+  2. Running `burrow config set loadMode index` persists the value and `burrow config get loadMode` returns `index` on next invocation
+  3. `config.json` is never overwritten on upgrade — running the installer over an existing install leaves user-set values intact
+  4. Running `burrow index` outputs a valid JSON tree containing only titles, IDs, and child counts — no bodies, no ages
+  5. Running `burrow index --depth 2` limits output to two levels; `--include-archived` includes archived cards in the output
+**Plans**: TBD
+
+### Phase 15: CLAUDE.md Sentinel Variants
+**Goal**: The CLAUDE.md sentinel block correctly reflects the configured loadMode, and writes to CLAUDE.md are atomic so a crash cannot corrupt the agent's instruction set
+**Depends on**: Phase 14
+**Requirements**: SNP-01, SNP-02, SNP-03
+**Success Criteria** (what must be TRUE):
+  1. Calling `generateSnippet('full')`, `generateSnippet('index')`, and `generateSnippet('auto')` each return a distinct, correct CLAUDE.md snippet instructing the agent to load context in that mode
+  2. `writeSentinelBlock()` uses a tmp-file-then-rename pattern — a simulated mid-write crash leaves the CLAUDE.md file unchanged rather than corrupt
+  3. After a loadMode change, the CLAUDE.md sentinel block content matches the new mode without any manual intervention
+**Plans**: TBD
+
+### Phase 16: Workflow LOAD Step + Load Command
+**Goal**: The agent's session-start workflow reads `config.json` and branches to the correct loading behavior — full read, index-only, none, or auto-threshold — making the entire config system meaningful at runtime
+**Depends on**: Phase 15
+**Requirements**: WFL-01, WFL-02, WFL-03, WFL-04, WFL-05, WFL-06
+**Success Criteria** (what must be TRUE):
+  1. With `loadMode = full`, the agent reads `cards.json` in full at session start (current behavior unchanged)
+  2. With `loadMode = index`, the agent runs `burrow index` and receives titles/IDs only — no body content loaded
+  3. With `loadMode = none`, the agent skips context loading entirely and notes cards are available on demand
+  4. With `loadMode = auto`, the workflow checks `cards.json` file size against the threshold and selects full or index accordingly
+  5. The workflow documents the lazy body-fetching pattern so the agent knows to drill down when it needs card bodies in index mode
+**Plans**: TBD
+
+### Phase 17: Installer Onboarding + Config Command
+**Goal**: Users are asked about their preferred loading mode during install, upgrades never lose existing config, and the `/burrow:config` command lets users view and change settings from within Claude Code
+**Depends on**: Phase 16
+**Requirements**: ONB-01, ONB-02, ONB-03, ONB-04, CMD-01, CMD-02, CMD-03, CMD-04, CMD-05
+**Success Criteria** (what must be TRUE):
+  1. Running the interactive installer presents a loadMode question with mode options and explanations; the chosen mode is written to `config.json` and reflected in the CLAUDE.md sentinel block before the installer exits
+  2. Running the installer with `--yes` completes without prompting and sets `loadMode = auto` in `config.json`
+  3. Running the installer over an existing v1.3+ install skips the loadMode prompt and preserves the existing `config.json` unchanged
+  4. Running the installer over a pre-v1.3 install (no `config.json`) creates `config.json` with defaults and prints a single notification line — no prompt
+  5. Invoking `/burrow:config` displays current settings in a formatted table and offers options to change each setting; selecting a new loadMode updates both `config.json` and the CLAUDE.md sentinel block atomically
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -62,3 +120,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
+| 14. Config Foundation + Index Command | v1.3 | 0/? | Not started | - |
+| 15. CLAUDE.md Sentinel Variants | v1.3 | 0/? | Not started | - |
+| 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
+| 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |
