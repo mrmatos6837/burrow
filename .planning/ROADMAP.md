@@ -67,7 +67,10 @@ Full details: `milestones/v1.2-ROADMAP.md`
   3. `config.json` is never overwritten on upgrade — running the installer over an existing install leaves user-set values intact
   4. Running `burrow index` outputs a valid JSON tree containing only titles, IDs, and child counts — no bodies, no ages
   5. Running `burrow index --depth 2` limits output to two levels; `--include-archived` includes archived cards in the output
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 14-01-PLAN.md — Config system: atomicWriteJSON, lib/config.cjs, config CLI commands
+- [ ] 14-02-PLAN.md — Index command: buildIndex, renderIndex, index CLI with flags
 
 ### Phase 15: CLAUDE.md Sentinel Variants
 **Goal**: The CLAUDE.md sentinel block correctly reflects the configured loadMode, and writes to CLAUDE.md are atomic so a crash cannot corrupt the agent's instruction set
@@ -120,7 +123,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
-| 14. Config Foundation + Index Command | v1.3 | 0/? | Not started | - |
+| 14. Config Foundation + Index Command | v1.3 | 0/2 | In progress | - |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 0/? | Not started | - |
 | 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |
