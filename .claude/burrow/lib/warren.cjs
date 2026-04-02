@@ -2,11 +2,9 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { ensureDataDir } = require('./core.cjs');
+const { ensureDataDir, atomicWriteJSON } = require('./core.cjs');
 
 const DATA_FILE = 'cards.json';
-const BACKUP_EXT = '.bak';
-const TMP_EXT = '.tmp';
 
 /**
  * Resolve the path to cards.json within the given working directory.
@@ -151,18 +149,7 @@ function load(cwd) {
 function save(cwd, data) {
   ensureDataDir(cwd);
   const filePath = dataPath(cwd);
-  const backupPath = filePath + BACKUP_EXT;
-  const tmpPath = filePath + TMP_EXT;
-
-  // Backup existing file
-  if (fs.existsSync(filePath)) {
-    fs.copyFileSync(filePath, backupPath);
-  }
-
-  // Atomic write: tmp then rename
-  const content = JSON.stringify(data, null, 2) + '\n';
-  fs.writeFileSync(tmpPath, content, 'utf-8');
-  fs.renameSync(tmpPath, filePath);
+  atomicWriteJSON(filePath, data);
 }
 
 module.exports = { load, save, migrate };
