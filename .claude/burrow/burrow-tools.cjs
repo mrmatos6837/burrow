@@ -8,6 +8,7 @@ const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
 const config = require('./lib/config.cjs');
+const loader = require('./lib/loader.cjs');
 const { init } = require('./lib/init.cjs');
 const version = require('./lib/version.cjs');
 
@@ -62,7 +63,7 @@ async function main() {
 
   if (!command) {
     handleError(
-      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index'
+      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index, load'
     );
   }
 
@@ -545,9 +546,17 @@ async function main() {
       break;
     }
 
+    case 'load': {
+      const envelope = loader.load(cwd);
+      // Raw JSON to stdout for agent consumption (same pattern as index --json)
+      process.stdout.write(JSON.stringify(envelope) + '\n');
+      process.exit(0);
+      break;
+    }
+
     default:
       handleError(
-        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index`
+        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index, load`
       );
   }
 }
