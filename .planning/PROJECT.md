@@ -57,6 +57,8 @@ One recursive data structure — cards containing cards — navigated by an agen
 - CLAUDE.md sentinel variants — snippet adapts to loadMode (full/index/none/auto) and trigger word presets — Phase 15
 - Atomic file writes for CLAUDE.md — crash-safe tmp+rename pattern for sentinel block operations — Phase 15
 - Configurable trigger words — triggerPreset (broad/minimal/none/custom) with per-preset word lists — Phase 15
+- `burrow load` universal dispatcher — reads config.json loadMode setting, returns JSON envelope with mode-appropriate data — Phase 16
+- Workflow LOAD step uses `burrow load` — replaces direct Read tool approach, supports lazy body-fetching for index mode — Phase 16
 
 ## Current Milestone: v1.3 Onboarding & Configuration
 
@@ -87,7 +89,7 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
-**Current state (v1.3 in progress):** Phase 15 complete — CLAUDE.md sentinel block now dynamically generated from config (4 load modes, configurable trigger words), crash-safe atomic writes for all sentinel operations. 378 tests, installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
+**Current state (v1.3 in progress):** Phase 16 complete — `burrow load` universal dispatcher reads config.json and returns mode-appropriate JSON envelope (full/index/none/auto). Workflow LOAD step now dispatches via Bash instead of Read tool, with lazy body-fetching for index mode. 398 tests, installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -136,6 +138,7 @@ Pretty-printed tree with box-drawing characters, descendant counts, body indicat
   lib/mongoose.cjs         # Tree operations engine (CRUD, find, archive)
   lib/warren.cjs           # Storage layer (atomic load/save, migration)
   lib/render.cjs           # Pretty-print rendering (tree, cards, mutations)
+  lib/loader.cjs           # Universal load dispatcher (full/index/none/auto modes)
   workflows/burrow.md      # Agent workflow (NL interpretation, safeguards)
 ```
 
@@ -171,7 +174,7 @@ install.cjs                # Copies source, commands, and data into target proje
 - **Storage**: Single JSON file (`cards.json`) — atomic writes (tmp + rename)
 - **Independence**: Must not modify any files inside `.claude/get-shit-done/`
 - **GSD compatibility**: Works alongside GSD without conflicts
-- **Context efficiency**: CLI returns pretty-printed text; agent reads cards.json directly for full state
+- **Context efficiency**: CLI returns pretty-printed text; `burrow load` returns mode-appropriate JSON envelope (full tree, lightweight index, or nothing) based on config
 
 ## Key Decisions
 
@@ -209,6 +212,8 @@ install.cjs                # Copies source, commands, and data into target proje
 | generateSnippet(config) replaces CLAUDE_MD_SNIPPET | Dynamic snippet generation from config; 4 load modes produce distinct instructions | ✓ Good — Phase 15 |
 | Atomic CLAUDE.md writes | writeSentinelBlock/removeSentinelBlock use atomicWriteFile (tmp+rename) | ✓ Good — crash cannot corrupt CLAUDE.md |
 | Trigger word presets | broad/minimal/none/custom presets; words derived at load() time, not stored | ✓ Good — simple config, preset words always current |
+| Universal load dispatcher | `burrow load` reads config.json, dispatches to full/index/none/auto, returns JSON envelope | ✓ Good — Phase 16, one command replaces Read tool approach |
+| Workflow dispatches via Bash | LOAD step runs `burrow load` instead of Read tool; lazy body-fetch for index mode | ✓ Good — Phase 16, config system now drives agent behavior |
 
 ## Evolution
 
@@ -228,4 +233,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-02 after Phase 15 complete*
+*Last updated: 2026-04-02 after Phase 16 complete*
