@@ -44,11 +44,11 @@ Requirements for Onboarding & Configuration milestone. Each maps to roadmap phas
 
 ### Workflow Update
 
-- [ ] **WFL-01**: Workflow LOAD step reads config.json to determine loading mode
-- [ ] **WFL-02**: Full mode: reads cards.json via Read tool (current behavior)
-- [ ] **WFL-03**: Index mode: runs `burrow index` via Bash, parses JSON
-- [ ] **WFL-04**: None mode: skips load entirely, notes cards available on demand
-- [ ] **WFL-05**: Auto mode: checks size, picks full or index accordingly
+- [x] **WFL-01**: Workflow LOAD step reads config.json to determine loading mode
+- [x] **WFL-02**: Full mode: reads cards.json via Read tool (current behavior)
+- [x] **WFL-03**: Index mode: runs `burrow index` via Bash, parses JSON
+- [x] **WFL-04**: None mode: skips load entirely, notes cards available on demand
+- [x] **WFL-05**: Auto mode: checks size, picks full or index accordingly
 - [ ] **WFL-06**: Workflow documents lazy body fetching pattern (load index, drill down as needed)
 
 ## Future Requirements
@@ -89,11 +89,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SNP-01 | Phase 15 | Complete |
 | SNP-02 | Phase 15 | Complete |
 | SNP-03 | Phase 15 | Complete |
-| WFL-01 | Phase 16 | Pending |
-| WFL-02 | Phase 16 | Pending |
-| WFL-03 | Phase 16 | Pending |
-| WFL-04 | Phase 16 | Pending |
-| WFL-05 | Phase 16 | Pending |
+| WFL-01 | Phase 16 | Complete |
+| WFL-02 | Phase 16 | Complete |
+| WFL-03 | Phase 16 | Complete |
+| WFL-04 | Phase 16 | Complete |
+| WFL-05 | Phase 16 | Complete |
 | WFL-06 | Phase 16 | Pending |
 | ONB-01 | Phase 17 | Pending |
 | ONB-02 | Phase 17 | Pending |

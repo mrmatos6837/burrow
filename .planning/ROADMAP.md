@@ -97,7 +97,7 @@ Plans:
   5. The workflow documents the lazy body-fetching pattern so the agent knows to drill down when it needs card bodies in index mode
 **Plans**: 2 plans
 Plans:
-- [ ] 16-01-PLAN.md — lib/loader.cjs + indexDepth config + CLI wiring + tests
+- [x] 16-01-PLAN.md — lib/loader.cjs + indexDepth config + CLI wiring + tests
 - [ ] 16-02-PLAN.md — Workflow LOAD step rewrite with mode-aware dispatcher
 
 ### Phase 17: Installer Onboarding + Config Command
@@ -131,5 +131,5 @@ Plans:
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
 | 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete    | 2026-04-02 |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 16. Workflow LOAD Step + Load Command | v1.3 | 0/2 | Not started | - |
+| 16. Workflow LOAD Step + Load Command | v1.3 | 1/2 | In Progress|  |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |

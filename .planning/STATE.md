@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Onboarding & Configuration
-status: verifying
-stopped_at: Phase 16 context gathered
-last_updated: "2026-04-02T17:47:05.099Z"
+status: executing
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-02T18:04:37.288Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** Phase 15 — claude-md-sentinel-variants
+**Current focus:** Phase 16 — workflow-load-step-load-command
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 16 (workflow-load-step-load-command) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0% (0/4 phases)
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0% (0/4 phases)
 | Phase 14-config-foundation-index-command P02 | 8min | 2 tasks | 6 files |
 | Phase 15-claude-md-sentinel-variants P01 | 25min | 2 tasks | 6 files |
 | Phase 15-claude-md-sentinel-variants P02 | 15min | 2 tasks | 3 files |
+| Phase 16-workflow-load-step-load-command P01 | 20min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 15-claude-md-sentinel-variants]: Preset-based triggerWords derived at load() time for non-custom presets (D-16) — not stored in config.json
 - [Phase 15-claude-md-sentinel-variants]: atomicWriteFile used for CLAUDE.md writes — same tmp+rename crash safety as JSON persistence
 - [Phase 15-claude-md-sentinel-variants]: install.cjs uses config.load(targetDir) with DEFAULTS fallback — supports per-project config after first install
+- [Phase 16-workflow-load-step-load-command]: loader.cjs imports warren.cjs directly (not via subprocess) — testable, no overhead
+- [Phase 16-workflow-load-step-load-command]: dataPath() exported from warren.cjs — loader needs to stat the file for auto mode
+- [Phase 16-workflow-load-step-load-command]: Load envelope pattern: { mode, cardCount, data? } — uniform JSON output for burrow load
 
 ### Pending Todos
 
@@ -82,9 +86,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T17:47:05.065Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-workflow-load-step-load-command/16-CONTEXT.md
+Last session: 2026-04-02T18:04:37.286Z
+Stopped at: Completed 16-01-PLAN.md
+Resume file: None
 
 ### Quick Tasks Completed
 
