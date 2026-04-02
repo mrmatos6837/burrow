@@ -15,7 +15,7 @@ const {
   removeSentinelBlock,
 } = require('./.claude/burrow/lib/installer.cjs');
 
-const { DEFAULTS: CONFIG_DEFAULTS } = require('./.claude/burrow/lib/config.cjs');
+const config = require('./.claude/burrow/lib/config.cjs');
 
 // ── Output helpers ────────────────────────────────────────────────────────────
 
@@ -218,7 +218,13 @@ async function runInstall({ sourceDir, targetDir, yes, detection }) {
   printInstallResults(results);
 
   if (addClaudeMd) {
-    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
+    let cfg;
+    try {
+      cfg = config.load(targetDir);
+    } catch (_) {
+      cfg = { ...config.DEFAULTS };
+    }
+    writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
     ok('CLAUDE.md (burrow block added)');
   } else {
     skip('CLAUDE.md (skipped)');
@@ -269,11 +275,23 @@ async function runUpgrade({ sourceDir, targetDir, yes, detection }) {
 
   // Handle CLAUDE.md sentinel
   if (detection.hasSentinel) {
-    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
+    let cfg;
+    try {
+      cfg = config.load(targetDir);
+    } catch (_) {
+      cfg = { ...config.DEFAULTS };
+    }
+    writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
     ok('CLAUDE.md (sentinel block updated)');
   } else if (detection.hasLegacyClaude) {
     // Wrap legacy ## Burrow section in sentinels
-    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
+    let cfg;
+    try {
+      cfg = config.load(targetDir);
+    } catch (_) {
+      cfg = { ...config.DEFAULTS };
+    }
+    writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
     warn('CLAUDE.md had legacy Burrow section — replaced with sentinel block');
   }
   // else: no action (user opted out previously)
