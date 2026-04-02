@@ -849,18 +849,19 @@ describe('safeTitle guard in formatBreadcrumb', () => {
 });
 
 describe('exports', () => {
-  it('exports all four functions', () => {
+  it('exports all five functions', () => {
     const mod = require('../.claude/burrow/lib/render.cjs');
     assert.equal(typeof mod.renderCard, 'function');
     assert.equal(typeof mod.renderMutation, 'function');
     assert.equal(typeof mod.renderPath, 'function');
     assert.equal(typeof mod.renderError, 'function');
+    assert.equal(typeof mod.renderConfigList, 'function');
   });
 
-  it('exports only four functions', () => {
+  it('exports only five functions', () => {
     const mod = require('../.claude/burrow/lib/render.cjs');
     const keys = Object.keys(mod);
-    assert.equal(keys.length, 4);
+    assert.equal(keys.length, 5);
   });
 });
 

@@ -642,3 +642,87 @@ describe('input validation (VALID-01, VALID-02, VALID-03)', () => {
     }
   });
 });
+
+// --- config command tests ---
+
+function makeConfigDir() {
+  const dir = makeTmpDir();
+  const burrowDir = path.join(dir, '.planning', 'burrow');
+  fs.mkdirSync(burrowDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(burrowDir, 'config.json'),
+    JSON.stringify({ loadMode: 'auto', autoThreshold: 4000 }, null, 2) + '\n',
+    'utf-8'
+  );
+  return dir;
+}
+
+describe('config command', () => {
+  it('config list prints config values when config.json exists', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config', 'list'], dir);
+      assert.ok(output.includes('burrow config'), 'Should contain "burrow config" header');
+      assert.ok(output.includes('loadMode'), 'Should contain loadMode key');
+      assert.ok(output.includes('autoThreshold'), 'Should contain autoThreshold key');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('config get loadMode prints raw value "auto"', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config', 'get', 'loadMode'], dir);
+      assert.ok(output.trim() === 'auto', `Expected "auto", got: "${output.trim()}"`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('config set loadMode index prints confirmation and persists', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config', 'set', 'loadMode', 'index'], dir);
+      assert.ok(output.includes('loadMode = index'), `Expected "loadMode = index", got: ${output}`);
+      // Verify persisted
+      const after = run(['config', 'get', 'loadMode'], dir);
+      assert.ok(after.trim() === 'index', `Expected "index" after set, got: "${after.trim()}"`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('config set badKey val exits 1 with "Unknown config key"', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config', 'set', 'badKey', 'val'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(output.includes('Unknown config key'), `Expected "Unknown config key", got: ${output}`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('config set loadMode invalid exits 1 with "Invalid value"', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config', 'set', 'loadMode', 'invalid'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(output.includes('Invalid value'), `Expected "Invalid value", got: ${output}`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('config with no subcommand exits 1 with usage message', () => {
+    const dir = makeConfigDir();
+    try {
+      const output = run(['config'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+      assert.ok(output.includes('Usage'), `Expected usage message, got: ${output}`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});

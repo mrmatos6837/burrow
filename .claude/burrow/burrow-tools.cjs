@@ -7,6 +7,7 @@ const core = require('./lib/core.cjs');
 const storage = require('./lib/warren.cjs');
 const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
+const config = require('./lib/config.cjs');
 const { init } = require('./lib/init.cjs');
 const version = require('./lib/version.cjs');
 
@@ -61,7 +62,7 @@ async function main() {
 
   if (!command) {
     handleError(
-      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive'
+      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config'
     );
   }
 
@@ -477,9 +478,37 @@ async function main() {
       break;
     }
 
+    case 'config': {
+      const subcommand = subArgs[0];
+      if (!subcommand || !['get', 'set', 'list'].includes(subcommand)) {
+        handleError('Usage: burrow config <get|set|list>');
+      }
+
+      if (subcommand === 'list') {
+        const configData = config.list(cwd);
+        const rendered = render.renderConfigList(configData);
+        writeAndExit(rendered);
+      } else if (subcommand === 'get') {
+        const key = subArgs[1];
+        if (!key) handleError('Usage: burrow config get <key>');
+        const value = config.get(cwd, key);
+        // Raw value output per D-11
+        writeAndExit(String(value));
+      } else if (subcommand === 'set') {
+        const key = subArgs[1];
+        const rawValue = subArgs[2];
+        if (!key || rawValue === undefined) handleError('Usage: burrow config set <key> <value>');
+        config.set(cwd, key, rawValue);
+        // Brief confirmation per D-13
+        const newValue = config.get(cwd, key);
+        writeAndExit(`${key} = ${newValue}`);
+      }
+      break;
+    }
+
     default:
       handleError(
-        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive`
+        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config`
       );
   }
 }

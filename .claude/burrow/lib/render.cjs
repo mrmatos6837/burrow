@@ -327,4 +327,21 @@ function renderError(message) {
   return `${CROSSMARK} ${message}`;
 }
 
-module.exports = { renderCard, renderMutation, renderPath, renderError };
+/**
+ * Render config list as a formatted box.
+ * @param {object} cfg - Config object { loadMode: 'auto', autoThreshold: 4000 }
+ * @returns {string}
+ */
+function renderConfigList(cfg) {
+  const lines = [];
+  lines.push(HR);
+  lines.push('burrow config');
+  lines.push(HR);
+  for (const [key, value] of Object.entries(cfg)) {
+    lines.push(`  ${key}: ${value}`);
+  }
+  lines.push(HR);
+  return lines.join('\n');
+}
+
+module.exports = { renderCard, renderMutation, renderPath, renderError, renderConfigList };
