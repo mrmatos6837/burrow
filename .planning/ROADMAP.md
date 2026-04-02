@@ -51,7 +51,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 **Milestone Goal:** Give users control over how Burrow loads context — configurable modes, installer onboarding prompts, and runtime config command — reducing token cost by up to 95%.
 
 - [x] **Phase 14: Config Foundation + Index Command** - `lib/config.cjs` with get/set/list API and `burrow index` lightweight JSON output (completed 2026-04-02)
-- [ ] **Phase 15: CLAUDE.md Sentinel Variants** - `generateSnippet(loadMode)` replacing hardcoded snippet; atomic `writeSentinelBlock()`
+- [x] **Phase 15: CLAUDE.md Sentinel Variants** - `generateSnippet(loadMode)` replacing hardcoded snippet; atomic `writeSentinelBlock()` (completed 2026-04-02)
 - [ ] **Phase 16: Workflow LOAD Step + Load Command** - `burrow load` dispatcher and `workflows/burrow.md` updated to branch on loadMode
 - [ ] **Phase 17: Installer Onboarding + Config Command** - loadMode prompt during install, upgrade path preservation, and `/burrow:config` slash command
 
@@ -83,7 +83,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 15-01-PLAN.md — Config schema expansion (triggerWords/triggerPreset), atomicWriteFile, generateSnippet(config)
-- [ ] 15-02-PLAN.md — Atomic writeSentinelBlock/removeSentinelBlock, wire install.cjs to generateSnippet
+- [x] 15-02-PLAN.md — Atomic writeSentinelBlock/removeSentinelBlock, wire install.cjs to generateSnippet
 
 ### Phase 16: Workflow LOAD Step + Load Command
 **Goal**: The agent's session-start workflow reads `config.json` and branches to the correct loading behavior — full read, index-only, none, or auto-threshold — making the entire config system meaningful at runtime
@@ -127,6 +127,6 @@ Plans:
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
 | 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 15. CLAUDE.md Sentinel Variants | v1.3 | 1/2 | In Progress|  |
+| 15. CLAUDE.md Sentinel Variants | v1.3 | 2/2 | Complete   | 2026-04-02 |
 | 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |

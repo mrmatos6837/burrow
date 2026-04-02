@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Onboarding & Configuration
-status: executing
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-04-02T17:05:11.489Z"
+status: verifying
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-04-02T17:09:21.112Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 
 Phase: 15 (claude-md-sentinel-variants) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0% (0/4 phases)
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0% (0/4 phases)
 | Phase 14-config-foundation-index-command P01 | 10min | 2 tasks | 8 files |
 | Phase 14-config-foundation-index-command P02 | 8min | 2 tasks | 6 files |
 | Phase 15-claude-md-sentinel-variants P01 | 25min | 2 tasks | 6 files |
+| Phase 15-claude-md-sentinel-variants P02 | 15min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 15-claude-md-sentinel-variants]: atomicWriteFile is distinct from atomicWriteJSON (D-10) — same tmp+rename pattern, separate functions
 - [Phase 15-claude-md-sentinel-variants]: generateSnippet takes full config object (D-08); install.cjs uses CONFIG_DEFAULTS until per-project config integration in Plan 02
 - [Phase 15-claude-md-sentinel-variants]: Preset-based triggerWords derived at load() time for non-custom presets (D-16) — not stored in config.json
+- [Phase 15-claude-md-sentinel-variants]: atomicWriteFile used for CLAUDE.md writes — same tmp+rename crash safety as JSON persistence
+- [Phase 15-claude-md-sentinel-variants]: install.cjs uses config.load(targetDir) with DEFAULTS fallback — supports per-project config after first install
 
 ### Pending Todos
 
@@ -79,8 +82,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T17:05:11.485Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-04-02T17:09:21.102Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
 
 ### Quick Tasks Completed
