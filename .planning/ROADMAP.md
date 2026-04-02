@@ -82,7 +82,7 @@ Plans:
   3. After a loadMode change, the CLAUDE.md sentinel block content matches the new mode without any manual intervention
 **Plans**: 2 plans
 Plans:
-- [ ] 15-01-PLAN.md — Config schema expansion (triggerWords/triggerPreset), atomicWriteFile, generateSnippet(config)
+- [x] 15-01-PLAN.md — Config schema expansion (triggerWords/triggerPreset), atomicWriteFile, generateSnippet(config)
 - [ ] 15-02-PLAN.md — Atomic writeSentinelBlock/removeSentinelBlock, wire install.cjs to generateSnippet
 
 ### Phase 16: Workflow LOAD Step + Load Command
@@ -127,6 +127,6 @@ Plans:
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
 | 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 15. CLAUDE.md Sentinel Variants | v1.3 | 0/2 | Not started | - |
+| 15. CLAUDE.md Sentinel Variants | v1.3 | 1/2 | In Progress|  |
 | 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |

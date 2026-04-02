@@ -38,8 +38,8 @@ Requirements for Onboarding & Configuration milestone. Each maps to roadmap phas
 
 ### CLAUDE.md Variants
 
-- [ ] **SNP-01**: Sentinel block content varies by loadMode (full/index/index --depth N/none/auto)
-- [ ] **SNP-02**: `generateSnippet(loadMode)` function replaces hardcoded snippet constant
+- [x] **SNP-01**: Sentinel block content varies by loadMode (full/index/index --depth N/none/auto)
+- [x] **SNP-02**: `generateSnippet(loadMode)` function replaces hardcoded snippet constant
 - [ ] **SNP-03**: `writeSentinelBlock()` refactored to atomic writes (tmp + rename)
 
 ### Workflow Update
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDX-01 | Phase 14 | Complete |
 | IDX-02 | Phase 14 | Complete |
 | IDX-03 | Phase 14 | Complete |
-| SNP-01 | Phase 15 | Pending |
-| SNP-02 | Phase 15 | Pending |
+| SNP-01 | Phase 15 | Complete |
+| SNP-02 | Phase 15 | Complete |
 | SNP-03 | Phase 15 | Pending |
 | WFL-01 | Phase 16 | Pending |
 | WFL-02 | Phase 16 | Pending |
