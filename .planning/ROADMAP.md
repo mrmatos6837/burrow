@@ -95,7 +95,10 @@ Plans:
   3. With `loadMode = none`, the agent skips context loading entirely and notes cards are available on demand
   4. With `loadMode = auto`, the workflow checks `cards.json` file size against the threshold and selects full or index accordingly
   5. The workflow documents the lazy body-fetching pattern so the agent knows to drill down when it needs card bodies in index mode
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — lib/loader.cjs + indexDepth config + CLI wiring + tests
+- [ ] 16-02-PLAN.md — Workflow LOAD step rewrite with mode-aware dispatcher
 
 ### Phase 17: Installer Onboarding + Config Command
 **Goal**: Users are asked about their preferred loading mode during install, upgrades never lose existing config, and the `/burrow:config` command lets users view and change settings from within Claude Code
@@ -128,5 +131,5 @@ Plans:
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
 | 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete    | 2026-04-02 |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
+| 16. Workflow LOAD Step + Load Command | v1.3 | 0/2 | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |
