@@ -10,7 +10,7 @@ CLI path: `node .claude/burrow/burrow-tools.cjs`
 2. **Never modify data without explicit user request** -- Read operations are safe; write operations require clear user intent.
 3. **Always clarify ambiguous card references** -- If a title matches multiple cards, list them and ask which one.
 4. **Never repeat tool output** -- The Bash tool output is already visible to the user. NEVER echo, repeat, or reformat it as text. After a read-only CLI call, say nothing.
-5. **Never show raw JSON unless the user asks for it** -- The Read tool is used for internal data loading. Never output JSON to the user.
+5. **Never show raw JSON unless the user asks for it** -- The `burrow load` JSON envelope is for internal agent memory only. Never output JSON to the user.
 
 ## The 3-Step Flow
 
@@ -18,13 +18,26 @@ Every `/burrow` invocation follows this sequence. No exceptions.
 
 ### Step 1: LOAD (silent)
 
-Read `cards.json` directly using the Read tool to load the tree into agent memory. The Read tool output is invisible to the user, making this truly silent.
+Run `burrow load` via the Bash tool to load context. This command reads config.json and returns a JSON envelope with mode-appropriate data.
 
-- **Skip if already loaded**: If the agent has already read `cards.json` in this conversation and no mutation has occurred since, skip this step.
-- **Read on first use or after mutation**: `.planning/burrow/cards.json` using the Read tool (NOT the CLI).
-- **Card ID detection**: An 8-character hex string at the start of user arguments (e.g., `a1b2c3d4`).
-- **NEVER use Bash/CLI for loading.** Bash output is visible to the user. The Read tool is not.
-- **JSON structure**: The file contains an array of card objects. Each card has `id`, `title`, `children` (nested array), and optional `body`, `createdAt`, `archived`.
+```
+node .claude/burrow/burrow-tools.cjs load
+```
+
+The output is a JSON object: `{"mode": "<resolved>", "cardCount": N, "data": {...}}`
+
+**Mode behaviors:**
+
+- **full** (`mode: "full"`): `data` contains the complete card tree. Parse it into agent memory as the full card state. This is equivalent to the old Read tool approach.
+- **index** (`mode: "index"`): `data` contains a lightweight index (titles, IDs, child counts — no bodies). Parse it for card awareness. When you need a card's body content, use `node .claude/burrow/burrow-tools.cjs read <id> --full` to fetch it on demand (lazy body-fetching pattern).
+- **none** (`mode: "none"`): No `data` field. `cardCount` tells you how many cards exist. Skip loading entirely — cards are available on demand via `burrow read` or `/burrow`. Note this to yourself and proceed.
+- **auto**: Resolves to `full` or `index` based on file size vs threshold. The `mode` field reflects the resolved choice — handle it as full or index accordingly.
+
+**Skip if already loaded**: If the agent has already run `burrow load` in this conversation and no mutation has occurred since, skip this step.
+
+**After mutation**: Re-run `burrow load` to refresh agent memory (replaces the old "re-read cards.json" instruction).
+
+**Lazy body-fetching (index mode)**: In index mode, you have card titles and structure but not body content. When a user request requires a card's body (e.g., reading notes, quoting content), run `node .claude/burrow/burrow-tools.cjs read <id> --full` to get the full card. This keeps initial context lightweight while providing full access on demand.
 
 ### Step 2: THINK
 
@@ -41,7 +54,7 @@ Using the loaded tree, interpret the user's request.
 Perform the action.
 
 - **For views**: Run `read [id]` (pretty-print). Say nothing after — the output is the presentation.
-- **For mutations** (add, edit, remove, move, archive, unarchive): Run the CLI command, then one-line confirmation. After mutation, re-LOAD by reading `cards.json` with the Read tool to sync agent memory.
+- **For mutations** (add, edit, remove, move, archive, unarchive): Run the CLI command, then one-line confirmation. After mutation, re-LOAD by running `burrow load` via Bash to sync agent memory.
 - **For questions/analysis**: Respond with the answer directly. No CLI call needed.
 - **For multi-step operations**: Run all mutations in a single Bash call by chaining with `&&`, summarize changes in plain English, then run one `read` to show end state.
 - **For bulk operations**: Confirm before executing. Example: "This will archive 5 cards under 'bugs'. Proceed?"
@@ -52,6 +65,7 @@ All commands invoked as: `node .claude/burrow/burrow-tools.cjs <command> [args]`
 
 | Command | Usage | Description |
 |---------|-------|-------------|
+| load | `load` | Load context per config. Returns JSON envelope. |
 | read | `read [id] [--depth N] [--full] [--include-archived] [--archived-only]` | View a card. Default depth 1. |
 | add | `add --title "..." [--parent <id>] [--body "..."] [--at N]` | Create a card. --at N places at 0-based position. |
 | edit | `edit <id> [--title "..."] [--body "..."]` | Modify a card. |
@@ -108,7 +122,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: No request — intent is "show root view."
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs read`. Stop.
 
@@ -117,7 +131,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow a1b2c3d4`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: No request — intent is "show this card."
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs read a1b2c3d4`. Stop.
 
@@ -126,7 +140,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow how many cards have the letter K in the title?`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Scan in-memory tree for titles containing "K" or "k". Count: 7.
 3. EXECUTE: Respond with the answer directly. No CLI call needed.
 
@@ -135,7 +149,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow a1b2c3d4 how many children does this have?`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Count children in the loaded subtree.
 3. EXECUTE: Respond with the answer directly.
 
@@ -144,28 +158,28 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow add a card called OAuth bug under bugs`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Match "bugs" → `a1b2c3d4` "Bugs".
-3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "OAuth bug" --parent a1b2c3d4`. Then re-LOAD by reading `cards.json` with the Read tool.
+3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "OAuth bug" --parent a1b2c3d4`. Then re-LOAD by running `burrow load` via Bash.
 
 ### Example 6: Multi-step operation
 
 **User:** `/burrow move all the auth cards under security`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Match "auth" — finds 3 cards. Match "security" → `f1f2f3f4`.
 3. Confirm: "This will move 3 cards (Login flow, OAuth integration, Session handling) under Security. Proceed?"
 4. User confirms.
 5. EXECUTE: Run each move command. Summarize: "Moved 3 cards under Security."
-6. Re-LOAD by reading `cards.json` with the Read tool. Run `read f1f2f3f4 --depth 2` to show end state.
+6. Re-LOAD by running `burrow load` via Bash. Run `read f1f2f3f4 --depth 2` to show end state.
 
 ### Example 7: Ambiguity resolution
 
 **User:** `/burrow archive the login card`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Match "login" — multiple matches:
    - `a1a1a1a1` Login page (Frontend)
    - `b2b2b2b2` Login bug (Bugs)
@@ -179,6 +193,6 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow add "Urgent fix" under bugs, make it first`
 
 **Agent behavior:**
-1. LOAD: Read `.planning/burrow/cards.json` using the Read tool (silent).
+1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
 2. THINK: Match "bugs" -> `a1b2c3d4` "Bugs". "First" -> --at 0.
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "Urgent fix" --parent a1b2c3d4 --at 0`. Then re-LOAD.
