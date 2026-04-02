@@ -52,6 +52,9 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 <!-- Current scope. Building toward these. -->
 
+- `burrow index` command — lightweight tree extraction (titles + IDs, ~85% size reduction) — Phase 14
+- Config system (`config.json`) — get/set/list API with closed schema validation — Phase 14
+
 ## Current Milestone: v1.3 Onboarding & Configuration
 
 **Goal:** Give users control over how Burrow behaves — configurable context loading from install through runtime, reducing token cost by up to 95%.
@@ -81,7 +84,7 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
-**Current state (v1.2 shipped):** 2,526 LOC JavaScript, 240+ tests, 13 phases shipped across 3 milestones. Installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
+**Current state (v1.3 in progress):** Phase 14 complete — config system and index command shipped. 275+ tests, installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -197,6 +200,9 @@ install.cjs                # Copies source, commands, and data into target proje
 | npm-first update architecture | Registry-based version checks, npx-based updates, no local breadcrumbs | ✓ Good — eliminated .source-dir and writeBreadcrumbs entirely |
 | Cache-only CLI notification | burrow-tools reads .update-check cache, never initiates network check itself | ✓ Good — CLI stays fast, installer seeds the cache |
 | create-burrow npm package name | `npx create-burrow` convention for project scaffolding | ✓ Good — standard npm create-* pattern |
+| Shared atomicWriteJSON in core.cjs | One atomic write utility used by warren.cjs and config.cjs — no duplication | ✓ Good — Phase 14 |
+| Closed config schema | CONFIG_SCHEMA defines valid keys/types/ranges; unknown keys rejected | ✓ Good — prevents config drift, clear errors |
+| buildIndex strips bodies | Index returns only id/title/childCount/hasBody/archived/children — ~85% smaller | ✓ Good — cheap tree scanning for agents |
 
 ## Evolution
 
@@ -216,4 +222,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-01 after milestone v1.3 started*
+*Last updated: 2026-04-02 after Phase 14 complete*
