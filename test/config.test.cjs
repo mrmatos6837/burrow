@@ -37,7 +37,8 @@ describe('config library', () => {
 
   describe('DEFAULTS and CONFIG_SCHEMA', () => {
     it('DEFAULTS has loadMode=auto and autoThreshold=4000', () => {
-      assert.deepStrictEqual(config.DEFAULTS, { loadMode: 'auto', autoThreshold: 4000 });
+      assert.equal(config.DEFAULTS.loadMode, 'auto');
+      assert.equal(config.DEFAULTS.autoThreshold, 4000);
     });
 
     it('CONFIG_SCHEMA has loadMode and autoThreshold entries', () => {
@@ -47,6 +48,25 @@ describe('config library', () => {
 
     it('CONFIG_SCHEMA loadMode has valid values array', () => {
       assert.deepStrictEqual(config.CONFIG_SCHEMA.loadMode.values, ['full', 'index', 'none', 'auto']);
+    });
+
+    it('DEFAULTS has triggerPreset=broad', () => {
+      assert.equal(config.DEFAULTS.triggerPreset, 'broad');
+    });
+
+    it('DEFAULTS has triggerWords as array', () => {
+      assert.ok(Array.isArray(config.DEFAULTS.triggerWords), 'triggerWords should be an array');
+      assert.ok(config.DEFAULTS.triggerWords.length > 0, 'triggerWords should not be empty');
+    });
+
+    it('CONFIG_SCHEMA has triggerPreset with valid values', () => {
+      assert.ok(config.CONFIG_SCHEMA.triggerPreset, 'triggerPreset should exist in schema');
+      assert.deepStrictEqual(config.CONFIG_SCHEMA.triggerPreset.values, ['broad', 'minimal', 'none', 'custom']);
+    });
+
+    it('CONFIG_SCHEMA has triggerWords with type array', () => {
+      assert.ok(config.CONFIG_SCHEMA.triggerWords, 'triggerWords should exist in schema');
+      assert.equal(config.CONFIG_SCHEMA.triggerWords.type, 'array');
     });
   });
 
@@ -215,6 +235,71 @@ describe('config library', () => {
       const result = config.list(tmpDir);
       assert.equal(result.loadMode, 'none');
       assert.equal(result.autoThreshold, 4000);
+    });
+  });
+
+  describe('triggerPreset and triggerWords', () => {
+    it('set triggerPreset to minimal persists and get returns minimal', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000 });
+      config.set(tmpDir, 'triggerPreset', 'minimal');
+      const value = config.get(tmpDir, 'triggerPreset');
+      assert.equal(value, 'minimal');
+    });
+
+    it('set triggerPreset to invalid throws with valid values listed', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000 });
+      assert.throws(
+        () => config.set(tmpDir, 'triggerPreset', 'invalid'),
+        (err) => {
+          assert.ok(err.message.includes('Invalid value'), `got: ${err.message}`);
+          assert.ok(err.message.includes('broad'), `got: ${err.message}`);
+          return true;
+        }
+      );
+    });
+
+    it('set triggerWords with valid JSON array persists', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000, triggerPreset: 'custom' });
+      config.set(tmpDir, 'triggerWords', '["burrow this"]');
+      const value = config.get(tmpDir, 'triggerWords');
+      assert.deepStrictEqual(value, ['burrow this']);
+    });
+
+    it('set triggerWords with non-JSON throws descriptive error', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000 });
+      assert.throws(
+        () => config.set(tmpDir, 'triggerWords', 'not-json'),
+        (err) => {
+          assert.ok(err instanceof Error, 'should throw Error');
+          assert.ok(err.message.length > 0, 'error message should not be empty');
+          return true;
+        }
+      );
+    });
+
+    it('load with triggerPreset=broad returns broad trigger words', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000, triggerPreset: 'broad' });
+      const cfg = config.load(tmpDir);
+      assert.ok(Array.isArray(cfg.triggerWords), 'triggerWords should be an array');
+      assert.ok(cfg.triggerWords.includes('remember'), 'broad preset should include "remember"');
+    });
+
+    it('load with triggerPreset=minimal returns only "burrow this"', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000, triggerPreset: 'minimal' });
+      const cfg = config.load(tmpDir);
+      assert.deepStrictEqual(cfg.triggerWords, ['burrow this']);
+    });
+
+    it('load with triggerPreset=none returns empty array', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000, triggerPreset: 'none' });
+      const cfg = config.load(tmpDir);
+      assert.deepStrictEqual(cfg.triggerWords, []);
+    });
+
+    it('load with triggerPreset=custom returns stored triggerWords', () => {
+      writeConfig(tmpDir, { loadMode: 'auto', autoThreshold: 4000, triggerPreset: 'custom', triggerWords: ['foo', 'bar'] });
+      const cfg = config.load(tmpDir);
+      assert.deepStrictEqual(cfg.triggerWords, ['foo', 'bar']);
     });
   });
 });

@@ -6,9 +6,17 @@ const { ensureDataDir, atomicWriteJSON } = require('./core.cjs');
 
 const CONFIG_FILE = 'config.json';
 
+const TRIGGER_PRESETS = {
+  broad: ["remember", "don't forget", "always do X", "note this", "save this", "keep track of", "burrow this"],
+  minimal: ["burrow this"],
+  none: [],
+};
+
 const DEFAULTS = {
   loadMode: 'auto',
   autoThreshold: 4000,
+  triggerPreset: 'broad',
+  triggerWords: TRIGGER_PRESETS.broad,
 };
 
 const CONFIG_SCHEMA = {
@@ -20,6 +28,15 @@ const CONFIG_SCHEMA = {
     type: 'number',
     validate: (v) => Number.isInteger(v) && v > 0,
     validateMsg: 'must be a positive integer',
+  },
+  triggerPreset: {
+    type: 'string',
+    values: ['broad', 'minimal', 'none', 'custom'],
+  },
+  triggerWords: {
+    type: 'array',
+    validate: (v) => Array.isArray(v) && v.every(w => typeof w === 'string'),
+    validateMsg: 'must be an array of strings',
   },
 };
 
@@ -46,7 +63,12 @@ function load(cwd) {
   }
   const parsed = JSON.parse(raw);
   // Merge defaults for any missing keys (forward compat)
-  return { ...DEFAULTS, ...parsed };
+  const merged = { ...DEFAULTS, ...parsed };
+  // Derive triggerWords from preset unless preset is 'custom'
+  if (merged.triggerPreset !== 'custom') {
+    merged.triggerWords = TRIGGER_PRESETS[merged.triggerPreset] || [];
+  }
+  return merged;
 }
 
 /**
@@ -91,6 +113,17 @@ function set(cwd, key, rawValue) {
     }
   }
 
+  if (schema.type === 'array') {
+    try {
+      value = JSON.parse(rawValue);
+    } catch (_) {
+      throw new Error(`Invalid value for ${key}. Value ${schema.validateMsg}. Must be valid JSON array.`);
+    }
+    if (!Array.isArray(value)) {
+      throw new Error(`Invalid value for ${key}. Value ${schema.validateMsg}.`);
+    }
+  }
+
   if (schema.values && !schema.values.includes(value)) {
     throw new Error(`Invalid value '${rawValue}' for ${key}. Valid values: ${schema.values.join(', ')}`);
   }
@@ -124,4 +157,4 @@ function validateKey(key) {
   }
 }
 
-module.exports = { load, save, get, set, list, configPath, CONFIG_SCHEMA, DEFAULTS };
+module.exports = { load, save, get, set, list, configPath, CONFIG_SCHEMA, DEFAULTS, TRIGGER_PRESETS };

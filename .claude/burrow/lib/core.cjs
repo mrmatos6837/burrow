@@ -42,4 +42,20 @@ function atomicWriteJSON(filePath, data) {
   fs.renameSync(tmpPath, filePath);
 }
 
-module.exports = { ensureDataDir, generateId, atomicWriteJSON };
+/**
+ * Atomic text file write: backup existing file, write to tmp, rename to target.
+ * Content is written as utf-8 string (no JSON serialization).
+ * @param {string} filePath - Absolute path to target file
+ * @param {string} content - String content to write
+ */
+function atomicWriteFile(filePath, content) {
+  const backupPath = filePath + BACKUP_EXT;
+  const tmpPath = filePath + TMP_EXT;
+  if (fs.existsSync(filePath)) {
+    fs.copyFileSync(filePath, backupPath);
+  }
+  fs.writeFileSync(tmpPath, content, 'utf-8');
+  fs.renameSync(tmpPath, filePath);
+}
+
+module.exports = { ensureDataDir, generateId, atomicWriteJSON, atomicWriteFile };
