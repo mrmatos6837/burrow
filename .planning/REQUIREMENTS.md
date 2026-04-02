@@ -17,9 +17,9 @@ Requirements for Onboarding & Configuration milestone. Each maps to roadmap phas
 
 ### Index Command
 
-- [ ] **IDX-01**: `burrow index` outputs lightweight JSON tree (titles, IDs, child counts — no bodies, no ages)
-- [ ] **IDX-02**: `burrow index --depth N` limits output depth
-- [ ] **IDX-03**: `burrow index --include-archived` includes archived cards
+- [x] **IDX-01**: `burrow index` outputs lightweight JSON tree (titles, IDs, child counts — no bodies, no ages)
+- [x] **IDX-02**: `burrow index --depth N` limits output depth
+- [x] **IDX-03**: `burrow index --include-archived` includes archived cards
 
 ### Installer Onboarding
 
@@ -83,9 +83,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CFG-03 | Phase 14 | Complete |
 | CFG-04 | Phase 14 | Complete |
 | CFG-05 | Phase 14 | Complete |
-| IDX-01 | Phase 14 | Pending |
-| IDX-02 | Phase 14 | Pending |
-| IDX-03 | Phase 14 | Pending |
+| IDX-01 | Phase 14 | Complete |
+| IDX-02 | Phase 14 | Complete |
+| IDX-03 | Phase 14 | Complete |
 | SNP-01 | Phase 15 | Pending |
 | SNP-02 | Phase 15 | Pending |
 | SNP-03 | Phase 15 | Pending |

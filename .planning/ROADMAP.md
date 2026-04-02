@@ -50,7 +50,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 
 **Milestone Goal:** Give users control over how Burrow loads context — configurable modes, installer onboarding prompts, and runtime config command — reducing token cost by up to 95%.
 
-- [ ] **Phase 14: Config Foundation + Index Command** - `lib/config.cjs` with get/set/list API and `burrow index` lightweight JSON output
+- [x] **Phase 14: Config Foundation + Index Command** - `lib/config.cjs` with get/set/list API and `burrow index` lightweight JSON output (completed 2026-04-02)
 - [ ] **Phase 15: CLAUDE.md Sentinel Variants** - `generateSnippet(loadMode)` replacing hardcoded snippet; atomic `writeSentinelBlock()`
 - [ ] **Phase 16: Workflow LOAD Step + Load Command** - `burrow load` dispatcher and `workflows/burrow.md` updated to branch on loadMode
 - [ ] **Phase 17: Installer Onboarding + Config Command** - loadMode prompt during install, upgrade path preservation, and `/burrow:config` slash command
@@ -70,7 +70,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 **Plans**: 2 plans
 Plans:
 - [x] 14-01-PLAN.md — Config system: atomicWriteJSON, lib/config.cjs, config CLI commands
-- [ ] 14-02-PLAN.md — Index command: buildIndex, renderIndex, index CLI with flags
+- [x] 14-02-PLAN.md — Index command: buildIndex, renderIndex, index CLI with flags
 
 ### Phase 15: CLAUDE.md Sentinel Variants
 **Goal**: The CLAUDE.md sentinel block correctly reflects the configured loadMode, and writes to CLAUDE.md are atomic so a crash cannot corrupt the agent's instruction set
@@ -123,7 +123,7 @@ Plans:
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
-| 14. Config Foundation + Index Command | v1.3 | 1/2 | In Progress|  |
+| 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete   | 2026-04-02 |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 0/? | Not started | - |
 | 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |
