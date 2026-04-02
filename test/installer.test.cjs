@@ -229,6 +229,25 @@ describe('writeSentinelBlock()', () => {
     const content = fs.readFileSync(claudeMd, 'utf-8');
     assert.ok(content.includes('\r\n'), 'should have CRLF in CRLF file');
   });
+
+  it('creates a .bak file containing the original content when updating existing CLAUDE.md', () => {
+    const claudeMd = path.join(tmpDir, 'CLAUDE.md');
+    const original = '## Existing\n\nSome content.\n';
+    fs.writeFileSync(claudeMd, original);
+    writeSentinelBlock(claudeMd, '## Burrow\n\nInstructions.\n');
+    const bakPath = claudeMd + '.bak';
+    assert.ok(fs.existsSync(bakPath), '.bak file should exist after updating existing file');
+    const bakContent = fs.readFileSync(bakPath, 'utf-8');
+    assert.strictEqual(bakContent, original, '.bak should contain original content before write');
+  });
+
+  it('does NOT leave a .tmp file after successful write', () => {
+    const claudeMd = path.join(tmpDir, 'CLAUDE.md');
+    fs.writeFileSync(claudeMd, '## Existing\n\nContent.\n');
+    writeSentinelBlock(claudeMd, '## Burrow\n\nInstructions.\n');
+    const tmpPath = claudeMd + '.tmp';
+    assert.ok(!fs.existsSync(tmpPath), '.tmp file should NOT exist after successful write (rename should complete)');
+  });
 });
 
 // ── removeSentinelBlock() ─────────────────────────────────────────────────────

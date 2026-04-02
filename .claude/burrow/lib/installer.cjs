@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { atomicWriteFile } = require('./core.cjs');
 
 // ── Sentinel markers ──────────────────────────────────────────────────────────
 
@@ -221,17 +222,17 @@ function writeSentinelBlock(claudeMdPath, blockContent) {
     if (endIdx !== -1) {
       const before = existingContent.slice(0, startIdx);
       const after = existingContent.slice(endIdx + sentinelEnd.length);
-      fs.writeFileSync(claudeMdPath, `${before}${newBlock}${after}`);
+      atomicWriteFile(claudeMdPath, `${before}${newBlock}${after}`);
     } else {
       // Malformed: start without end — replace from start to EOF
       const before = existingContent.slice(0, startIdx);
-      fs.writeFileSync(claudeMdPath, `${before}${newBlock}`);
+      atomicWriteFile(claudeMdPath, `${before}${newBlock}`);
     }
   } else {
     // Append to end
     const trimmed = existingContent.trimEnd();
     const separator = trimmed.length > 0 ? `${eol}${eol}` : '';
-    fs.writeFileSync(claudeMdPath, `${trimmed}${separator}${newBlock}${eol}`);
+    atomicWriteFile(claudeMdPath, `${trimmed}${separator}${newBlock}${eol}`);
   }
 }
 
@@ -255,7 +256,7 @@ function removeSentinelBlock(claudeMdPath) {
   if (endIdx === -1) {
     // Malformed — remove from start marker to end of file
     const before = content.slice(0, startIdx).trimEnd();
-    fs.writeFileSync(claudeMdPath, before.length > 0 ? `${before}\n` : '');
+    atomicWriteFile(claudeMdPath, before.length > 0 ? `${before}\n` : '');
     return;
   }
 
@@ -266,7 +267,7 @@ function removeSentinelBlock(claudeMdPath) {
   const joined = `${before}${after}`;
   // Trim leading/trailing blank lines that were separators
   const result = joined.replace(/\n{3,}/g, '\n\n').trimEnd();
-  fs.writeFileSync(claudeMdPath, result.length > 0 ? `${result}\n` : '');
+  atomicWriteFile(claudeMdPath, result.length > 0 ? `${result}\n` : '');
 }
 
 // ── performInstall() ──────────────────────────────────────────────────────────
