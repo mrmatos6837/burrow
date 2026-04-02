@@ -15,6 +15,7 @@ const TRIGGER_PRESETS = {
 const DEFAULTS = {
   loadMode: 'auto',
   autoThreshold: 4000,
+  indexDepth: 0,
   triggerPreset: 'broad',
   triggerWords: TRIGGER_PRESETS.broad,
 };
@@ -28,6 +29,11 @@ const CONFIG_SCHEMA = {
     type: 'number',
     validate: (v) => Number.isInteger(v) && v > 0,
     validateMsg: 'must be a positive integer',
+  },
+  indexDepth: {
+    type: 'number',
+    validate: (v) => Number.isInteger(v) && v >= 0,
+    validateMsg: 'must be a non-negative integer',
   },
   triggerPreset: {
     type: 'string',

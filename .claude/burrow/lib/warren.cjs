@@ -152,4 +152,4 @@ function save(cwd, data) {
   atomicWriteJSON(filePath, data);
 }
 
-module.exports = { load, save, migrate };
+module.exports = { load, save, migrate, dataPath };
