@@ -1152,3 +1152,154 @@ describe('deleteCard full return shape (API-01)', () => {
     assert.equal(result.children.length, 2);
   });
 });
+
+describe('buildIndex', () => {
+  const { buildIndex } = require('../.claude/burrow/lib/mongoose.cjs');
+
+  /**
+   * Index test data: 3 levels, some with bodies, one archived.
+   * Structure:
+   *   root
+   *     Parent 1 (body: long text, id: aaaaaaaa)
+   *       Child 1.1 (body: '', id: bbbbbbbb)
+   *         Grandchild 1.1.1 (body: 'deep body', id: cccccccc)
+   *     Archived Parent (body: 'archived body', archived: true, id: dddddddd)
+   */
+  function indexTestData() {
+    return {
+      version: 2,
+      cards: [
+        {
+          id: 'aaaaaaaa',
+          title: 'Parent 1',
+          created: '2026-01-01T00:00:00.000Z',
+          archived: false,
+          body: 'A long body that takes many tokens to represent and should not appear in index output at all',
+          children: [
+            {
+              id: 'bbbbbbbb',
+              title: 'Child 1.1',
+              created: '2026-01-01T00:00:00.000Z',
+              archived: false,
+              body: '',
+              children: [
+                {
+                  id: 'cccccccc',
+                  title: 'Grandchild 1.1.1',
+                  created: '2026-01-01T00:00:00.000Z',
+                  archived: false,
+                  body: 'deep body',
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'dddddddd',
+          title: 'Archived Parent',
+          created: '2026-01-01T00:00:00.000Z',
+          archived: true,
+          body: 'archived body',
+          children: [],
+        },
+      ],
+    };
+  }
+
+  it('returns only id, title, childCount, hasBody, archived, children fields', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, {});
+    assert.ok(result.cards.length > 0, 'Should have cards');
+    const card = result.cards[0];
+    const keys = Object.keys(card);
+    assert.ok(keys.includes('id'), 'Should have id');
+    assert.ok(keys.includes('title'), 'Should have title');
+    assert.ok(keys.includes('childCount'), 'Should have childCount');
+    assert.ok(keys.includes('hasBody'), 'Should have hasBody');
+    assert.ok(keys.includes('archived'), 'Should have archived');
+    assert.ok(keys.includes('children'), 'Should have children');
+    // Must NOT have these fields
+    assert.ok(!keys.includes('body'), 'Should NOT have body');
+    assert.ok(!keys.includes('bodyPreview'), 'Should NOT have bodyPreview');
+    assert.ok(!keys.includes('created'), 'Should NOT have created');
+    assert.ok(!keys.includes('descendantCount'), 'Should NOT have descendantCount');
+  });
+
+  it('childCount reflects direct active children count', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, {});
+    // Parent 1 has 1 active child (Child 1.1)
+    assert.equal(result.cards[0].childCount, 1);
+    // Child 1.1 has 1 active child (Grandchild 1.1.1)
+    assert.equal(result.cards[0].children[0].childCount, 1);
+    // Grandchild 1.1.1 has no children
+    assert.equal(result.cards[0].children[0].children[0].childCount, 0);
+  });
+
+  it('hasBody is true when body has content', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, {});
+    // Parent 1 has a long body
+    assert.equal(result.cards[0].hasBody, true);
+    // Child 1.1 has empty body
+    assert.equal(result.cards[0].children[0].hasBody, false);
+    // Grandchild 1.1.1 has 'deep body'
+    assert.equal(result.cards[0].children[0].children[0].hasBody, true);
+  });
+
+  it('depth=2 limits nesting to 2 levels', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, { depth: 2 });
+    // Level 1 (Parent 1) - should exist
+    assert.ok(result.cards.length > 0);
+    // Level 2 (Child 1.1) - should exist
+    assert.ok(result.cards[0].children.length > 0);
+    // Level 3 (Grandchild 1.1.1) - should NOT be in children array
+    assert.equal(result.cards[0].children[0].children.length, 0, 'Should not recurse beyond depth 2');
+  });
+
+  it('depth=0 means unlimited depth', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, { depth: 0 });
+    // All 3 levels should be present
+    assert.ok(result.cards[0].children[0].children.length > 0, 'Should recurse to grandchild with depth=0');
+  });
+
+  it('undefined depth means unlimited depth', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, {});
+    // All 3 levels should be present
+    assert.ok(result.cards[0].children[0].children.length > 0, 'Should recurse fully with undefined depth');
+  });
+
+  it('includeArchived=false excludes archived cards', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, { includeArchived: false });
+    // Should only have Parent 1 (not Archived Parent)
+    assert.equal(result.cards.length, 1);
+    assert.equal(result.cards[0].title, 'Parent 1');
+  });
+
+  it('includeArchived=true includes archived cards with archived=true flag', () => {
+    const data = indexTestData();
+    const result = buildIndex(data, { includeArchived: true });
+    // Should have both Parent 1 and Archived Parent
+    assert.equal(result.cards.length, 2);
+    const archivedCard = result.cards.find((c) => c.id === 'dddddddd');
+    assert.ok(archivedCard, 'Archived Parent should be present');
+    assert.equal(archivedCard.archived, true);
+  });
+
+  it('empty cards array returns { cards: [] }', () => {
+    const data = { version: 2, cards: [] };
+    const result = buildIndex(data, {});
+    assert.deepEqual(result, { cards: [] });
+  });
+
+  it('default (no opts) excludes archived cards', () => {
+    const data = indexTestData();
+    const result = buildIndex(data);
+    assert.equal(result.cards.length, 1, 'Default should exclude archived cards');
+  });
+});

@@ -441,6 +441,45 @@ function searchCards(data, query) {
   return results;
 }
 
+/**
+ * Build a lightweight index tree stripped to essential fields only.
+ * Used by `burrow index` for cheap context loading.
+ * @param {object} data - Root data object (from warren.load)
+ * @param {object} [opts] - { depth: number, includeArchived: boolean }
+ * @returns {{ cards: Array }} Index tree
+ */
+function buildIndex(data, opts) {
+  const { depth: depthArg, includeArchived } = opts || {};
+  const maxDepth = (!depthArg || depthArg === 0) ? Infinity : depthArg;
+  const shouldInclude = includeArchived ? () => true : (card) => !card.archived;
+
+  function buildNode(cards, currentDepth) {
+    const result = [];
+    for (const card of cards) {
+      if (!shouldInclude(card)) continue;
+      const activeChildren = card.children
+        ? card.children.filter(shouldInclude)
+        : [];
+      const entry = {
+        id: card.id,
+        title: card.title,
+        childCount: activeChildren.length,
+        hasBody: !!(card.body && card.body.trim()),
+        archived: card.archived || false,
+      };
+      if (currentDepth < maxDepth && card.children && card.children.length) {
+        entry.children = buildNode(card.children, currentDepth + 1);
+      } else {
+        entry.children = [];
+      }
+      result.push(entry);
+    }
+    return result;
+  }
+
+  return { cards: buildNode(data.cards || [], 1) };
+}
+
 module.exports = {
   findById,
   findParent,
@@ -458,4 +497,5 @@ module.exports = {
   searchCards,
   archiveCard,
   unarchiveCard,
+  buildIndex,
 };

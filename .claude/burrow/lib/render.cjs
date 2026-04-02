@@ -344,4 +344,58 @@ function renderConfigList(cfg) {
   return lines.join('\n');
 }
 
-module.exports = { renderCard, renderMutation, renderPath, renderError, renderConfigList };
+/**
+ * Render index tree lines (no ages — just id, title, childCount).
+ * @param {Array} children - Index card entries
+ * @param {string} indent - Current indent prefix
+ * @param {number} tw - Terminal width
+ * @returns {string[]}
+ */
+function renderIndexLines(children, indent, tw) {
+  const result = [];
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const isLast = i === children.length - 1;
+    const prefix = indent + (isLast ? CORNER : BRANCH);
+    const id = `[${child.id}]`;
+    const countStr = child.childCount > 0 ? ` (${child.childCount})` : '';
+    const archivedLabel = child.archived ? ' [archived]' : '';
+    const safeTitle = (child.title && child.title.trim()) ? child.title : '(untitled)';
+    const line = `  ${prefix} ${id} ${safeTitle}${countStr}${archivedLabel}`;
+    result.push(line);
+    if (child.children && child.children.length > 0) {
+      const nextIndent = indent + (isLast ? '    ' : `${PIPE}   `);
+      const subLines = renderIndexLines(child.children, nextIndent, tw);
+      for (const sl of subLines) result.push(sl);
+    }
+  }
+  return result;
+}
+
+/**
+ * Render index output — human-readable tree or raw JSON.
+ * @param {{ cards: Array }} indexData - From buildIndex()
+ * @param {object} opts - { json: boolean, termWidth: number }
+ * @returns {string}
+ */
+function renderIndex(indexData, opts) {
+  const { json, termWidth } = opts || {};
+  if (json) {
+    return JSON.stringify(indexData.cards, null, 2);
+  }
+  const tw = Math.max(MIN_TERM_WIDTH, termWidth || 80);
+  const lines = [];
+  lines.push(HR);
+  lines.push('burrow index');
+  lines.push(HR);
+  if (indexData.cards.length === 0) {
+    lines.push('  (no cards)');
+  } else {
+    const treeLines = renderIndexLines(indexData.cards, '', tw);
+    for (const tl of treeLines) lines.push(tl);
+  }
+  lines.push(HR);
+  return lines.join('\n');
+}
+
+module.exports = { renderCard, renderMutation, renderPath, renderError, renderConfigList, renderIndex };
