@@ -49,7 +49,7 @@ Requirements for Onboarding & Configuration milestone. Each maps to roadmap phas
 - [x] **WFL-03**: Index mode: runs `burrow index` via Bash, parses JSON
 - [x] **WFL-04**: None mode: skips load entirely, notes cards available on demand
 - [x] **WFL-05**: Auto mode: checks size, picks full or index accordingly
-- [ ] **WFL-06**: Workflow documents lazy body fetching pattern (load index, drill down as needed)
+- [x] **WFL-06**: Workflow documents lazy body fetching pattern (load index, drill down as needed)
 
 ## Future Requirements
 
@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WFL-03 | Phase 16 | Complete |
 | WFL-04 | Phase 16 | Complete |
 | WFL-05 | Phase 16 | Complete |
-| WFL-06 | Phase 16 | Pending |
+| WFL-06 | Phase 16 | Complete |
 | ONB-01 | Phase 17 | Pending |
 | ONB-02 | Phase 17 | Pending |
 | ONB-03 | Phase 17 | Pending |

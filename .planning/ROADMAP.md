@@ -52,7 +52,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
 
 - [x] **Phase 14: Config Foundation + Index Command** - `lib/config.cjs` with get/set/list API and `burrow index` lightweight JSON output (completed 2026-04-02)
 - [x] **Phase 15: CLAUDE.md Sentinel Variants** - `generateSnippet(loadMode)` replacing hardcoded snippet; atomic `writeSentinelBlock()` (completed 2026-04-02)
-- [ ] **Phase 16: Workflow LOAD Step + Load Command** - `burrow load` dispatcher and `workflows/burrow.md` updated to branch on loadMode
+- [x] **Phase 16: Workflow LOAD Step + Load Command** - `burrow load` dispatcher and `workflows/burrow.md` updated to branch on loadMode (completed 2026-04-02)
 - [ ] **Phase 17: Installer Onboarding + Config Command** - loadMode prompt during install, upgrade path preservation, and `/burrow:config` slash command
 
 ## Phase Details
@@ -98,7 +98,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 16-01-PLAN.md — lib/loader.cjs + indexDepth config + CLI wiring + tests
-- [ ] 16-02-PLAN.md — Workflow LOAD step rewrite with mode-aware dispatcher
+- [x] 16-02-PLAN.md — Workflow LOAD step rewrite with mode-aware dispatcher
 
 ### Phase 17: Installer Onboarding + Config Command
 **Goal**: Users are asked about their preferred loading mode during install, upgrades never lose existing config, and the `/burrow:config` command lets users view and change settings from within Claude Code
@@ -131,5 +131,5 @@ Plans:
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
 | 14. Config Foundation + Index Command | v1.3 | 2/2 | Complete    | 2026-04-02 |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 16. Workflow LOAD Step + Load Command | v1.3 | 1/2 | In Progress|  |
+| 16. Workflow LOAD Step + Load Command | v1.3 | 2/2 | Complete   | 2026-04-02 |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |
