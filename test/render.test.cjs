@@ -858,10 +858,15 @@ describe('exports', () => {
     assert.equal(typeof mod.renderConfigList, 'function');
   });
 
-  it('exports only five functions', () => {
+  it('exports only six functions', () => {
     const mod = require('../.claude/burrow/lib/render.cjs');
     const keys = Object.keys(mod);
-    assert.equal(keys.length, 5);
+    assert.equal(keys.length, 6);
+  });
+
+  it('exports renderIndex', () => {
+    const mod = require('../.claude/burrow/lib/render.cjs');
+    assert.equal(typeof mod.renderIndex, 'function');
   });
 });
 

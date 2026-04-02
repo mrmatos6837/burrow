@@ -62,7 +62,7 @@ async function main() {
 
   if (!command) {
     handleError(
-      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config'
+      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index'
     );
   }
 
@@ -506,9 +506,48 @@ async function main() {
       break;
     }
 
+    case 'index': {
+      const { values: indexValues } = parseArgs({
+        args: subArgs,
+        options: {
+          depth: { type: 'string' },
+          json: { type: 'boolean', default: false },
+          'include-archived': { type: 'boolean', default: false },
+          width: { type: 'string' },
+        },
+        strict: true,
+      });
+
+      const depth = indexValues.depth !== undefined ? parseInt(indexValues.depth, 10) : 0;
+      if (indexValues.depth !== undefined && (isNaN(depth) || depth < 0)) {
+        handleError('--depth must be a non-negative number');
+      }
+
+      const data = storage.load(cwd);
+      const indexData = tree.buildIndex(data, {
+        depth,
+        includeArchived: indexValues['include-archived'],
+      });
+
+      if (indexValues.json) {
+        // Raw JSON to stdout — bypasses render per D-16 (agent/script use)
+        const rendered = render.renderIndex(indexData, { json: true });
+        // Write directly, no update check for machine-readable output
+        process.stdout.write(rendered + '\n');
+        process.exit(0);
+      } else {
+        const rendered = render.renderIndex(indexData, {
+          json: false,
+          termWidth: resolveTermWidth(indexValues),
+        });
+        writeAndExit(rendered);
+      }
+      break;
+    }
+
     default:
       handleError(
-        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config`
+        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index`
       );
   }
 }

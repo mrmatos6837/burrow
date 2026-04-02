@@ -726,3 +726,186 @@ describe('config command', () => {
     }
   });
 });
+
+/**
+ * Create a tmp dir with .planning/burrow/cards.json containing a nested test tree.
+ * Structure: Parent 1 (with body) > Child 1.1 > Grandchild 1.1.1 (with body)
+ *            Archived Parent (archived=true)
+ */
+function makeIndexDir() {
+  const dir = makeTmpDir();
+  const burrowDir = path.join(dir, '.planning', 'burrow');
+  fs.mkdirSync(burrowDir, { recursive: true });
+  const testData = {
+    version: 2,
+    cards: [
+      {
+        id: 'aaaaaaaa',
+        title: 'Parent 1',
+        created: '2026-01-01T00:00:00.000Z',
+        archived: false,
+        body: 'A long body that takes many tokens to represent and should not appear in index output at all',
+        children: [
+          {
+            id: 'bbbbbbbb',
+            title: 'Child 1.1',
+            created: '2026-01-01T00:00:00.000Z',
+            archived: false,
+            body: '',
+            children: [
+              {
+                id: 'cccccccc',
+                title: 'Grandchild 1.1.1',
+                created: '2026-01-01T00:00:00.000Z',
+                archived: false,
+                body: 'deep body',
+                children: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'dddddddd',
+        title: 'Archived Parent',
+        created: '2026-01-01T00:00:00.000Z',
+        archived: true,
+        body: 'archived body',
+        children: [],
+      },
+    ],
+  };
+  fs.writeFileSync(
+    path.join(burrowDir, 'cards.json'),
+    JSON.stringify(testData, null, 2) + '\n',
+    'utf-8'
+  );
+  return dir;
+}
+
+describe('index command', () => {
+  it('burrow index outputs human-readable tree with "burrow index" header', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index'], dir);
+      assert.ok(output.includes('burrow index'), 'Should contain "burrow index" header');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --json outputs valid JSON array', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--json'], dir);
+      let parsed;
+      assert.doesNotThrow(() => { parsed = JSON.parse(output); }, 'Should be valid JSON');
+      assert.ok(Array.isArray(parsed), 'Should be an array');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --json output contains id, title, childCount, hasBody, archived, children fields', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--json'], dir);
+      const parsed = JSON.parse(output);
+      assert.ok(parsed.length > 0, 'Should have cards');
+      const card = parsed[0];
+      assert.ok('id' in card, 'Should have id');
+      assert.ok('title' in card, 'Should have title');
+      assert.ok('childCount' in card, 'Should have childCount');
+      assert.ok('hasBody' in card, 'Should have hasBody');
+      assert.ok('archived' in card, 'Should have archived');
+      assert.ok('children' in card, 'Should have children');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --json output does NOT contain "body" key with string value or "created" key', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--json'], dir);
+      const parsed = JSON.parse(output);
+      // Recursively check all cards for forbidden fields
+      function checkNoForbiddenFields(cards) {
+        for (const card of cards) {
+          assert.ok(!('body' in card), `Card "${card.title}" should not have body field`);
+          assert.ok(!('created' in card), `Card "${card.title}" should not have created field`);
+          assert.ok(!('bodyPreview' in card), `Card "${card.title}" should not have bodyPreview field`);
+          assert.ok(!('descendantCount' in card), `Card "${card.title}" should not have descendantCount field`);
+          if (card.children && card.children.length > 0) {
+            checkNoForbiddenFields(card.children);
+          }
+        }
+      }
+      checkNoForbiddenFields(parsed);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --depth 1 limits to 1 level (no grandchildren in output)', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--depth', '1', '--json'], dir);
+      const parsed = JSON.parse(output);
+      // Parent 1 should be present
+      assert.ok(parsed.length > 0, 'Should have cards at level 1');
+      // Child 1.1 should be in Parent 1's children (still shown, because depth=1 means 1 level of children)
+      // Actually depth=1 means only recurse 1 level: root cards are returned, their children are listed but not recursed
+      // Parent 1's children array should be present but Child 1.1's children should be empty
+      const parent1 = parsed.find((c) => c.id === 'aaaaaaaa');
+      assert.ok(parent1, 'Parent 1 should be present');
+      // With depth=1, children of root are shown but their children are empty
+      if (parent1.children.length > 0) {
+        const child11 = parent1.children.find((c) => c.id === 'bbbbbbbb');
+        if (child11) {
+          assert.equal(child11.children.length, 0, 'Child 1.1 should have no children with depth=1');
+        }
+      }
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --include-archived includes archived cards in output', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--include-archived', '--json'], dir);
+      const parsed = JSON.parse(output);
+      const archivedCard = parsed.find((c) => c.id === 'dddddddd');
+      assert.ok(archivedCard, 'Archived Parent should be present with --include-archived');
+      assert.equal(archivedCard.archived, true);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index without --include-archived excludes archived cards', () => {
+    const dir = makeIndexDir();
+    try {
+      const output = run(['index', '--json'], dir);
+      const parsed = JSON.parse(output);
+      const archivedCard = parsed.find((c) => c.id === 'dddddddd');
+      assert.ok(!archivedCard, 'Archived Parent should NOT be present without --include-archived');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('burrow index --json byte count is smaller than cards.json file size', () => {
+    const dir = makeIndexDir();
+    try {
+      const cardsJsonPath = path.join(dir, '.planning', 'burrow', 'cards.json');
+      const cardsJsonSize = fs.statSync(cardsJsonPath).size;
+      const indexOutput = run(['index', '--json'], dir);
+      const indexSize = Buffer.byteLength(indexOutput, 'utf-8');
+      assert.ok(indexSize < cardsJsonSize, `Index (${indexSize} bytes) should be smaller than cards.json (${cardsJsonSize} bytes)`);
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
