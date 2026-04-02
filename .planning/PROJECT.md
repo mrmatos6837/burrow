@@ -54,6 +54,9 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 - `burrow index` command — lightweight tree extraction (titles + IDs, ~85% size reduction) — Phase 14
 - Config system (`config.json`) — get/set/list API with closed schema validation — Phase 14
+- CLAUDE.md sentinel variants — snippet adapts to loadMode (full/index/none/auto) and trigger word presets — Phase 15
+- Atomic file writes for CLAUDE.md — crash-safe tmp+rename pattern for sentinel block operations — Phase 15
+- Configurable trigger words — triggerPreset (broad/minimal/none/custom) with per-preset word lists — Phase 15
 
 ## Current Milestone: v1.3 Onboarding & Configuration
 
@@ -84,7 +87,7 @@ One recursive data structure — cards containing cards — navigated by an agen
 
 Burrow is a standalone tool that lives outside `.claude/get-shit-done/` so it survives `/gsd:update`. The core engine is adapter-agnostic — the `/burrow` command namespace is one adapter; a generic Claude Code plugin adapter can be built later for standalone distribution.
 
-**Current state (v1.3 in progress):** Phase 14 complete — config system and index command shipped. 275+ tests, installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
+**Current state (v1.3 in progress):** Phase 15 complete — CLAUDE.md sentinel block now dynamically generated from config (4 load modes, configurable trigger words), crash-safe atomic writes for all sentinel operations. 378 tests, installable via `npx create-burrow`. npm-first update system with registry-based version checks and passive notifications.
 
 **Data model:**
 One recursive type: cards containing cards. No separate concepts for "buckets", "tags", or "categories" — those are just cards at different depths. The user decides what the tree means.
@@ -203,6 +206,9 @@ install.cjs                # Copies source, commands, and data into target proje
 | Shared atomicWriteJSON in core.cjs | One atomic write utility used by warren.cjs and config.cjs — no duplication | ✓ Good — Phase 14 |
 | Closed config schema | CONFIG_SCHEMA defines valid keys/types/ranges; unknown keys rejected | ✓ Good — prevents config drift, clear errors |
 | buildIndex strips bodies | Index returns only id/title/childCount/hasBody/archived/children — ~85% smaller | ✓ Good — cheap tree scanning for agents |
+| generateSnippet(config) replaces CLAUDE_MD_SNIPPET | Dynamic snippet generation from config; 4 load modes produce distinct instructions | ✓ Good — Phase 15 |
+| Atomic CLAUDE.md writes | writeSentinelBlock/removeSentinelBlock use atomicWriteFile (tmp+rename) | ✓ Good — crash cannot corrupt CLAUDE.md |
+| Trigger word presets | broad/minimal/none/custom presets; words derived at load() time, not stored | ✓ Good — simple config, preset words always current |
 
 ## Evolution
 
@@ -222,4 +228,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-02 after Phase 14 complete*
+*Last updated: 2026-04-02 after Phase 15 complete*
