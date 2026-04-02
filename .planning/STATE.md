@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Onboarding & Configuration
-status: planning
-stopped_at: Phase 14 context gathered
-last_updated: "2026-04-01T14:15:17.631Z"
-last_activity: 2026-04-01 — Roadmap created for v1.3
+status: executing
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-04-02T13:24:36.473Z"
+last_activity: 2026-04-02
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** One recursive data structure — cards containing cards — navigated by an agent that can traverse, summarize, and render any slice at any depth.
-**Current focus:** Milestone v1.3 — Phase 14: Config Foundation + Index Command
+**Current focus:** Phase 14 — config-foundation-index-command
 
 ## Current Position
 
-Phase: 14 of 17 (Config Foundation + Index Command)
-Plan: — of — in current phase
-Status: Ready to plan
-Last activity: 2026-04-01 — Roadmap created for v1.3
+Phase: 14 (config-foundation-index-command) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0% (0/4 phases)
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0% (0/4 phases)
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 14-config-foundation-index-command P01 | 10min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,9 @@ Recent decisions affecting current work:
 - config.json lives in `.planning/burrow/` (user data dir, immune to upgrade overwrites)
 - `burrow index` emits raw JSON to stdout, bypassing render.cjs entirely
 - Config change + CLAUDE.md update treated as single atomic transaction everywhere
+- [Phase 14]: atomicWriteJSON extracted to core.cjs — all JSON persistence shares one atomic write implementation
+- [Phase 14]: CONFIG_SCHEMA is closed — unknown keys throw with valid keys listed (D-03, D-20)
+- [Phase 14]: CFG-05 satisfied at persistence layer only — runtime auto-detection deferred to Phase 16
 
 ### Pending Todos
 
@@ -69,9 +73,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T14:15:17.626Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-config-foundation-index-command/14-CONTEXT.md
+Last session: 2026-04-02T13:24:36.470Z
+Stopped at: Completed 14-01-PLAN.md
+Resume file: None
 
 ### Quick Tasks Completed
 

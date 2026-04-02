@@ -69,7 +69,7 @@ Full details: `milestones/v1.2-ROADMAP.md`
   5. Running `burrow index --depth 2` limits output to two levels; `--include-archived` includes archived cards in the output
 **Plans**: 2 plans
 Plans:
-- [ ] 14-01-PLAN.md — Config system: atomicWriteJSON, lib/config.cjs, config CLI commands
+- [x] 14-01-PLAN.md — Config system: atomicWriteJSON, lib/config.cjs, config CLI commands
 - [ ] 14-02-PLAN.md — Index command: buildIndex, renderIndex, index CLI with flags
 
 ### Phase 15: CLAUDE.md Sentinel Variants
@@ -123,7 +123,7 @@ Plans:
 | 11. npm Package | v1.2 | 1/1 | Complete | 2026-03-16 |
 | 12. Fix npm Package Files Whitelist | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 13. npm-First Update System | v1.2 | 1/1 | Complete | 2026-03-19 |
-| 14. Config Foundation + Index Command | v1.3 | 0/2 | In progress | - |
+| 14. Config Foundation + Index Command | v1.3 | 1/2 | In Progress|  |
 | 15. CLAUDE.md Sentinel Variants | v1.3 | 0/? | Not started | - |
 | 16. Workflow LOAD Step + Load Command | v1.3 | 0/? | Not started | - |
 | 17. Installer Onboarding + Config Command | v1.3 | 0/? | Not started | - |

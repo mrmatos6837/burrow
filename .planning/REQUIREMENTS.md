@@ -9,11 +9,11 @@ Requirements for Onboarding & Configuration milestone. Each maps to roadmap phas
 
 ### Config System
 
-- [ ] **CFG-01**: Config file loads from `.planning/burrow/config.json` with defaults-merge (missing keys get defaults)
-- [ ] **CFG-02**: Config file uses atomic writes (tmp + rename pattern matching warren.cjs)
-- [ ] **CFG-03**: Config exposes get/set/list API via `lib/config.cjs`
-- [ ] **CFG-04**: Config file is sacred — never overwritten on upgrade (preserved like cards.json)
-- [ ] **CFG-05**: Auto mode checks cards.json file size and switches full→index at configurable threshold
+- [x] **CFG-01**: Config file loads from `.planning/burrow/config.json` with defaults-merge (missing keys get defaults)
+- [x] **CFG-02**: Config file uses atomic writes (tmp + rename pattern matching warren.cjs)
+- [x] **CFG-03**: Config exposes get/set/list API via `lib/config.cjs`
+- [x] **CFG-04**: Config file is sacred — never overwritten on upgrade (preserved like cards.json)
+- [x] **CFG-05**: Auto mode checks cards.json file size and switches full→index at configurable threshold
 
 ### Index Command
 
@@ -78,11 +78,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFG-01 | Phase 14 | Pending |
-| CFG-02 | Phase 14 | Pending |
-| CFG-03 | Phase 14 | Pending |
-| CFG-04 | Phase 14 | Pending |
-| CFG-05 | Phase 14 | Pending |
+| CFG-01 | Phase 14 | Complete |
+| CFG-02 | Phase 14 | Complete |
+| CFG-03 | Phase 14 | Complete |
+| CFG-04 | Phase 14 | Complete |
+| CFG-05 | Phase 14 | Complete |
 | IDX-01 | Phase 14 | Pending |
 | IDX-02 | Phase 14 | Pending |
 | IDX-03 | Phase 14 | Pending |
