@@ -6,7 +6,7 @@ const path = require('node:path');
 const readline = require('node:readline');
 
 const {
-  CLAUDE_MD_SNIPPET,
+  generateSnippet,
   detect,
   performInstall,
   performUpgrade,
@@ -14,6 +14,8 @@ const {
   writeSentinelBlock,
   removeSentinelBlock,
 } = require('./.claude/burrow/lib/installer.cjs');
+
+const { DEFAULTS: CONFIG_DEFAULTS } = require('./.claude/burrow/lib/config.cjs');
 
 // ── Output helpers ────────────────────────────────────────────────────────────
 
@@ -216,7 +218,7 @@ async function runInstall({ sourceDir, targetDir, yes, detection }) {
   printInstallResults(results);
 
   if (addClaudeMd) {
-    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
     ok('CLAUDE.md (burrow block added)');
   } else {
     skip('CLAUDE.md (skipped)');
@@ -267,11 +269,11 @@ async function runUpgrade({ sourceDir, targetDir, yes, detection }) {
 
   // Handle CLAUDE.md sentinel
   if (detection.hasSentinel) {
-    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
     ok('CLAUDE.md (sentinel block updated)');
   } else if (detection.hasLegacyClaude) {
     // Wrap legacy ## Burrow section in sentinels
-    writeSentinelBlock(claudeMdPath, CLAUDE_MD_SNIPPET);
+    writeSentinelBlock(claudeMdPath, generateSnippet(CONFIG_DEFAULTS));
     warn('CLAUDE.md had legacy Burrow section — replaced with sentinel block');
   }
   // else: no action (user opted out previously)

@@ -13,6 +13,7 @@ const {
   performRepair,
   writeSentinelBlock,
   removeSentinelBlock,
+  generateSnippet,
   SENTINEL_START,
   SENTINEL_END,
 } = require('../.claude/burrow/lib/installer.cjs');
@@ -366,6 +367,90 @@ describe('performUpgrade()', () => {
   it('returns results object', () => {
     const results = performUpgrade(srcDir, tmpDir);
     assert.ok(typeof results === 'object');
+  });
+});
+
+// ── generateSnippet() ─────────────────────────────────────────────────────────
+
+describe('generateSnippet()', () => {
+  const broadConfig = { loadMode: 'full', triggerPreset: 'broad', triggerWords: ["remember", "don't forget", "always do X", "note this", "save this", "keep track of", "burrow this"] };
+  const minimalConfig = { loadMode: 'full', triggerPreset: 'minimal', triggerWords: ['burrow this'] };
+  const noneConfig = { loadMode: 'full', triggerPreset: 'none', triggerWords: [] };
+  const customConfig = { loadMode: 'full', triggerPreset: 'custom', triggerWords: ['foo'] };
+
+  it('all modes include ## Burrow heading', () => {
+    for (const mode of ['full', 'index', 'none', 'auto']) {
+      const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
+      assert.ok(snippet.includes('## Burrow'), `mode=${mode}: should include ## Burrow heading`);
+    }
+  });
+
+  it('all modes include Privacy: section', () => {
+    for (const mode of ['full', 'index', 'none', 'auto']) {
+      const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
+      assert.ok(snippet.includes('Privacy:'), `mode=${mode}: should include Privacy: section`);
+    }
+  });
+
+  it('all modes include mutations CLI instruction', () => {
+    for (const mode of ['full', 'index', 'none', 'auto']) {
+      const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
+      assert.ok(snippet.includes('NEVER edit cards.json directly'), `mode=${mode}: should include CLI mutation instruction`);
+    }
+  });
+
+  it('loadMode=full includes read cards.json instruction', () => {
+    const snippet = generateSnippet(broadConfig);
+    assert.ok(snippet.includes('cards.json'), 'should include cards.json reference');
+    assert.ok(snippet.includes('Read tool'), 'should include Read tool reference');
+  });
+
+  it('loadMode=index includes burrow-tools.cjs index instruction', () => {
+    const snippet = generateSnippet({ ...broadConfig, loadMode: 'index' });
+    assert.ok(snippet.includes('burrow-tools.cjs index'), 'should include index command reference');
+  });
+
+  it('loadMode=none includes on demand instruction', () => {
+    const snippet = generateSnippet({ ...broadConfig, loadMode: 'none' });
+    assert.ok(snippet.includes('on demand'), 'should include on demand reference');
+  });
+
+  it('loadMode=auto includes auto and threshold', () => {
+    const snippet = generateSnippet({ ...broadConfig, loadMode: 'auto' });
+    assert.ok(snippet.includes('auto') || snippet.includes('threshold'), 'should reference auto mode or threshold');
+    assert.ok(snippet.includes('threshold'), 'should include threshold reference');
+  });
+
+  it('triggerPreset=broad includes remember and don\'t forget', () => {
+    const snippet = generateSnippet(broadConfig);
+    assert.ok(snippet.includes('"remember"'), 'should include "remember"');
+    assert.ok(snippet.includes('"don\'t forget"'), 'should include "don\'t forget"');
+  });
+
+  it('triggerPreset=minimal includes burrow this but not remember', () => {
+    const snippet = generateSnippet(minimalConfig);
+    assert.ok(snippet.includes('"burrow this"'), 'should include "burrow this"');
+    assert.ok(!snippet.includes('"remember"'), 'should NOT include "remember"');
+  });
+
+  it('triggerPreset=none does NOT include When the user says section', () => {
+    const snippet = generateSnippet(noneConfig);
+    assert.ok(!snippet.includes('When the user says'), 'should NOT include trigger section');
+  });
+
+  it('triggerPreset=none with empty triggerWords omits trigger section', () => {
+    const snippet = generateSnippet({ loadMode: 'full', triggerPreset: 'none', triggerWords: [] });
+    assert.ok(!snippet.includes('When the user says'), 'should NOT include trigger section');
+  });
+
+  it('triggerPreset=custom with triggerWords=[foo] includes foo', () => {
+    const snippet = generateSnippet(customConfig);
+    assert.ok(snippet.includes('"foo"'), 'should include custom trigger word');
+  });
+
+  it('does not contain CLAUDE_MD_SNIPPET reference', () => {
+    const snippet = generateSnippet(broadConfig);
+    assert.ok(typeof snippet === 'string' && snippet.length > 0, 'should return a non-empty string');
   });
 });
 

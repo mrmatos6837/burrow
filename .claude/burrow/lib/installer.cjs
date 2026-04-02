@@ -8,21 +8,54 @@ const path = require('node:path');
 const SENTINEL_START = '<!-- burrow:start -->';
 const SENTINEL_END = '<!-- burrow:end -->';
 
-// ── CLAUDE.md snippet ─────────────────────────────────────────────────────────
+// ── generateSnippet(config) ───────────────────────────────────────────────────
 
-const CLAUDE_MD_SNIPPET = `## Burrow — Agent Memory
+/**
+ * Build a mode-specific CLAUDE.md sentinel block based on user config.
+ * Replaces the former hardcoded snippet constant.
+ *
+ * @param {object} config - Config object with loadMode, triggerPreset, triggerWords
+ * @returns {string} Snippet content (without sentinel markers)
+ */
+function generateSnippet(config) {
+  const { loadMode, triggerPreset, triggerWords } = config;
 
-Burrow is your persistent memory. On every session start, silently read \`.planning/burrow/cards.json\` using the Read tool to load project context, tasks, and notes.
+  // ── HEADING ────────────────────────────────────────────────────────────────
+  const heading = `## Burrow — Agent Memory\n\nBurrow is your persistent memory.`;
 
-**When the user says "remember", "don't forget", "always do X", or any instruction meant to persist across sessions:**
-- Store it as a Burrow card: \`node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"\`
-- Organize under relevant parent cards (create parents if needed)
-- Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth
+  // ── LOAD INSTRUCTION (varies by loadMode) ─────────────────────────────────
+  let loadInstruction;
+  switch (loadMode) {
+    case 'full':
+      loadInstruction = `On every session start, silently read \`.planning/burrow/cards.json\` using the Read tool to load project context, tasks, and notes.`;
+      break;
+    case 'index':
+      loadInstruction = `On every session start, run \`node .claude/burrow/burrow-tools.cjs index --json\` to load a lightweight card index (titles and IDs only, no bodies). When you need a card's full content, read \`.planning/burrow/cards.json\` and locate it by ID.`;
+      break;
+    case 'none':
+      loadInstruction = `Burrow cards are available but not loaded at session start. When you need project context, tasks, or notes, read \`.planning/burrow/cards.json\` on demand.`;
+      break;
+    case 'auto':
+    default:
+      loadInstruction = `On every session start, check the size of \`.planning/burrow/cards.json\`. If under the configured threshold, read it in full using the Read tool. If over, run \`node .claude/burrow/burrow-tools.cjs index --json\` for a lightweight index instead. When using index mode, read the full file to get card bodies on demand.`;
+      break;
+  }
 
-**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
+  // ── TRIGGER SECTION (varies by triggerPreset / triggerWords) ───────────────
+  let triggerSection = '';
+  const words = Array.isArray(triggerWords) ? triggerWords : [];
+  const shouldIncludeTriggers = triggerPreset !== 'none' && words.length > 0;
 
-All mutations go through the CLI — NEVER edit cards.json directly.
-`;
+  if (shouldIncludeTriggers) {
+    const quotedWords = words.map(w => `"${w}"`).join(', ');
+    triggerSection = `\n**When the user says ${quotedWords}, or any instruction meant to persist across sessions:**\n- Store it as a Burrow card: \`node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"\`\n- Organize under relevant parent cards (create parents if needed)\n- Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth\n`;
+  }
+
+  // ── FOOTER (constant across all modes) ────────────────────────────────────
+  const footer = `**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.\n\nAll mutations go through the CLI — NEVER edit cards.json directly.\n`;
+
+  return `${heading} ${loadInstruction}\n${triggerSection}\n${footer}`;
+}
 
 // ── Core file paths (relative to target) ─────────────────────────────────────
 
@@ -379,7 +412,7 @@ function performRepair(sourceDir, targetDir, missingFiles) {
 module.exports = {
   SENTINEL_START,
   SENTINEL_END,
-  CLAUDE_MD_SNIPPET,
+  generateSnippet,
   detect,
   performInstall,
   performUpgrade,
