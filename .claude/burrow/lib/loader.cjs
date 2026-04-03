@@ -4,13 +4,14 @@ const fs = require('node:fs');
 const config = require('./config.cjs');
 const warren = require('./warren.cjs');
 const mongoose = require('./mongoose.cjs');
+const { commandsForEnvelope } = require('./commands.cjs');
 
 /**
  * Universal load dispatcher. Reads config, determines mode, returns JSON envelope.
  * Per D-04, D-05, D-06, D-07.
  *
  * @param {string} cwd - Working directory
- * @returns {object} Envelope: { mode, cardCount, data? }
+ * @returns {object} Envelope: { mode, cardCount, commands, data? }
  */
 function load(cwd) {
   const cfg = config.load(cwd);
@@ -39,14 +40,14 @@ function load(cwd) {
     // D-07, D-11: no data, but include cardCount
     const data = warren.load(cwd);
     const cardCount = countCards(data.cards);
-    return { mode: 'none', cardCount };
+    return { mode: 'none', cardCount, commands: commandsForEnvelope() };
   }
 
   if (resolvedMode === 'full') {
     // D-07, WFL-02: full read
     const data = warren.load(cwd);
     const cardCount = countCards(data.cards);
-    return { mode: 'full', cardCount, data };
+    return { mode: 'full', cardCount, commands: commandsForEnvelope(), data };
   }
 
   // index mode (D-07, WFL-03, D-15)
@@ -54,7 +55,7 @@ function load(cwd) {
   const cardCount = countCards(data.cards);
   const indexOpts = { depth: cfg.indexDepth || 0, includeArchived: false };
   const indexData = mongoose.buildIndex(data, indexOpts);
-  return { mode: 'index', cardCount, data: indexData };
+  return { mode: 'index', cardCount, commands: commandsForEnvelope(), data: indexData };
 }
 
 /**

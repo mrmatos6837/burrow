@@ -48,16 +48,96 @@ function ask(question, defaultAnswer = '') {
   });
 }
 
+/**
+ * Arrow-key selector for a list of options. Returns the chosen option's value.
+ *
+ * @param {string} label - Question label printed above the options
+ * @param {{ value: string, label: string }[]} options - Selectable options
+ * @param {string} [defaultValue] - Pre-selected value (defaults to first option)
+ * @returns {Promise<string>} The selected option's value
+ */
+function select(label, options, defaultValue) {
+  return new Promise((resolve) => {
+    // Pause readline so we can use raw mode
+    rl.pause();
+
+    let cursor = Math.max(0, options.findIndex(o => o.value === defaultValue));
+
+    const render = () => {
+      // Move up to overwrite previous render (skip on first render)
+      if (render._drawn) {
+        // After previous render, cursor sits on the line after the last option.
+        // Move up by options.length to reach the first option line.
+        process.stdout.write(`\x1b[${options.length}A\r`);
+      }
+      for (let i = 0; i < options.length; i++) {
+        const marker = i === cursor ? '\x1b[36m>\x1b[0m' : ' ';
+        const text = i === cursor ? `\x1b[36m${options[i].label}\x1b[0m` : options[i].label;
+        // Move to column 0, clear line, write option, move to next line
+        process.stdout.write(`\r\x1b[2K  ${marker} ${text}`);
+        if (i < options.length - 1) {
+          process.stdout.write('\n');
+        }
+      }
+      // After the last option, move down one line and clear it
+      // (prevents residual text from previous prompts leaking through)
+      process.stdout.write('\n\r\x1b[2K');
+      render._drawn = true;
+    };
+
+    console.log(`  ${label}`);
+    render();
+
+    const stdin = process.stdin;
+    stdin.setRawMode(true);
+    stdin.resume();
+
+    const onData = (buf) => {
+      const key = buf.toString();
+
+      // Ctrl+C
+      if (key === '\x03') {
+        stdin.setRawMode(false);
+        stdin.removeListener('data', onData);
+        rl.resume();
+        process.exit(0);
+      }
+
+      // Enter
+      if (key === '\r' || key === '\n') {
+        stdin.setRawMode(false);
+        stdin.removeListener('data', onData);
+        rl.resume();
+        resolve(options[cursor].value);
+        return;
+      }
+
+      // Arrow keys (escape sequences: \x1b[A = up, \x1b[B = down)
+      if (key === '\x1b[A' || key === 'k') {
+        cursor = (cursor - 1 + options.length) % options.length;
+        render();
+      } else if (key === '\x1b[B' || key === 'j') {
+        cursor = (cursor + 1) % options.length;
+        render();
+      }
+    };
+
+    stdin.on('data', onData);
+  });
+}
+
 // ── Argument parsing ──────────────────────────────────────────────────────────
 
 function parseArgs(argv) {
   const args = argv.slice(2);
-  const flags = { yes: false, uninstall: false, help: false };
+  const flags = { yes: false, interactive: false, uninstall: false, help: false };
   let positional = null;
 
   for (const arg of args) {
     if (arg === '--yes' || arg === '-y') {
       flags.yes = true;
+    } else if (arg === '--interactive') {
+      flags.interactive = true;
     } else if (arg === '--uninstall') {
       flags.uninstall = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -83,6 +163,7 @@ Arguments:
 
 Options:
   --yes, -y         Non-interactive mode. Accept all defaults, skip prompts.
+  --interactive     Force interactive prompts even when stdin is not a TTY.
   --uninstall       Remove all Burrow files from the target project.
   --help, -h        Print this help message and exit.
 
@@ -108,8 +189,8 @@ function printInstallResults(results) {
     copied:    (k) => ok(`${k}`),
     replaced:  (k) => ok(`${k} (replaced)`),
     preserved: (k) => skip(`${k} (preserved)`),
-    created:   (k) => ok(`${k} (created)`),
-    updated:   (k) => ok(`${k} (updated)`),
+    created:   (k) => ok(`${k} (created${k === '.gitignore' ? ' — with cards.json.bak entry' : ''})`),
+    updated:   (k) => ok(`${k} (updated${k === '.gitignore' ? ' — added cards.json.bak entry' : ''})`),
     unchanged: (k) => skip(`${k} (unchanged)`),
     'copied-dir': (k) => ok(`${k}`),
     'source-missing': (k) => fail(`${k} (source missing)`),
@@ -134,9 +215,55 @@ function printInstallResults(results) {
   }
 }
 
+// ── Preference capture flow ──────────────────────────────────────────────────
+
+/**
+ * Interactive preference flow. Walks user through config options.
+ * Returns config object with user's choices (merged over current/defaults).
+ */
+async function capturePreferences(currentCfg) {
+  const cfg = { ...currentCfg };
+
+  console.log('\n── Preferences ──────────────────────────────────────────────────────────\n');
+
+  // 1. Load mode
+  cfg.loadMode = await select('How should Burrow load cards at session start?', [
+    { value: 'auto',  label: 'auto  — full read if small, index if large (recommended)' },
+    { value: 'full',  label: 'full  — always read the entire cards.json' },
+    { value: 'index', label: 'index — always load a lightweight title-only index' },
+    { value: 'none',  label: 'none  — don\'t load anything automatically' },
+  ], cfg.loadMode);
+
+  // 2. Auto threshold (only relevant if auto mode)
+  if (cfg.loadMode === 'auto') {
+    const threshAnswer = await ask(
+      `  Auto threshold (tokens before switching to index) [${cfg.autoThreshold}]: `,
+      String(cfg.autoThreshold)
+    );
+    const parsed = parseInt(threshAnswer, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      cfg.autoThreshold = parsed;
+    } else {
+      warn(`Invalid value "${threshAnswer}", keeping ${cfg.autoThreshold}`);
+    }
+  }
+
+  // 3. Trigger preset
+  console.log('');
+  cfg.triggerPreset = await select('Which trigger words should prompt Burrow to save?', [
+    { value: 'broad',   label: 'broad   — "remember", "don\'t forget", "note this", etc. (recommended)' },
+    { value: 'minimal', label: 'minimal — only "burrow this"' },
+    { value: 'none',    label: 'none    — no automatic triggers' },
+  ], cfg.triggerPreset);
+  cfg.triggerWords = config.TRIGGER_PRESETS[cfg.triggerPreset] || [];
+
+  console.log('');
+  return cfg;
+}
+
 // ── Post-install message ──────────────────────────────────────────────────────
 
-function printGettingStarted() {
+function printGettingStarted(cfg, addedClaudeMd) {
   console.log(`
 ── Getting Started ──────────────────────────────────────────────────────
 
@@ -149,11 +276,42 @@ function printGettingStarted() {
          --body "A note about my project"
 
   3. List all cards:
-       node .claude/burrow/burrow-tools.cjs list
+       node .claude/burrow/burrow-tools.cjs list`);
 
-  4. CLAUDE.md has been updated with Burrow agent instructions so Claude
-     will automatically load your cards on every session start.
+  if (addedClaudeMd) {
+    console.log(`
+── What Burrow will do on each Claude session ──────────────────────────
+`);
+    // Load behavior
+    if (cfg.loadMode === 'none') {
+      console.log('  - Cards are not loaded automatically. Claude reads them on demand.');
+    } else {
+      console.log('  - Claude will silently run `burrow load` at session start.');
+      if (cfg.loadMode === 'auto') {
+        console.log('    (loads full tree or index depending on file size)');
+      } else {
+        console.log(`    (mode: ${cfg.loadMode})`);
+      }
+    }
 
+    // Trigger behavior
+    if (cfg.triggerPreset === 'broad') {
+      console.log('  - When you say "remember", "don\'t forget", etc., Claude will');
+      console.log('    automatically save a Burrow card.');
+    } else if (cfg.triggerPreset === 'minimal') {
+      console.log('  - When you say "burrow this", Claude will save a Burrow card.');
+    } else if (cfg.triggerPreset === 'none') {
+      console.log('  - No automatic triggers — Claude only saves cards when you');
+      console.log('    explicitly use /burrow.');
+    }
+
+    console.log(`
+  To change these behaviors:
+    node .claude/burrow/burrow-tools.cjs config set loadMode <full|index|none|auto>
+    node .claude/burrow/burrow-tools.cjs config set triggerPreset <broad|minimal|none>`);
+  }
+
+  console.log(`
 ─────────────────────────────────────────────────────────────────────────
 `);
 }
@@ -214,23 +372,31 @@ async function runInstall({ sourceDir, targetDir, yes, detection }) {
     addClaudeMd = claudeAnswer.toLowerCase() !== 'n';
   }
 
+  // Capture preferences interactively, or use defaults
+  let cfg = { ...config.DEFAULTS };
+  if (!yes) {
+    cfg = await capturePreferences(cfg);
+  } else {
+    console.log('  Using default preferences:');
+    console.log(`    loadMode: ${cfg.loadMode}`);
+    console.log(`    triggerPreset: ${cfg.triggerPreset}`);
+  }
+
   const results = performInstall(sourceDir, targetDir);
   printInstallResults(results);
 
+  // Save user preferences to config.json
+  config.save(targetDir, cfg);
+  ok('config.json (saved)');
+
   if (addClaudeMd) {
-    let cfg;
-    try {
-      cfg = config.load(targetDir);
-    } catch (_) {
-      cfg = { ...config.DEFAULTS };
-    }
     writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
-    ok('CLAUDE.md (burrow block added)');
+    ok('CLAUDE.md (burrow block added — controls how Claude loads your cards)');
   } else {
-    skip('CLAUDE.md (skipped)');
+    skip('CLAUDE.md (skipped — no agent behavior changes)');
   }
 
-  printGettingStarted();
+  printGettingStarted(cfg, addClaudeMd);
 }
 
 // ── Upgrade flow ──────────────────────────────────────────────────────────────
@@ -270,31 +436,47 @@ async function runUpgrade({ sourceDir, targetDir, yes, detection }) {
     }
   }
 
+  // Load existing config
+  let cfg;
+  try {
+    cfg = config.load(targetDir);
+  } catch (_) {
+    cfg = { ...config.DEFAULTS };
+  }
+
+  // Offer to update preferences
+  if (!yes) {
+    const configAnswer = await ask('  Update preferences? [y/N] ', 'n');
+    if (configAnswer.toLowerCase() === 'y') {
+      cfg = await capturePreferences(cfg);
+      config.save(targetDir, cfg);
+      ok('config.json (updated)');
+    }
+  }
+
   const results = performUpgrade(sourceDir, targetDir);
   printInstallResults(results);
 
   // Handle CLAUDE.md sentinel
   if (detection.hasSentinel) {
-    let cfg;
-    try {
-      cfg = config.load(targetDir);
-    } catch (_) {
-      cfg = { ...config.DEFAULTS };
-    }
     writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
-    ok('CLAUDE.md (sentinel block updated)');
+    ok('CLAUDE.md (sentinel block updated to match current config)');
   } else if (detection.hasLegacyClaude) {
-    // Wrap legacy ## Burrow section in sentinels
-    let cfg;
-    try {
-      cfg = config.load(targetDir);
-    } catch (_) {
-      cfg = { ...config.DEFAULTS };
+    if (!yes) {
+      const legacyAnswer = await ask('  CLAUDE.md has a legacy Burrow section. Replace with updated version? [Y/n] ', 'y');
+      if (legacyAnswer.toLowerCase() === 'n') {
+        skip('CLAUDE.md (legacy section kept as-is)');
+      } else {
+        writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
+        warn('CLAUDE.md legacy Burrow section replaced with sentinel block');
+      }
+    } else {
+      writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
+      warn('CLAUDE.md legacy Burrow section replaced with sentinel block');
     }
-    writeSentinelBlock(claudeMdPath, generateSnippet(cfg));
-    warn('CLAUDE.md had legacy Burrow section — replaced with sentinel block');
+  } else {
+    skip('CLAUDE.md (no Burrow section found — not modified)');
   }
-  // else: no action (user opted out previously)
 
   console.log('\n  Upgrade complete.\n');
 }
@@ -394,6 +576,12 @@ async function main() {
   if (flags.help) {
     printUsage();
     process.exit(0);
+  }
+
+  // Auto-detect non-interactive stdin (e.g. npx piping, CI, AI agents)
+  if (!flags.yes && !flags.interactive && !process.stdin.isTTY) {
+    flags.yes = true;
+    console.log('  Non-interactive terminal detected, using defaults. Pass --interactive to override.');
   }
 
   const sourceDir = __dirname;

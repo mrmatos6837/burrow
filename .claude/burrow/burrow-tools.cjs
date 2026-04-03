@@ -9,7 +9,8 @@ const tree = require('./lib/mongoose.cjs');
 const render = require('./lib/render.cjs');
 const config = require('./lib/config.cjs');
 const loader = require('./lib/loader.cjs');
-const { init } = require('./lib/init.cjs');
+const { CLI_COMMANDS } = require('./lib/commands.cjs');
+
 const version = require('./lib/version.cjs');
 
 /**
@@ -62,25 +63,13 @@ async function main() {
   const cwd = process.cwd();
 
   if (!command) {
-    handleError(
-      'No command provided. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index, load'
-    );
+    const available = CLI_COMMANDS.map(c => c.name).join(', ');
+    handleError(`No command provided. Available: ${available}`);
   }
 
   core.ensureDataDir(cwd);
 
   switch (command) {
-    case 'init': {
-      const result = init(cwd);
-      const lines = [
-        `gitignore: ${result.gitignore}`,
-        `claudeMd: ${result.claudeMd}`,
-        `dataDir: ${result.dataDir}`,
-      ];
-      writeAndExit(`Burrow initialized.\n${lines.join('\n')}`);
-      break;
-    }
-
     case 'add': {
       const { values } = parseArgs({
         args: subArgs,
@@ -555,9 +544,8 @@ async function main() {
     }
 
     default:
-      handleError(
-        `Unknown command: ${command}. Available: init, add, edit, remove, move, read, dump, path, find, archive, unarchive, config, index, load`
-      );
+      const available = CLI_COMMANDS.map(c => c.name).join(', ');
+      handleError(`Unknown command: ${command}. Available: ${available}`);
   }
 }
 

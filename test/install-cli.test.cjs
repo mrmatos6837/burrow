@@ -34,8 +34,49 @@ describe('install.cjs --help', () => {
     const output = run('--help');
     assert.ok(output.includes('Usage:'), 'should contain Usage:');
     assert.ok(output.includes('--yes'), 'should describe --yes flag');
+    assert.ok(output.includes('--interactive'), 'should describe --interactive flag');
     assert.ok(output.includes('--uninstall'), 'should describe --uninstall flag');
     assert.ok(output.includes('--help'), 'should describe --help flag');
+  });
+});
+
+describe('install.cjs non-interactive TTY detection', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = makeTempDir();
+  });
+
+  afterEach(() => {
+    removeTempDir(tmpDir);
+  });
+
+  it('detects piped stdin and auto-uses defaults', () => {
+    // Pipe empty stdin to simulate non-TTY (e.g. npx)
+    const output = execSync(
+      `echo "" | node ${INSTALL_SCRIPT} "${tmpDir}"`,
+      { encoding: 'utf-8', cwd: REPO_ROOT }
+    );
+    assert.ok(
+      output.includes('Non-interactive terminal detected'),
+      'should print non-interactive message'
+    );
+    // Should still complete the install successfully
+    assert.ok(
+      fs.existsSync(path.join(tmpDir, '.claude', 'burrow', 'burrow-tools.cjs')),
+      'should install files despite non-TTY'
+    );
+  });
+
+  it('does not print non-interactive message with --yes', () => {
+    const output = execSync(
+      `echo "" | node ${INSTALL_SCRIPT} --yes "${tmpDir}"`,
+      { encoding: 'utf-8', cwd: REPO_ROOT }
+    );
+    assert.ok(
+      !output.includes('Non-interactive terminal detected'),
+      'should not print non-interactive message when --yes is explicit'
+    );
   });
 });
 

@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { atomicWriteFile } = require('./core.cjs');
+const { SLASH_COMMANDS, generateSlashCommand, generateHelpCommand } = require('./commands.cjs');
 
 // ── Sentinel markers ──────────────────────────────────────────────────────────
 
@@ -20,42 +21,41 @@ const SENTINEL_END = '<!-- burrow:end -->';
  */
 function generateSnippet(config) {
   const { loadMode, triggerPreset, triggerWords } = config;
+  const CLI = 'node .claude/burrow/burrow-tools.cjs';
+  const parts = [];
 
-  // ── HEADING ────────────────────────────────────────────────────────────────
-  const heading = `## Burrow — Agent Memory\n\nBurrow is your persistent memory.`;
+  // ── NOTE: This snippet is agent-facing (loaded into context on every ───
+  // ── session). Keep it concise — every token counts. Users looking for ──
+  // ── usage docs should run /burrow:help. ────────────────────────────────
 
-  // ── LOAD INSTRUCTION (varies by loadMode) ─────────────────────────────────
-  let loadInstruction;
-  switch (loadMode) {
-    case 'full':
-      loadInstruction = `On every session start, silently read \`.planning/burrow/cards.json\` using the Read tool to load project context, tasks, and notes.`;
-      break;
-    case 'index':
-      loadInstruction = `On every session start, run \`node .claude/burrow/burrow-tools.cjs index --json\` to load a lightweight card index (titles and IDs only, no bodies). When you need a card's full content, read \`.planning/burrow/cards.json\` and locate it by ID.`;
-      break;
-    case 'none':
-      loadInstruction = `Burrow cards are available but not loaded at session start. When you need project context, tasks, or notes, read \`.planning/burrow/cards.json\` on demand.`;
-      break;
-    case 'auto':
-    default:
-      loadInstruction = `On every session start, check the size of \`.planning/burrow/cards.json\`. If under the configured threshold, read it in full using the Read tool. If over, run \`node .claude/burrow/burrow-tools.cjs index --json\` for a lightweight index instead. When using index mode, read the full file to get card bodies on demand.`;
-      break;
+  // ── INTRO (constant) ──────────────────────────────────────────────────────
+  parts.push(`<!-- Agent instructions for Burrow. User docs: /burrow:help or https://www.npmjs.com/package/create-burrow -->`);
+  parts.push(`## Burrow — Agent Memory`);
+  parts.push(``);
+  parts.push(`Persistent card storage across sessions. All operations use the CLI (\`burrow\` below = \`${CLI}\`).`);
+
+  // ── SESSION START (driven by loadMode) ────────────────────────────────────
+  parts.push(``);
+  if (loadMode === 'none') {
+    parts.push(`**Session start:** Do not load cards automatically. Run \`burrow load\` when card context is needed — it returns cards and a list of all available commands.`);
+  } else {
+    parts.push(`**Session start:** Silently run \`burrow load\`. It returns a JSON envelope with card data, mode (full or index), and a list of all available commands. In index mode, fetch bodies on demand with \`burrow read <id> --full\`.`);
   }
 
-  // ── TRIGGER SECTION (varies by triggerPreset / triggerWords) ───────────────
-  let triggerSection = '';
+  // ── AUTO-SAVE (driven by triggerPreset) ───────────────────────────────────
   const words = Array.isArray(triggerWords) ? triggerWords : [];
-  const shouldIncludeTriggers = triggerPreset !== 'none' && words.length > 0;
-
-  if (shouldIncludeTriggers) {
+  if (triggerPreset !== 'none' && words.length > 0) {
     const quotedWords = words.map(w => `"${w}"`).join(', ');
-    triggerSection = `\n**When the user says ${quotedWords}, or any instruction meant to persist across sessions:**\n- Store it as a Burrow card: \`node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"\`\n- Organize under relevant parent cards (create parents if needed)\n- Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth\n`;
+    parts.push(``);
+    parts.push(`**Auto-save:** When the user says ${quotedWords}, or similar intent to persist information — run \`burrow add --title "<summary>" --body "<details>"\` and organize under relevant parents.`);
   }
 
-  // ── FOOTER (constant across all modes) ────────────────────────────────────
-  const footer = `**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.\n\nAll mutations go through the CLI — NEVER edit cards.json directly.\n`;
+  // ── RULES (constant) ──────────────────────────────────────────────────────
+  parts.push(``);
+  parts.push(`**Rules:** Data is committed to git — no secrets or credentials. Never edit cards.json directly; all mutations go through the CLI.`);
+  parts.push(``);
 
-  return `${heading} ${loadInstruction}\n${triggerSection}\n${footer}`;
+  return parts.join('\n');
 }
 
 // ── Core file paths (relative to target) ─────────────────────────────────────
@@ -289,18 +289,16 @@ function performInstall(sourceDir, targetDir, opts = {}) {
   copyDirSync(srcBurrow, destBurrow);
   results.burrowDir = 'copied';
 
-  // 2. Copy .claude/commands/burrow.md
+  // 2. Copy .claude/commands/burrow.md (the main /burrow entry point)
   ensureDir(path.join(targetDir, '.claude', 'commands'));
   const srcCommandFile = path.join(sourceDir, '.claude', 'commands', 'burrow.md');
   const destCommandFile = path.join(targetDir, '.claude', 'commands', 'burrow.md');
   fs.copyFileSync(srcCommandFile, destCommandFile);
   results.commandFile = 'copied';
 
-  // 3. Copy .claude/commands/burrow/
-  const srcCommandDir = path.join(sourceDir, '.claude', 'commands', 'burrow');
-  const destCommandDir = path.join(targetDir, '.claude', 'commands', 'burrow');
-  copyDirSync(srcCommandDir, destCommandDir);
-  results.commandDir = 'copied';
+  // 3. Generate .claude/commands/burrow/*.md from command registry
+  const slashCount = generateSlashCommands(targetDir);
+  results.commandDir = `generated (${slashCount} commands)`;
 
   // 4. Create .planning/burrow/ and empty cards.json
   const dataDir = path.join(targetDir, '.planning', 'burrow');
@@ -345,11 +343,9 @@ function performUpgrade(sourceDir, targetDir, opts = {}) {
   fs.copyFileSync(srcCommandFile, destCommandFile);
   results.commandFile = 'replaced';
 
-  // 3. Replace .claude/commands/burrow/
-  const srcCommandDir = path.join(sourceDir, '.claude', 'commands', 'burrow');
-  const destCommandDir = path.join(targetDir, '.claude', 'commands', 'burrow');
-  copyDirSync(srcCommandDir, destCommandDir);
-  results.commandDir = 'replaced';
+  // 3. Regenerate .claude/commands/burrow/*.md from command registry
+  const slashCount = generateSlashCommands(targetDir);
+  results.commandDir = `generated (${slashCount} commands)`;
 
   // 4. cards.json is NEVER touched on upgrade
   results.cardsJson = 'preserved';
@@ -408,12 +404,42 @@ function performRepair(sourceDir, targetDir, missingFiles) {
   return results;
 }
 
+// ── generateSlashCommands() ──────────────────────────────────────────────────
+
+/**
+ * Generate all .claude/commands/burrow/*.md files from the command registry.
+ * Writes to targetDir/.claude/commands/burrow/.
+ *
+ * @param {string} targetDir - Target project root
+ * @returns {number} Number of files written
+ */
+function generateSlashCommands(targetDir) {
+  const commandDir = path.join(targetDir, '.claude', 'commands', 'burrow');
+  ensureDir(commandDir);
+
+  let count = 0;
+  for (const cmd of SLASH_COMMANDS) {
+    let content;
+    if (cmd.custom) {
+      content = generateHelpCommand();
+    } else {
+      content = generateSlashCommand(cmd);
+    }
+    if (content) {
+      fs.writeFileSync(path.join(commandDir, `${cmd.name}.md`), content);
+      count++;
+    }
+  }
+  return count;
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
   SENTINEL_START,
   SENTINEL_END,
   generateSnippet,
+  generateSlashCommands,
   detect,
   performInstall,
   performUpgrade,

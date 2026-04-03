@@ -404,40 +404,39 @@ describe('generateSnippet()', () => {
     }
   });
 
-  it('all modes include Privacy: section', () => {
+  it('all modes include Rules section', () => {
     for (const mode of ['full', 'index', 'none', 'auto']) {
       const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
-      assert.ok(snippet.includes('Privacy:'), `mode=${mode}: should include Privacy: section`);
+      assert.ok(snippet.includes('**Rules:**'), `mode=${mode}: should include Rules section`);
     }
   });
 
   it('all modes include mutations CLI instruction', () => {
     for (const mode of ['full', 'index', 'none', 'auto']) {
       const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
-      assert.ok(snippet.includes('NEVER edit cards.json directly'), `mode=${mode}: should include CLI mutation instruction`);
+      assert.ok(snippet.includes('Never edit cards.json directly'), `mode=${mode}: should include CLI mutation instruction`);
     }
   });
 
-  it('loadMode=full includes read cards.json instruction', () => {
-    const snippet = generateSnippet(broadConfig);
-    assert.ok(snippet.includes('cards.json'), 'should include cards.json reference');
-    assert.ok(snippet.includes('Read tool'), 'should include Read tool reference');
+  it('all modes include intro with CLI alias definition', () => {
+    for (const mode of ['full', 'index', 'none', 'auto']) {
+      const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
+      assert.ok(snippet.includes('burrow-tools.cjs'), `mode=${mode}: should include full CLI path`);
+      assert.ok(snippet.includes('`burrow` below'), `mode=${mode}: should define burrow alias`);
+    }
   });
 
-  it('loadMode=index includes burrow-tools.cjs index instruction', () => {
-    const snippet = generateSnippet({ ...broadConfig, loadMode: 'index' });
-    assert.ok(snippet.includes('burrow-tools.cjs index'), 'should include index command reference');
+  it('loadMode=full/index/auto instructs agent to run burrow load', () => {
+    for (const mode of ['full', 'index', 'auto']) {
+      const snippet = generateSnippet({ ...broadConfig, loadMode: mode });
+      assert.ok(snippet.includes('`burrow load`'), `mode=${mode}: should include load command`);
+    }
   });
 
-  it('loadMode=none includes on demand instruction', () => {
+  it('loadMode=none does not auto-load but still references load command', () => {
     const snippet = generateSnippet({ ...broadConfig, loadMode: 'none' });
-    assert.ok(snippet.includes('on demand'), 'should include on demand reference');
-  });
-
-  it('loadMode=auto includes auto and threshold', () => {
-    const snippet = generateSnippet({ ...broadConfig, loadMode: 'auto' });
-    assert.ok(snippet.includes('auto') || snippet.includes('threshold'), 'should reference auto mode or threshold');
-    assert.ok(snippet.includes('threshold'), 'should include threshold reference');
+    assert.ok(snippet.includes('Do not load cards automatically'), 'should say do not load automatically');
+    assert.ok(snippet.includes('`burrow load`'), 'should include load command for on-demand use');
   });
 
   it('triggerPreset=broad includes remember and don\'t forget', () => {
@@ -452,14 +451,14 @@ describe('generateSnippet()', () => {
     assert.ok(!snippet.includes('"remember"'), 'should NOT include "remember"');
   });
 
-  it('triggerPreset=none does NOT include When the user says section', () => {
+  it('triggerPreset=none does NOT include Auto-save section', () => {
     const snippet = generateSnippet(noneConfig);
-    assert.ok(!snippet.includes('When the user says'), 'should NOT include trigger section');
+    assert.ok(!snippet.includes('**Auto-save:**'), 'should NOT include auto-save section');
   });
 
-  it('triggerPreset=none with empty triggerWords omits trigger section', () => {
+  it('triggerPreset=none with empty triggerWords omits auto-save section', () => {
     const snippet = generateSnippet({ loadMode: 'full', triggerPreset: 'none', triggerWords: [] });
-    assert.ok(!snippet.includes('When the user says'), 'should NOT include trigger section');
+    assert.ok(!snippet.includes('**Auto-save:**'), 'should NOT include auto-save section');
   });
 
   it('triggerPreset=custom with triggerWords=[foo] includes foo', () => {

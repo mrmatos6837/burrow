@@ -1469,6 +1469,14 @@
       "archived": false,
       "body": "Run through before every npm publish or milestone close:\n\n1. Version bump — package.json version matches the tag being created\n2. .gitignore — no runtime/generated files leaking into git\n3. README — all CLI commands documented in both the CLI Reference and shortcut commands list\n4. Slash commands — every user-facing CLI command has a .md file in .claude/commands/burrow/\n5. Workflow reference table — workflows/burrow.md command table lists all commands\n6. Help command — /burrow:help lists all available commands with examples\n7. Tests — every CLI command has test coverage in test/cli.test.cjs\n8. CLAUDE.md — accurately describes current project state\n9. No stale references — grep for old names, removed features, dead imports\n10. git status clean — no uncommitted changes that should be included",
       "children": []
+    },
+    {
+      "id": "a02e04d7",
+      "title": "Design principle: transparency and consent",
+      "created": "2026-04-03T12:16:40.566Z",
+      "archived": false,
+      "body": "Silent behavior is fine — what matters is that the user was told it would happen and had the chance to consent or opt out. Every feature that changes how Claude behaves must: (1) be clearly communicated during installation, (2) give the user a way to turn it off, (3) never surprise the user with something they didn't know was happening. It's not about avoiding automation — it's about managing expectations and respecting the user's agency over their own machine.",
+      "children": []
     }
   ]
 }

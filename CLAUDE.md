@@ -7,15 +7,13 @@
 - CommonJS (.cjs) throughout
 - Tests: node --test test/*.test.cjs
 
+<!-- Agent instructions for Burrow. User docs: /burrow:help or https://www.npmjs.com/package/create-burrow -->
 ## Burrow — Agent Memory
 
-Burrow is your persistent memory. On every session start, silently read `.planning/burrow/cards.json` using the Read tool to load project context, tasks, and notes.
+Persistent card storage across sessions. All operations use the CLI (`burrow` below = `node .claude/burrow/burrow-tools.cjs`).
 
-**When the user says "remember", "don't forget", "always do X", or any instruction meant to persist across sessions:**
-- Store it as a Burrow card: `node .claude/burrow/burrow-tools.cjs add --title "<summary>" --body "<details>"`
-- Organize under relevant parent cards (create parents if needed)
-- Do NOT write to loose markdown files or other ad-hoc storage — Burrow is the single source of truth
+**Session start:** Silently run `burrow load`. It returns a JSON envelope with card data, mode (full or index), and a list of all available commands. In index mode, fetch bodies on demand with `burrow read <id> --full`.
 
-**Privacy:** Burrow data is meant to be committed to git. Anything stored in cards is visible to anyone with repo access. Avoid storing secrets, credentials, or sensitive personal information.
+**Auto-save:** When the user says "remember", "don't forget", "always do X", "note this", "save this", "keep track of", "burrow this", or similar intent to persist information — run `burrow add --title "<summary>" --body "<details>"` and organize under relevant parents.
 
-All mutations go through the CLI — NEVER edit cards.json directly.
+**Rules:** Data is committed to git — no secrets or credentials. Never edit cards.json directly; all mutations go through the CLI.

@@ -286,4 +286,34 @@ describe('loader.load()', () => {
     assert.equal(envelope.mode, 'full');
     assert.equal(envelope.cardCount, 0);
   });
+
+  it('all modes include commands array in envelope', () => {
+    writeCards(tmpDir, SAMPLE_CARDS);
+
+    for (const loadMode of ['full', 'index', 'none']) {
+      writeConfig(tmpDir, { loadMode });
+      const envelope = loader.load(tmpDir);
+
+      assert.ok(Array.isArray(envelope.commands), `mode=${loadMode}: commands should be an array`);
+      assert.ok(envelope.commands.length > 0, `mode=${loadMode}: commands should not be empty`);
+
+      // Each command has name, usage, desc
+      for (const cmd of envelope.commands) {
+        assert.ok(cmd.name, 'command should have name');
+        assert.ok(cmd.usage, 'command should have usage');
+        assert.ok(cmd.desc, 'command should have desc');
+      }
+    }
+  });
+
+  it('commands include core operations (add, edit, remove, find, archive)', () => {
+    writeCards(tmpDir, SAMPLE_CARDS);
+    writeConfig(tmpDir, { loadMode: 'full' });
+    const envelope = loader.load(tmpDir);
+
+    const names = envelope.commands.map(c => c.name);
+    for (const expected of ['load', 'add', 'edit', 'remove', 'find', 'archive', 'unarchive']) {
+      assert.ok(names.includes(expected), `commands should include "${expected}"`);
+    }
+  });
 });
