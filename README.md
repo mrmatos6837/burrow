@@ -207,6 +207,50 @@ path <id>                     # show ancestry path from root to card
 
 `find` searches all active (non-archived) card titles and returns matches with their full path. `path` shows the breadcrumb trail: `burrow > parent > child [id]`.
 
+### Index
+
+```bash
+index                         # lightweight tree summary (active cards only)
+index --depth 2               # limit to 2 levels deep
+index --include-archived      # include archived cards
+index --json                  # raw JSON output for scripts/agents
+```
+
+`index` generates a stripped-down view of the tree — just IDs, titles, child counts, and body indicators. Useful for quick orientation or cheap agent context loading. The `--json` flag outputs machine-readable data directly.
+
+### Configuration
+
+```bash
+config list                   # show all current settings
+config get <key>              # get a single value
+config set <key> <value>      # update a setting
+```
+
+Settings are stored in `.planning/burrow/config.json`. Available keys:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `loadMode` | `auto` | How data loads on session start: `full`, `index`, `none`, or `auto` |
+| `autoThreshold` | `4000` | Token threshold for auto mode (file size ÷ 4) |
+| `indexDepth` | `0` | Depth limit for index builds (0 = unlimited) |
+| `triggerPreset` | `broad` | Trigger word preset: `broad`, `minimal`, `none`, or `custom` |
+| `triggerWords` | (derived) | Custom trigger words (only when preset is `custom`) |
+
+### Loading
+
+```bash
+load                          # load data based on config (for agents)
+```
+
+`load` is the agent's session-start entry point. It reads your config and returns a JSON envelope with the appropriate data:
+
+- **full** — the entire tree, every field
+- **index** — lightweight index (respects `indexDepth`)
+- **none** — card count only, no tree data
+- **auto** — picks `full` or `index` based on file size vs `autoThreshold`
+
+Output is always raw JSON for agent/script consumption, not meant for humans.
+
 ### Card Schema
 
 Every card has this shape:
