@@ -111,9 +111,9 @@ const COMMANDS = [
     desc: 'Update burrow to the latest version',
     usage: 'update',
     argHint: '',
-    body: 'Check for and install burrow updates.',
     slash: true,
     cliCommand: false,  // slash-only, not a CLI subcommand
+    custom: true,       // has its own template (runs npx, not burrow-tools.cjs)
   },
   {
     name: 'help',
@@ -209,6 +209,27 @@ ${table}
 }
 
 /**
+ * Generate the update.md slash command.
+ * Runs npx create-burrow, not burrow-tools.cjs.
+ * @returns {string} Full update.md content
+ */
+function generateUpdateCommand() {
+  return `---
+name: burrow:update
+description: Update burrow to the latest version
+argument-hint: ""
+allowed-tools:
+  - Bash
+---
+Update burrow to the latest version from npm.
+
+Run: \`npx create-burrow --yes\`
+
+This fetches the latest published version of burrow from npm and runs the installer in non-interactive mode. Your existing cards.json data is always preserved during upgrades.
+`;
+}
+
+/**
  * Return the subset of command data included in the load envelope (agent-facing).
  * Strips internal fields like argHint, body, slash, custom, etc.
  */
@@ -222,6 +243,7 @@ module.exports = {
   SLASH_COMMANDS,
   generateSlashCommand,
   generateHelpCommand,
+  generateUpdateCommand,
   commandsForEnvelope,
   CLI,
 };

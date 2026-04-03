@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { atomicWriteFile } = require('./core.cjs');
-const { SLASH_COMMANDS, generateSlashCommand, generateHelpCommand } = require('./commands.cjs');
+const { SLASH_COMMANDS, generateSlashCommand, generateHelpCommand, generateUpdateCommand } = require('./commands.cjs');
 
 // ── Sentinel markers ──────────────────────────────────────────────────────────
 
@@ -428,8 +428,12 @@ function generateSlashCommands(targetDir) {
   let count = 0;
   for (const cmd of SLASH_COMMANDS) {
     let content;
-    if (cmd.custom) {
+    if (cmd.name === 'help') {
       content = generateHelpCommand();
+    } else if (cmd.name === 'update') {
+      content = generateUpdateCommand();
+    } else if (cmd.custom) {
+      continue;  // unknown custom command, skip
     } else {
       content = generateSlashCommand(cmd);
     }
