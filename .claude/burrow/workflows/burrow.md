@@ -76,6 +76,8 @@ All commands invoked as: `node .claude/burrow/burrow-tools.cjs <command> [args]`
 | find | `find <query>` | Fuzzy search cards by title. Returns IDs and paths. |
 | dump | `dump` | Alias for `read --depth 0` (full tree). |
 | path | `path <id>` | Show ancestry from root to card. |
+| config | `config list\|get\|set <key> <value>` | Manage settings (loadMode, autoThreshold, indexDepth, triggerPreset). |
+| index | `index [--depth N] [--include-archived] [--json]` | Lightweight tree summary (IDs, titles, child counts). |
 
 ## Position Translation
 

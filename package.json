@@ -1,6 +1,6 @@
 {
   "name": "create-burrow",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Infinitely nestable cards for AI agents. Persistent card-based memory for Claude Code.",
   "license": "MIT",
   "author": "mrmatos",
@@ -26,7 +26,8 @@
     "cards",
     "agent-memory",
     "cli",
-    "tree"
+    "tree",
+    "zero-dependencies"
   ],
   "scripts": {
     "prepublishOnly": "node -e \"require('fs').writeFileSync('.claude/burrow/VERSION', require('./package.json').version + '\\n')\""

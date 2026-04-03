@@ -449,6 +449,80 @@ describe('path', () => {
   });
 });
 
+describe('find', () => {
+  it('finds card by title substring', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('Login Bug', dir);
+      addCard('Signup Flow', dir);
+      const output = run(['find', 'login'], dir);
+      assert.ok(output.includes('Login Bug'), 'Should find matching card');
+      assert.ok(output.includes('1 match'), 'Should report match count');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('find is case-insensitive', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('OAuth Token', dir);
+      const output = run(['find', 'oauth'], dir);
+      assert.ok(output.includes('OAuth Token'), 'Should match case-insensitively');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('find returns multiple matches', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('Auth Login', dir);
+      addCard('Auth Signup', dir);
+      addCard('Unrelated', dir);
+      const output = run(['find', 'auth'], dir);
+      assert.ok(output.includes('Auth Login'), 'Should find first match');
+      assert.ok(output.includes('Auth Signup'), 'Should find second match');
+      assert.ok(output.includes('2 match'), 'Should report 2 matches');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('find reports no matches', () => {
+    const dir = makeTmpDir();
+    try {
+      addCard('Something', dir);
+      const output = run(['find', 'nonexistent'], dir);
+      assert.ok(output.includes('No cards matching'), 'Should report no matches');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('find with no query returns error', () => {
+    const dir = makeTmpDir();
+    try {
+      const output = run(['find'], dir);
+      assert.ok(output.includes('\u2717'), 'Should contain cross-mark');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+
+  it('find matches nested cards', () => {
+    const dir = makeTmpDir();
+    try {
+      const parent = addCard('Bugs', dir);
+      addCard('Login Crash', dir, { parent: parent.id });
+      const output = run(['find', 'crash'], dir);
+      assert.ok(output.includes('Login Crash'), 'Should find nested card');
+    } finally {
+      removeTmpDir(dir);
+    }
+  });
+});
+
 describe('error handling', () => {
   it('unknown command returns error', () => {
     const dir = makeTmpDir();

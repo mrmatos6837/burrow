@@ -111,7 +111,8 @@ Or use the shortcut commands directly:
 /burrow:add       /burrow:read      /burrow:dump
 /burrow:edit      /burrow:move      /burrow:archive
 /burrow:remove    /burrow:unarchive /burrow:help
-/burrow:update
+/burrow:find      /burrow:path      /burrow:config
+/burrow:index     /burrow:update
 ```
 
 All data lives in a single file: `.planning/burrow/cards.json`. The agent reads it into memory, resolves your references, and calls the CLI. You never touch JSON.

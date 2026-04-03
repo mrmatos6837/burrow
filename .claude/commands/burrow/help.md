@@ -19,6 +19,11 @@ Output the following command reference:
 | `/burrow:archive id` | Archive a card |
 | `/burrow:unarchive id` | Restore an archived card |
 | `/burrow:dump` | Full tree view (all depths) |
+| `/burrow:find <query>` | Search cards by title |
+| `/burrow:path <id>` | Show ancestry path from root to card |
+| `/burrow:config list\|get\|set` | Manage burrow settings |
+| `/burrow:index [--depth N] [--json]` | Lightweight tree summary |
+| `/burrow:update` | Update burrow to latest version |
 | `/burrow:help` | This reference |
 
 ### Examples
@@ -26,4 +31,6 @@ Output the following command reference:
 - `/burrow show me my bugs` -- natural language via `/burrow`
 - `/burrow:add --title "fix login" --parent a1b2c3d4` -- add under a specific card
 - `/burrow:read a1b2c3d4 --depth 2` -- view card with 2 levels of children
+- `/burrow:find auth` -- search for cards with "auth" in the title
+- `/burrow:config set loadMode index` -- change a setting
 - `/burrow:dump` -- see everything

@@ -1378,6 +1378,63 @@
               "children": []
             }
           ]
+        },
+        {
+          "id": "6cee87cf",
+          "title": "v1.2.3 Onboarding & Configuration",
+          "created": "2026-04-01T12:16:38.158Z",
+          "archived": false,
+          "body": "## Vision\n\nGive users control over how Burrow behaves — starting from install and adjustable anytime after. The installer becomes a proper onboarding flow that asks meaningful questions, and a new /burrow:config command lets users change their mind later.\n\n## Why\n\nThe current installer copies files and optionally appends to CLAUDE.md — that's it. There are no choices about how Burrow runs. Meanwhile, the biggest operational cost is the session-start load: the agent reads the full cards.json (~30K tokens at 157 cards), whether the session needs it or not. Users should decide how much context they want loaded, and the installer should walk them through it.\n\n## Key Changes\n\n1. **`burrow index` command** — lightweight tree output (titles + IDs only, no bodies) for cheap session starts\n2. **Config system** — persistent settings in `.claude/burrow/config.json`, respected by the workflow\n3. **Installer onboarding prompts** — ask about context loading mode during install\n4. **/burrow:config command** — view and change settings from within Claude Code\n5. **Updated CLAUDE.md snippet** — sentinel block reflects the chosen loading mode\n6. **Updated workflow** — Step 1 (LOAD) respects loadMode setting instead of always reading full cards.json\n\n## Build Order (dependencies)\n\nPhase 1: index command + config system (the primitives — no dependencies)\nPhase 2: workflow update + CLAUDE.md snippet variants (wires config into agent behavior — depends on Phase 1)\nPhase 3: installer onboarding + /burrow:config command (user-facing surfaces — depends on Phases 1-2)\n\n## Context Loading Modes\n\n- **full** (current default): Read entire cards.json on session start. Best for small burrows.\n- **index**: Run `burrow index` on session start — titles, IDs, structure only (~95% token reduction). Agent drills down with `read <id>` as needed.\n- **index --depth N**: Index capped at depth N. Maximum control.\n- **none**: Load nothing on session start. Agent requests what it needs explicitly.\n- **auto**: Burrow picks based on cards.json size. Small = full, large = index.\n\n## Related Research\n\n- Selective loading strategies: card 9c6426ca (detailed token savings analysis)\n- Token cost analysis: card 7a5f1dd1 (cards.json vs GSD comparison)\n- v1.3 map command plans: card 5784bfd9 (earlier design notes)\n\n## Scope\n\nIN: Config system, index command, installer onboarding, /burrow:config command, workflow update, CLAUDE.md snippet variants.\nOUT: Multi-file sharding, subtree extraction, GSD migration, plugin packaging.",
+          "children": [
+            {
+              "id": "7365cb5d",
+              "title": "burrow index command",
+              "created": "2026-04-01T12:16:47.028Z",
+              "archived": false,
+              "body": "New CLI command that outputs a lightweight tree — titles, IDs, child counts, and archive status only. No bodies, no ages, no box-drawing chrome. JSON output meant for agent consumption on session start.\n\nFlags:\n- --depth N (limit depth, default unlimited)\n- --include-archived\n- --flat (flat array with parentId instead of nested)\n\nToken savings (from research card 9c6426ca):\n- Full cards.json today: ~30K tokens\n- index (active only): ~6,200 tokens (79% reduction)\n- index --depth 2: ~1,600 tokens (95% reduction)\n\nImplementation: ~50 lines in burrow-tools.cjs, ~20 lines helper in mongoose.cjs. Recursive tree walk that strips body fields and outputs clean JSON.",
+              "children": []
+            },
+            {
+              "id": "eda76806",
+              "title": "Config system (config.json)",
+              "created": "2026-04-01T12:16:51.186Z",
+              "archived": false,
+              "body": "Persistent configuration stored at .claude/burrow/config.json. Read by the CLI and workflow on every invocation.\n\nSettings:\n- loadMode: 'full' | 'index' | 'index --depth N' | 'none' | 'auto' (default: 'auto')\n- autoThreshold: size in KB at which auto mode switches from full to index (default: 50)\n\nImplementation:\n- New lib/config.cjs module — load/save/get/set functions\n- Default config created during install\n- Config file is SACRED (never overwritten on update, like cards.json)\n- Zero dependencies — just fs read/write of JSON",
+              "children": []
+            },
+            {
+              "id": "33c2be66",
+              "title": "Installer onboarding prompts",
+              "created": "2026-04-01T12:16:55.266Z",
+              "archived": false,
+              "body": "Expand the installer's interactive flow to ask about context loading during setup.\n\nNew prompt (after CLAUDE.md opt-in):\n- 'How should Burrow load on session start?' with options:\n  - Auto (recommended) — picks based on size\n  - Full — always load everything\n  - Index only — titles and structure, drill down on demand\n  - None — load nothing, ask explicitly\n\nThe chosen mode is written to config.json and the CLAUDE.md sentinel snippet is adjusted to match. On upgrade, existing config is preserved (SACRED file).\n\nAlso: the --yes flag should pick 'auto' as the default.",
+              "children": []
+            },
+            {
+              "id": "dcebacd3",
+              "title": "/burrow:config command",
+              "created": "2026-04-01T12:17:05.449Z",
+              "archived": false,
+              "body": "New slash command: /burrow:config — view and change Burrow settings from within Claude Code.\n\nUsage:\n- /burrow:config — show all current settings\n- /burrow:config loadMode index — change the loading mode\n- /burrow:config autoThreshold 100 — change the auto threshold\n\nImplementation:\n- New .claude/commands/burrow/config.md command file\n- CLI: 'node burrow-tools.cjs config [key] [value]'\n  - No args: print all settings as pretty table\n  - One arg: print that setting's value\n  - Two args: set the value, print confirmation\n- After changing loadMode, prompt: 'Update CLAUDE.md to match? (y/n)' — rewrites the sentinel block with the new loading instructions.",
+              "children": []
+            },
+            {
+              "id": "1fe8ea63",
+              "title": "CLAUDE.md snippet variants",
+              "created": "2026-04-01T12:17:08.658Z",
+              "archived": false,
+              "body": "The sentinel block in CLAUDE.md currently hardcodes 'read cards.json using the Read tool'. It needs to vary based on loadMode.\n\nVariants:\n- full: 'silently read .planning/burrow/cards.json using the Read tool' (current behavior)\n- index: 'run node .claude/burrow/burrow-tools.cjs index to load the card tree structure, then read specific cards as needed'\n- index --depth N: same as index but with --depth flag\n- none: 'Burrow is available but not pre-loaded. Use /burrow commands to interact.'\n- auto: 'run node .claude/burrow/burrow-tools.cjs load to let Burrow decide what to load based on data size'\n\nThe installer writes the correct variant. /burrow:config rewrites it when loadMode changes.",
+              "children": []
+            },
+            {
+              "id": "6f267dd7",
+              "title": "Workflow update (LOAD step)",
+              "created": "2026-04-01T12:17:14.343Z",
+              "archived": false,
+              "body": "Rewrite Step 1 (LOAD) in .claude/burrow/workflows/burrow.md to respect the loadMode config.\n\nCurrent behavior: always 'Read cards.json using the Read tool'.\n\nNew behavior:\n1. Read .claude/burrow/config.json to get loadMode\n2. Based on mode:\n   - full: Read cards.json via Read tool (current)\n   - index: Run 'burrow index' via Bash, parse JSON into memory\n   - index --depth N: Run 'burrow index --depth N'\n   - none: Skip load entirely, note that cards are available on demand\n   - auto: Check cards.json size, pick full or index accordingly\n3. On any /burrow command, if only index was loaded and the command needs body content, the agent knows to run 'read <id> --full' for specific cards.\n\nThe workflow should also document the 'lazy body fetching' pattern: load index first, drill down as needed.",
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -1395,6 +1452,22 @@
       "created": "2026-03-30T21:00:17.963Z",
       "archived": false,
       "body": "1. Commit changes first (npm version requires clean tree)\\n2. npm version patch|minor|major (bumps package.json, creates commit + git tag)\\n3. npm publish (prepublishOnly syncs VERSION automatically)\\n4. git push && git push --tags\\n\\nKey rules:\\n- Can't republish a version — if you mess up, bump again\\n- npm pack to inspect tarball locally before publishing\\n- Use --tag beta for pre-releases\\n- files in package.json is the allowlist for what ships",
+      "children": []
+    },
+    {
+      "id": "ed4fa584",
+      "title": "Project Guidelines",
+      "created": "2026-04-01T12:21:37.860Z",
+      "archived": false,
+      "body": "How to use Burrow for managing this project. Read this card when starting a new milestone or onboarding a new agent session.\n\n## Milestone Cards\n\nWhen planning a new milestone, build the full context as a Burrow card tree under Milestones so any agent can read it and start working.\n\nA milestone card should contain:\n- **Vision** — what and why, in 2-3 sentences\n- **Why** — the problem being solved, with concrete data if available\n- **Key Changes** — numbered list of deliverables\n- **Build Order** — phase dependencies (what must ship before what)\n- **Context Loading Modes / Key Concepts** — define any new concepts introduced\n- **Related Research** — card IDs pointing to prior research or backlog analysis\n- **Scope** — explicit IN/OUT boundaries\n\nEach deliverable gets a **child card** with:\n- What it does (one paragraph)\n- API/CLI design (flags, usage examples)\n- Implementation notes (estimated complexity, which files change)\n- Data from research cards where applicable (token savings, benchmarks, etc.)\n\nThe goal: an agent running `read <milestone-id> --depth 0 --full` gets everything it needs to create a GSD milestone, plan phases, and start building — no additional context gathering required.\n\n## Research Cards\n\nStore research findings as cards under the relevant milestone or backlog item. Include measured data (token counts, file sizes, benchmarks) — not just opinions. Reference research cards by ID from milestone bodies.\n\n## Backlog\n\nFuture ideas live under the Backlog card. When promoting a backlog item to a milestone, reference the original card ID so the research carries forward.",
+      "children": []
+    },
+    {
+      "id": "be51427a",
+      "title": "Milestone Closing Checklist",
+      "created": "2026-04-03T08:08:31.622Z",
+      "archived": false,
+      "body": "Run through before every npm publish or milestone close:\n\n1. Version bump — package.json version matches the tag being created\n2. .gitignore — no runtime/generated files leaking into git\n3. README — all CLI commands documented in both the CLI Reference and shortcut commands list\n4. Slash commands — every user-facing CLI command has a .md file in .claude/commands/burrow/\n5. Workflow reference table — workflows/burrow.md command table lists all commands\n6. Help command — /burrow:help lists all available commands with examples\n7. Tests — every CLI command has test coverage in test/cli.test.cjs\n8. CLAUDE.md — accurately describes current project state\n9. No stale references — grep for old names, removed features, dead imports\n10. git status clean — no uncommitted changes that should be included",
       "children": []
     }
   ]
