@@ -16,28 +16,26 @@ CLI path: `node .claude/burrow/burrow-tools.cjs`
 
 Every `/burrow` invocation follows this sequence. No exceptions.
 
-### Step 1: LOAD (silent)
+### Step 1: LOAD (silent, only if needed)
 
-Run `burrow load` via the Bash tool to load context. This command reads config.json and returns a JSON envelope with mode-appropriate data.
+If you already have card data in memory from session start (via CLAUDE.md auto-load) and no mutation has occurred since, **skip this step**.
+
+Otherwise, run `burrow load` via the Bash tool:
 
 ```
 node .claude/burrow/burrow-tools.cjs load
 ```
 
-The output is a JSON object: `{"mode": "<resolved>", "cardCount": N, "data": {...}}`
+The output is a JSON object: `{"mode": "<resolved>", "cardCount": N, "commands": [...], "data": {...}}`
 
 **Mode behaviors:**
 
-- **full** (`mode: "full"`): `data` contains the complete card tree. Parse it into agent memory as the full card state. This is equivalent to the old Read tool approach.
-- **index** (`mode: "index"`): `data` contains a lightweight index (titles, IDs, child counts — no bodies). Parse it for card awareness. When you need a card's body content, use `node .claude/burrow/burrow-tools.cjs read <id> --full` to fetch it on demand (lazy body-fetching pattern).
-- **none** (`mode: "none"`): No `data` field. `cardCount` tells you how many cards exist. Skip loading entirely — cards are available on demand via `burrow read` or `/burrow`. Note this to yourself and proceed.
-- **auto**: Resolves to `full` or `index` based on file size vs threshold. The `mode` field reflects the resolved choice — handle it as full or index accordingly.
+- **full**: `data` contains the complete card tree.
+- **index**: `data` contains a lightweight index (titles, IDs, child counts — no bodies). Fetch bodies on demand with `node .claude/burrow/burrow-tools.cjs read <id> --full`.
+- **none**: No `data` field. `cardCount` tells you how many cards exist.
+- **auto**: Resolves to full or index based on file size. The `mode` field reflects the resolved choice.
 
-**Skip if already loaded**: If the agent has already run `burrow load` in this conversation and no mutation has occurred since, skip this step.
-
-**After mutation**: Re-run `burrow load` to refresh agent memory (replaces the old "re-read cards.json" instruction).
-
-**Lazy body-fetching (index mode)**: In index mode, you have card titles and structure but not body content. When a user request requires a card's body (e.g., reading notes, quoting content), run `node .claude/burrow/burrow-tools.cjs read <id> --full` to get the full card. This keeps initial context lightweight while providing full access on demand.
+**After mutation**: Re-run `burrow load` to refresh agent memory.
 
 ### Step 2: THINK
 
@@ -124,7 +122,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: No request — intent is "show root view."
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs read`. Stop.
 
@@ -133,7 +131,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow a1b2c3d4`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: No request — intent is "show this card."
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs read a1b2c3d4`. Stop.
 
@@ -142,7 +140,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow how many cards have the letter K in the title?`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Scan in-memory tree for titles containing "K" or "k". Count: 7.
 3. EXECUTE: Respond with the answer directly. No CLI call needed.
 
@@ -151,7 +149,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow a1b2c3d4 how many children does this have?`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Count children in the loaded subtree.
 3. EXECUTE: Respond with the answer directly.
 
@@ -160,7 +158,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow add a card called OAuth bug under bugs`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "bugs" → `a1b2c3d4` "Bugs".
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "OAuth bug" --parent a1b2c3d4`. Then re-LOAD by running `burrow load` via Bash.
 
@@ -169,7 +167,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow move all the auth cards under security`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "auth" — finds 3 cards. Match "security" → `f1f2f3f4`.
 3. Confirm: "This will move 3 cards (Login flow, OAuth integration, Session handling) under Security. Proceed?"
 4. User confirms.
@@ -181,7 +179,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow archive the login card`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "login" — multiple matches:
    - `a1a1a1a1` Login page (Frontend)
    - `b2b2b2b2` Login bug (Bugs)
@@ -195,6 +193,6 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **User:** `/burrow add "Urgent fix" under bugs, make it first`
 
 **Agent behavior:**
-1. LOAD: Run `burrow load` via Bash (silent). Parse the JSON envelope.
+1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "bugs" -> `a1b2c3d4` "Bugs". "First" -> --at 0.
 3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "Urgent fix" --parent a1b2c3d4 --at 0`. Then re-LOAD.
