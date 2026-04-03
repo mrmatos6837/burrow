@@ -10,7 +10,7 @@ Burrow is an infinitely nestable card store for [Claude Code](https://claude.ai/
 >
 > "what's left under bugs? show me the details"
 
-You talk. The agent traverses, renders, and manipulates. One file, one source of truth, zero ceremony.
+You talk. The agent traverses, renders, and manipulates. One file, one source of truth, zero dependencies, zero ceremony.
 
 ## How it works
 
