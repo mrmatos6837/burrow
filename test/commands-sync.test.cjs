@@ -12,6 +12,7 @@ const {
   SLASH_COMMANDS,
   generateSlashCommand,
   generateHelpCommand,
+  generateUpdateCommand,
   commandsForEnvelope,
 } = require('../.claude/burrow/lib/commands.cjs');
 
@@ -91,9 +92,11 @@ describe('CLI switch cases match registry', () => {
 // ── Slash command generation ─────────────────────────────────────────────────
 
 describe('generated slash commands', () => {
-  it('generateSlashCommand produces valid frontmatter for each non-custom command', () => {
-    for (const cmd of SLASH_COMMANDS) {
-      if (cmd.custom) continue;
+  it('standard slash commands produce valid frontmatter and point to CLI', () => {
+    const standardCmds = SLASH_COMMANDS.filter(c => !c.custom);
+    assert.ok(standardCmds.length > 0, 'should have at least one standard command');
+
+    for (const cmd of standardCmds) {
       const content = generateSlashCommand(cmd);
       assert.ok(content, `${cmd.name}: generateSlashCommand returned null`);
       assert.ok(content.startsWith('---'), `${cmd.name}: should start with frontmatter`);
@@ -101,6 +104,31 @@ describe('generated slash commands', () => {
       assert.ok(content.includes(`description: ${cmd.desc}`), `${cmd.name}: should have correct description`);
       assert.ok(content.includes('allowed-tools:'), `${cmd.name}: should have allowed-tools`);
       assert.ok(content.includes('$ARGUMENTS'), `${cmd.name}: should include $ARGUMENTS placeholder`);
+    }
+  });
+
+  it('no standard slash command points to a non-existent CLI command', () => {
+    const cliNames = new Set(CLI_COMMANDS.map(c => c.name));
+    const standardCmds = SLASH_COMMANDS.filter(c => !c.custom);
+
+    for (const cmd of standardCmds) {
+      assert.ok(
+        cliNames.has(cmd.name),
+        `"${cmd.name}" uses standard template (points to burrow-tools.cjs ${cmd.name}) but is not a CLI command — mark it custom: true and add a dedicated generator`
+      );
+    }
+  });
+
+  it('every custom slash command has a working generator', () => {
+    const customCmds = SLASH_COMMANDS.filter(c => c.custom);
+    const generators = { help: generateHelpCommand, update: generateUpdateCommand };
+
+    for (const cmd of customCmds) {
+      const gen = generators[cmd.name];
+      assert.ok(gen, `custom command "${cmd.name}" has no generator — add one to commands.cjs and register it here`);
+      const content = gen();
+      assert.ok(content, `${cmd.name}: generator returned null/empty`);
+      assert.ok(content.includes(`name: burrow:${cmd.name}`), `${cmd.name}: should have correct name in frontmatter`);
     }
   });
 
@@ -132,6 +160,29 @@ describe('generated slash commands', () => {
           files.includes(`${cmd.name}.md`),
           `missing generated file: ${cmd.name}.md`
         );
+      }
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('every generated file contains valid frontmatter', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'burrow-slash-validate-'));
+    try {
+      generateSlashCommands(tmpDir);
+      const dir = path.join(tmpDir, '.claude', 'commands', 'burrow');
+
+      for (const cmd of SLASH_COMMANDS) {
+        const content = fs.readFileSync(path.join(dir, `${cmd.name}.md`), 'utf-8');
+        assert.ok(content.startsWith('---'), `${cmd.name}.md: should start with frontmatter`);
+        assert.ok(content.includes(`name: burrow:${cmd.name}`), `${cmd.name}.md: wrong name in frontmatter`);
+        // Non-help commands should point to either CLI or npx, not be empty
+        if (cmd.name !== 'help') {
+          assert.ok(
+            content.includes('Run:') || content.includes('run'),
+            `${cmd.name}.md: should contain a Run instruction`
+          );
+        }
       }
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });

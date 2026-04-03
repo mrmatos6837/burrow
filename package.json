@@ -1,6 +1,6 @@
 {
   "name": "create-burrow",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Infinitely nestable cards for AI agents. Persistent card-based memory for Claude Code.",
   "license": "MIT",
   "author": "mrmatos",
