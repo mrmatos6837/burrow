@@ -229,8 +229,16 @@ function writeSentinelBlock(claudeMdPath, blockContent) {
       atomicWriteFile(claudeMdPath, `${before}${newBlock}`);
     }
   } else {
-    // Append to end
-    const trimmed = existingContent.trimEnd();
+    let content = existingContent;
+
+    // Remove legacy ## Burrow section if present (replaced by sentinel block)
+    const legacyMatch = content.match(/(?:^|\n)(<!-- Agent instructions for Burrow[^\n]*\n)?## Burrow[\s\S]*$/);
+    if (legacyMatch) {
+      content = content.slice(0, legacyMatch.index);
+    }
+
+    // Append sentinel block
+    const trimmed = content.trimEnd();
     const separator = trimmed.length > 0 ? `${eol}${eol}` : '';
     atomicWriteFile(claudeMdPath, `${trimmed}${separator}${newBlock}${eol}`);
   }

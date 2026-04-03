@@ -7,6 +7,7 @@
 - CommonJS (.cjs) throughout
 - Tests: node --test test/*.test.cjs
 
+<!-- burrow:start -->
 <!-- Agent instructions for Burrow. User docs: /burrow:help or https://www.npmjs.com/package/create-burrow -->
 ## Burrow — Agent Memory
 
@@ -17,3 +18,4 @@ Persistent card storage across sessions. All operations use the CLI (`burrow` be
 **Auto-save:** When the user says "remember", "don't forget", "always do X", "note this", "save this", "keep track of", "burrow this", or similar intent to persist information — run `burrow add --title "<summary>" --body "<details>"` and organize under relevant parents.
 
 **Rules:** Data is committed to git — no secrets or credentials. Never edit cards.json directly; all mutations go through the CLI.
+<!-- burrow:end -->
