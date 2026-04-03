@@ -1,11 +1,11 @@
 ---
 name: burrow:path
-description: Show ancestry path from root to a card
+description: Show ancestry from root to card
 argument-hint: "<id>"
 allowed-tools:
   - Bash
 ---
-Show the ancestry path for the given card.
+Show the ancestry path from root to a card.
 
 Run: `node .claude/burrow/burrow-tools.cjs path $ARGUMENTS`
 

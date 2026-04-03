@@ -7,6 +7,7 @@ const readline = require('node:readline');
 
 const {
   generateSnippet,
+  generateSlashCommands,
   detect,
   performInstall,
   performUpgrade,
@@ -501,6 +502,12 @@ async function runRepair({ sourceDir, targetDir, yes, detection }) {
 
   const results = performRepair(sourceDir, targetDir, missing);
   printInstallResults(results);
+
+  // Regenerate slash commands if the commands directory was missing
+  if (missing.includes('.claude/commands/burrow')) {
+    generateSlashCommands(targetDir);
+    ok('.claude/commands/burrow/ (slash commands regenerated)');
+  }
 
   console.log('\n  Repair complete.\n');
 }

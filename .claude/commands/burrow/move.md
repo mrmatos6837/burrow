@@ -1,11 +1,11 @@
 ---
 name: burrow:move
-description: Move a card to a different parent
+description: Move card to a different parent
 argument-hint: "<id> --to <parent-id> [--at N]"
 allowed-tools:
   - Bash
 ---
-Move a burrow card to a new parent.
+Move a burrow card to a different parent.
 
 Run: `node .claude/burrow/burrow-tools.cjs move $ARGUMENTS`
 

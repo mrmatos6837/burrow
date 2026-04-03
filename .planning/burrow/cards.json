@@ -1477,6 +1477,22 @@
       "archived": false,
       "body": "Silent behavior is fine — what matters is that the user was told it would happen and had the chance to consent or opt out. Every feature that changes how Claude behaves must: (1) be clearly communicated during installation, (2) give the user a way to turn it off, (3) never surprise the user with something they didn't know was happening. It's not about avoiding automation — it's about managing expectations and respecting the user's agency over their own machine.",
       "children": []
+    },
+    {
+      "id": "be1f9dbd",
+      "title": "Version bump checklist",
+      "created": "2026-04-03T13:25:04.618Z",
+      "archived": false,
+      "body": "When bumping version: (1) VERSION file, (2) package.json via npm version X.Y.Z --no-git-tag-version. Both must be updated together.",
+      "children": []
+    },
+    {
+      "id": "be70a563",
+      "title": "Only tag/version on explicit approval",
+      "created": "2026-04-03T14:21:20.139Z",
+      "archived": false,
+      "body": "Do not create git tags or bump versions automatically. Multiple commits can go into one version. Always ask before tagging or bumping.",
+      "children": []
     }
   ]
 }

@@ -18,9 +18,9 @@ Every `/burrow` invocation follows this sequence. No exceptions.
 
 ### Step 1: LOAD (silent, only if needed)
 
-If you already have card data in memory from session start (via CLAUDE.md auto-load) and no mutation has occurred since, **skip this step**.
+If you already have card data in memory (from session start or a previous invocation), **skip this step**.
 
-Otherwise, run `burrow load` via the Bash tool:
+Only run `burrow load` if you have no card data yet (e.g., first invocation when loadMode=none):
 
 ```
 node .claude/burrow/burrow-tools.cjs load
@@ -34,8 +34,6 @@ The output is a JSON object: `{"mode": "<resolved>", "cardCount": N, "commands":
 - **index**: `data` contains a lightweight index (titles, IDs, child counts — no bodies). Fetch bodies on demand with `node .claude/burrow/burrow-tools.cjs read <id> --full`.
 - **none**: No `data` field. `cardCount` tells you how many cards exist.
 - **auto**: Resolves to full or index based on file size. The `mode` field reflects the resolved choice.
-
-**After mutation**: Re-run `burrow load` to refresh agent memory.
 
 ### Step 2: THINK
 
@@ -52,7 +50,7 @@ Using the loaded tree, interpret the user's request.
 Perform the action.
 
 - **For views**: Run `read [id]` (pretty-print). Say nothing after — the output is the presentation.
-- **For mutations** (add, edit, remove, move, archive, unarchive): Run the CLI command, then one-line confirmation. After mutation, re-LOAD by running `burrow load` via Bash to sync agent memory.
+- **For mutations** (add, edit, remove, move, archive, unarchive): Run the CLI command, then one-line confirmation. Update your in-memory tree to reflect the change — no need to re-load.
 - **For questions/analysis**: Respond with the answer directly. No CLI call needed.
 - **For multi-step operations**: Run all mutations in a single Bash call by chaining with `&&`, summarize changes in plain English, then run one `read` to show end state.
 - **For bulk operations**: Confirm before executing. Example: "This will archive 5 cards under 'bugs'. Proceed?"
@@ -160,7 +158,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **Agent behavior:**
 1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "bugs" → `a1b2c3d4` "Bugs".
-3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "OAuth bug" --parent a1b2c3d4`. Then re-LOAD by running `burrow load` via Bash.
+3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "OAuth bug" --parent a1b2c3d4`.
 
 ### Example 6: Multi-step operation
 
@@ -172,7 +170,7 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 3. Confirm: "This will move 3 cards (Login flow, OAuth integration, Session handling) under Security. Proceed?"
 4. User confirms.
 5. EXECUTE: Run each move command. Summarize: "Moved 3 cards under Security."
-6. Re-LOAD by running `burrow load` via Bash. Run `read f1f2f3f4 --depth 2` to show end state.
+6. Run `read f1f2f3f4 --depth 2` to show end state.
 
 ### Example 7: Ambiguity resolution
 
@@ -195,4 +193,4 @@ Functional and terse. No personality, no burrow metaphors, no excessive commenta
 **Agent behavior:**
 1. LOAD: Skip if cards already in memory, otherwise run `burrow load` via Bash.
 2. THINK: Match "bugs" -> `a1b2c3d4` "Bugs". "First" -> --at 0.
-3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "Urgent fix" --parent a1b2c3d4 --at 0`. Then re-LOAD.
+3. EXECUTE: Run `node .claude/burrow/burrow-tools.cjs add --title "Urgent fix" --parent a1b2c3d4 --at 0`.

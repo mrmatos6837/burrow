@@ -89,6 +89,44 @@ describe('CLI switch cases match registry', () => {
   });
 });
 
+// ── Workflow command reference sync ──────────────────────────────────────────
+
+describe('workflow command reference matches registry', () => {
+  it('every CLI command appears in the workflow command table', () => {
+    const workflow = fs.readFileSync(
+      path.join(__dirname, '..', '.claude', 'burrow', 'workflows', 'burrow.md'),
+      'utf-8'
+    );
+
+    for (const cmd of CLI_COMMANDS) {
+      assert.ok(
+        workflow.includes(`| ${cmd.name} `),
+        `workflow command table missing "${cmd.name}" — update the table in workflows/burrow.md`
+      );
+    }
+  });
+
+  it('every command in the workflow table has a CLI_COMMAND entry', () => {
+    const workflow = fs.readFileSync(
+      path.join(__dirname, '..', '.claude', 'burrow', 'workflows', 'burrow.md'),
+      'utf-8'
+    );
+
+    // Extract command names from table rows (skip header and separator)
+    const tableRowRegex = /^\| (\w+) \|/gm;
+    const cliNames = new Set(CLI_COMMANDS.map(c => c.name));
+    let match;
+
+    while ((match = tableRowRegex.exec(workflow)) !== null) {
+      if (match[1] === 'Command') continue; // skip header
+      assert.ok(
+        cliNames.has(match[1]),
+        `workflow table has "${match[1]}" but it's not in CLI_COMMANDS — remove it or add it to commands.cjs`
+      );
+    }
+  });
+});
+
 // ── Slash command generation ─────────────────────────────────────────────────
 
 describe('generated slash commands', () => {

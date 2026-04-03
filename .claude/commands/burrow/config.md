@@ -1,6 +1,6 @@
 ---
 name: burrow:config
-description: Manage burrow settings
+description: Manage settings
 argument-hint: "list | get <key> | set <key> <value>"
 allowed-tools:
   - Bash

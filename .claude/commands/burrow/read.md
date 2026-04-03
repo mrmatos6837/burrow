@@ -1,6 +1,6 @@
 ---
 name: burrow:read
-description: View cards in burrow
+description: View a card (default depth 1)
 argument-hint: "[<id>] [--depth N] [--full] [--include-archived] [--archived-only]"
 allowed-tools:
   - Bash

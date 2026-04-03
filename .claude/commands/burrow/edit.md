@@ -1,7 +1,7 @@
 ---
 name: burrow:edit
-description: Edit a card's title or body
-argument-hint: "<id> [--title \"new title\"] [--body \"new body\"]"
+description: Modify a card
+argument-hint: "<id> [--title "new title"] [--body "new body"]"
 allowed-tools:
   - Bash
 ---

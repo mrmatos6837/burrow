@@ -1,7 +1,7 @@
 ---
 name: burrow:add
-description: Add a new card to burrow
-argument-hint: "--title \"card title\" [--parent <id>] [--body \"content\"]"
+description: Create a card
+argument-hint: "--title "card title" [--parent <id>] [--body "content"]"
 allowed-tools:
   - Bash
 ---

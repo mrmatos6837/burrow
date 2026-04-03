@@ -1,6 +1,6 @@
 ---
 name: burrow:archive
-description: Archive a card and its descendants
+description: Archive card and descendants
 argument-hint: "<id>"
 allowed-tools:
   - Bash

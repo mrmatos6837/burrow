@@ -1,6 +1,6 @@
 ---
 name: burrow:remove
-description: Delete a card and its descendants
+description: Delete card and descendants (confirm first)
 argument-hint: "<id>"
 allowed-tools:
   - Bash

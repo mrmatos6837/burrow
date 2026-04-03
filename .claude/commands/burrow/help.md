@@ -11,19 +11,19 @@ Output the following command reference:
 | Command | Description |
 |---------|-------------|
 | `/burrow [request]` | Natural language -- describe what you want |
-| `/burrow:read [id] [--depth N]` | View cards (root at depth 1 if no args) |
-| `/burrow:add --title "..." [--parent id] [--body "..."]` | Add a card |
-| `/burrow:edit id [--title "..."] [--body "..."]` | Edit a card |
-| `/burrow:move id --to parent-id` | Move a card |
-| `/burrow:remove id` | Remove a card (with confirmation) |
-| `/burrow:archive id` | Archive a card |
-| `/burrow:unarchive id` | Restore an archived card |
-| `/burrow:dump` | Full tree view (all depths) |
+| `/burrow:add --title "card title" [--parent <id>] [--body "content"]` | Create a card |
+| `/burrow:edit <id> [--title "new title"] [--body "new body"]` | Modify a card |
+| `/burrow:remove <id>` | Delete card and descendants (confirm first) |
+| `/burrow:move <id> --to <parent-id> [--at N]` | Move card to a different parent |
+| `/burrow:read [<id>] [--depth N] [--full] [--include-archived] [--archived-only]` | View a card (default depth 1) |
 | `/burrow:find <query>` | Search cards by title |
-| `/burrow:path <id>` | Show ancestry path from root to card |
-| `/burrow:config list\|get\|set` | Manage burrow settings |
-| `/burrow:index [--depth N] [--json]` | Lightweight tree summary |
-| `/burrow:update` | Update burrow to latest version |
+| `/burrow:archive <id>` | Archive card and descendants |
+| `/burrow:unarchive <id>` | Restore archived card and descendants |
+| `/burrow:dump ` | Show full tree (alias for read --depth 0) |
+| `/burrow:path <id>` | Show ancestry from root to card |
+| `/burrow:index [--depth N] [--include-archived] [--json]` | Lightweight tree summary (IDs, titles, counts) |
+| `/burrow:config list | get <key> | set <key> <value>` | Manage settings |
+| `/burrow:update ` | Update burrow to the latest version |
 | `/burrow:help` | This reference |
 
 ### Examples

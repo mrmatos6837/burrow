@@ -1,11 +1,11 @@
 ---
 name: burrow:index
-description: Show lightweight tree index
+description: Lightweight tree summary (IDs, titles, counts)
 argument-hint: "[--depth N] [--include-archived] [--json]"
 allowed-tools:
   - Bash
 ---
-Show a lightweight tree index (IDs, titles, child counts).
+Show a lightweight tree summary.
 
 Run: `node .claude/burrow/burrow-tools.cjs index $ARGUMENTS`
 
